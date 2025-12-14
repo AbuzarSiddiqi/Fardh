@@ -2977,6 +2977,7 @@ audio::-webkit-media-controls-panel {
     color: var(--text-muted);
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -3202,34 +3203,243 @@ audio::-webkit-media-controls-panel {
 }
 
 /* ===========================================
-   DUA TAB - Categories, List & Detail
+   DUA TAB - Glassmorphism Redesign
    =========================================== */
 
-/* Dua Categories Grid */
-.dua-categories {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
+/* Background blur effects */
+.dua-blur-circle {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
 }
 
-.dua-category-card {
+.dua-blur-1 {
+    top: -20%;
+    left: -20%;
+    width: 600px;
+    height: 600px;
+    background: rgba(16, 185, 129, 0.15);
+    filter: blur(120px);
+    opacity: 0.6;
+}
+
+.dua-blur-2 {
+    bottom: -10%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: rgba(16, 185, 129, 0.08);
+    filter: blur(100px);
+    opacity: 0.5;
+}
+
+.dua-blur-3 {
+    top: 40%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: rgba(59, 130, 246, 0.08);
+    filter: blur(100px);
+    opacity: 0.4;
+}
+
+/* Dua Categories View */
+.dua-categories-view {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+}
+
+/* Sticky Header */
+.dua-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding: calc(env(safe-area-inset-top, 20px) + 1rem) var(--space-lg) var(--space-md);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 22, 16, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.dua-header-top {
     display: flex;
     align-items: center;
-    gap: var(--space-md);
-    padding: var(--space-md);
-    border-radius: var(--radius-xl);
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    backdrop-filter: blur(20px);
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+}
+
+.dua-header-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.dua-bookmark-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
-    transition: all var(--transition-base);
-    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.dua-bookmark-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--bg-primary);
+}
+
+.dua-bookmark-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+/* Search */
+.dua-search-container {
+    position: relative;
+}
+
+.dua-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+    transition: color 0.3s ease;
+}
+
+.dua-search-input {
+    width: 100%;
+    padding: 14px 16px 14px 42px;
+    border-radius: var(--radius-xl);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+}
+
+.dua-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.dua-search-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.dua-search-input:focus+.dua-search-icon,
+.dua-search-container:focus-within .dua-search-icon {
+    color: var(--primary);
+}
+
+/* Content area */
+.dua-content {
+    padding: var(--space-lg);
+    padding-bottom: calc(var(--nav-height) + 100px);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Section */
+.dua-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.dua-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+}
+
+.dua-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.dua-section-view-all {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--primary);
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.dua-section-view-all:hover {
+    color: rgba(16, 185, 129, 0.8);
+}
+
+/* Categories List */
+.dua-categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+/* Category Card */
+.dua-category-card {
+    position: relative;
+    border-radius: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 .dua-category-card:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--border-primary);
-    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.dua-category-card.expanded {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dua-category-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.dua-category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+}
+
+.dua-category-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
 }
 
 .dua-category-icon {
@@ -3238,15 +3448,23 @@ audio::-webkit-media-controls-panel {
     justify-content: center;
     width: 48px;
     height: 48px;
-    border-radius: var(--radius-lg);
-    background: var(--primary-light);
-    color: var(--primary);
-    flex-shrink: 0;
+    border-radius: var(--radius-xl);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.3s ease;
 }
 
-.dua-category-icon.gold {
-    background: var(--gold-glow);
-    color: var(--gold);
+.dua-category-icon.active {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.05) 100%);
+    border-color: rgba(255, 255, 255, 0.05);
+    color: var(--primary);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+.dua-category-card:hover .dua-category-icon {
+    color: var(--primary);
+    background: rgba(16, 185, 129, 0.1);
 }
 
 .dua-category-icon .material-symbols-outlined {
@@ -3254,27 +3472,180 @@ audio::-webkit-media-controls-panel {
 }
 
 .dua-category-info {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
-.dua-category-info h3 {
-    font-size: 1rem;
+.dua-category-name {
+    font-size: 1.125rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 2px;
+    transition: color 0.3s ease;
 }
 
-.dua-category-info p {
-    font-size: 0.8125rem;
-    color: var(--text-muted);
+.dua-category-card:hover .dua-category-name {
+    color: var(--primary);
+}
+
+.dua-category-count {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .dua-category-arrow {
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.dua-category-card:hover .dua-category-arrow {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.dua-category-expand-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    transition: transform 0.3s ease;
+}
+
+.dua-category-card.expanded .dua-category-expand-btn {
+    transform: rotate(180deg);
+}
+
+/* Category Items (Expandable) */
+.dua-category-items {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 12px 12px;
+}
+
+.dua-category-card.expanded .dua-category-items {
+    display: flex;
+}
+
+.dua-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dua-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dua-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dua-item-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.dua-item-tag {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.dua-item-tag.recommended {
+    color: rgba(16, 185, 129, 0.8);
+}
+
+.dua-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dua-item-play,
+.dua-item-open {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dua-item-play:hover,
+.dua-item-open:hover {
+    color: var(--primary);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.dua-item-play .material-symbols-outlined {
     font-size: 20px;
 }
 
-/* Dua List */
+.dua-item-play .material-symbols-outlined.fill {
+    font-variation-settings: 'FILL' 1;
+}
+
+.dua-item-open .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Gold icon variant */
+.dua-category-icon.gold {
+    background: linear-gradient(135deg, rgba(226, 179, 116, 0.2) 0%, rgba(226, 179, 116, 0.05) 100%);
+    border-color: rgba(226, 179, 116, 0.2);
+    color: var(--gold);
+    box-shadow: 0 0 20px rgba(226, 179, 116, 0.15);
+}
+
+/* Loading state */
+.dua-items-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.875rem;
+}
+
+.dua-items-loading .material-symbols-outlined.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Dua List (keep existing) */
 .dua-list {
     display: flex;
     flex-direction: column;
@@ -3312,6 +3683,7 @@ audio::-webkit-media-controls-panel {
     margin-bottom: var(--space-sm);
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

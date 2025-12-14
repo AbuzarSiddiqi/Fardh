@@ -410,70 +410,151 @@
 
             <!-- Dua Tab -->
             <section id="dua-tab" class="tab-content">
+                <!-- Background blur effects -->
+                <div class="dua-blur-circle dua-blur-1"></div>
+                <div class="dua-blur-circle dua-blur-2"></div>
+                <div class="dua-blur-circle dua-blur-3"></div>
+                
                 <!-- Dua Categories View -->
-                <div id="dua-categories-view">
-                    <header class="page-header">
-                        <h1 class="header-title">Dua & Dhikr</h1>
-                        <button class="icon-btn">
-                            <span class="material-symbols-outlined">favorite</span>
-                        </button>
-                    </header>
+                <div id="dua-categories-view" class="dua-categories-view">
+                    <!-- Sticky Header -->
+                    <div class="dua-header">
+                        <div class="dua-header-top">
+                            <h1 class="dua-header-title">Dua & Dhikr</h1>
+                            <button class="dua-bookmark-btn">
+                                <span class="material-symbols-outlined">bookmarks</span>
+                            </button>
+                        </div>
+                        <div class="dua-search-container">
+                            <span class="material-symbols-outlined dua-search-icon">search</span>
+                            <input type="text" id="dua-search-input" class="dua-search-input" placeholder="Search for Duas, Categories...">
+                        </div>
+                    </div>
 
-                    <div class="dua-categories section">
-                        <button class="dua-category-card" data-category="daily-dua">
-                            <div class="dua-category-icon">
-                                <span class="material-symbols-outlined">wb_sunny</span>
+                    <!-- Categories Content -->
+                    <div class="dua-content">
+                        <div class="dua-categories-list">
+                            <!-- Daily Duas -->
+                            <div class="dua-category-card" data-category="daily-dua">
+                                <div class="dua-category-header">
+                                    <div class="dua-category-left">
+                                        <div class="dua-category-icon">
+                                            <span class="material-symbols-outlined">wb_sunny</span>
+                                        </div>
+                                        <div class="dua-category-info">
+                                            <span class="dua-category-name">Daily Duas</span>
+                                            <span class="dua-category-count">Essential daily supplications</span>
+                                        </div>
+                                    </div>
+                                    <div class="dua-category-expand-btn">
+                                        <span class="material-symbols-outlined">expand_more</span>
+                                    </div>
+                                </div>
+                                <div class="dua-category-items">
+                                    <!-- Duas will be loaded dynamically -->
+                                    <div class="dua-items-loading">
+                                        <span class="material-symbols-outlined spinning">progress_activity</span>
+                                        <span>Loading duas...</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="dua-category-info">
-                                <h3>Daily Duas</h3>
-                                <p>Essential daily supplications</p>
-                            </div>
-                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
-                        </button>
 
-                        <button class="dua-category-card" data-category="morning-dhikr">
-                            <div class="dua-category-icon gold">
-                                <span class="material-symbols-outlined">light_mode</span>
+                            <!-- Morning Adhkar -->
+                            <div class="dua-category-card" data-category="morning-dhikr">
+                                <div class="dua-category-header">
+                                    <div class="dua-category-left">
+                                        <div class="dua-category-icon gold">
+                                            <span class="material-symbols-outlined">light_mode</span>
+                                        </div>
+                                        <div class="dua-category-info">
+                                            <span class="dua-category-name">Morning Adhkar</span>
+                                            <span class="dua-category-count">Start your day blessed</span>
+                                        </div>
+                                    </div>
+                                    <div class="dua-category-expand-btn">
+                                        <span class="material-symbols-outlined">expand_more</span>
+                                    </div>
+                                </div>
+                                <div class="dua-category-items">
+                                    <div class="dua-items-loading">
+                                        <span class="material-symbols-outlined spinning">progress_activity</span>
+                                        <span>Loading duas...</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="dua-category-info">
-                                <h3>Morning Adhkar</h3>
-                                <p>Start your day blessed</p>
-                            </div>
-                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
-                        </button>
 
-                        <button class="dua-category-card" data-category="evening-dhikr">
-                            <div class="dua-category-icon">
-                                <span class="material-symbols-outlined">dark_mode</span>
+                            <!-- Evening Adhkar -->
+                            <div class="dua-category-card" data-category="evening-dhikr">
+                                <div class="dua-category-header">
+                                    <div class="dua-category-left">
+                                        <div class="dua-category-icon">
+                                            <span class="material-symbols-outlined">dark_mode</span>
+                                        </div>
+                                        <div class="dua-category-info">
+                                            <span class="dua-category-name">Evening Adhkar</span>
+                                            <span class="dua-category-count">End your day in peace</span>
+                                        </div>
+                                    </div>
+                                    <div class="dua-category-expand-btn">
+                                        <span class="material-symbols-outlined">expand_more</span>
+                                    </div>
+                                </div>
+                                <div class="dua-category-items">
+                                    <div class="dua-items-loading">
+                                        <span class="material-symbols-outlined spinning">progress_activity</span>
+                                        <span>Loading duas...</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="dua-category-info">
-                                <h3>Evening Adhkar</h3>
-                                <p>End your day in peace</p>
-                            </div>
-                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
-                        </button>
 
-                        <button class="dua-category-card" data-category="dhikr-after-salah">
-                            <div class="dua-category-icon">
-                                <span class="material-symbols-outlined">mosque</span>
+                            <!-- After Salah -->
+                            <div class="dua-category-card" data-category="dhikr-after-salah">
+                                <div class="dua-category-header">
+                                    <div class="dua-category-left">
+                                        <div class="dua-category-icon">
+                                            <span class="material-symbols-outlined">mosque</span>
+                                        </div>
+                                        <div class="dua-category-info">
+                                            <span class="dua-category-name">After Salah</span>
+                                            <span class="dua-category-count">Dhikr after prayer</span>
+                                        </div>
+                                    </div>
+                                    <div class="dua-category-expand-btn">
+                                        <span class="material-symbols-outlined">expand_more</span>
+                                    </div>
+                                </div>
+                                <div class="dua-category-items">
+                                    <div class="dua-items-loading">
+                                        <span class="material-symbols-outlined spinning">progress_activity</span>
+                                        <span>Loading duas...</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="dua-category-info">
-                                <h3>After Salah</h3>
-                                <p>Dhikr after prayer</p>
-                            </div>
-                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
-                        </button>
 
-                        <button class="dua-category-card" data-category="selected-dua">
-                            <div class="dua-category-icon gold">
-                                <span class="material-symbols-outlined">star</span>
+                            <!-- Selected Duas -->
+                            <div class="dua-category-card" data-category="selected-dua">
+                                <div class="dua-category-header">
+                                    <div class="dua-category-left">
+                                        <div class="dua-category-icon gold">
+                                            <span class="material-symbols-outlined">star</span>
+                                        </div>
+                                        <div class="dua-category-info">
+                                            <span class="dua-category-name">Selected Duas</span>
+                                            <span class="dua-category-count">Popular supplications</span>
+                                        </div>
+                                    </div>
+                                    <div class="dua-category-expand-btn">
+                                        <span class="material-symbols-outlined">expand_more</span>
+                                    </div>
+                                </div>
+                                <div class="dua-category-items">
+                                    <div class="dua-items-loading">
+                                        <span class="material-symbols-outlined spinning">progress_activity</span>
+                                        <span>Loading duas...</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="dua-category-info">
-                                <h3>Selected Duas</h3>
-                                <p>Popular supplications</p>
-                            </div>
-                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
-                        </button>
+                        </div>
                     </div>
                 </div>
 
@@ -494,7 +575,7 @@
                 <!-- Dua Detail View -->
                 <div id="dua-detail-view" class="feature-view hidden">
                     <div class="feature-header">
-                        <button class="icon-btn back-to-dua-list">
+                        <button class="icon-btn back-to-dua-categories">
                             <span class="material-symbols-outlined">arrow_back_ios_new</span>
                         </button>
                         <h2 class="feature-title" id="dua-detail-title">Dua</h2>

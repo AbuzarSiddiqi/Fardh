@@ -1677,39 +1677,148 @@ const duaState = {
 };
 
 function initDuaTab() {
-    // Category card click handlers
-    document.querySelectorAll('.dua-category-card').forEach(card => {
-        card.addEventListener('click', () => {
+    // Category header click handlers (for expand/collapse)
+    document.querySelectorAll('.dua-category-header').forEach(header => {
+        header.addEventListener('click', async (e) => {
+            const card = header.closest('.dua-category-card');
+            if (!card) return;
+
             const category = card.dataset.category;
-            loadDuaCategory(category);
+            const isExpanded = card.classList.contains('expanded');
+
+            if (isExpanded) {
+                // Collapse
+                card.classList.remove('expanded');
+            } else {
+                // Expand and load data
+                card.classList.add('expanded');
+                await loadDuasIntoCategory(category, card);
+            }
         });
     });
 
-    // Back navigation
-    document.querySelector('.back-to-dua-categories')?.addEventListener('click', showDuaCategories);
-    document.querySelector('.back-to-dua-list')?.addEventListener('click', () => {
-        showDuaListView();
+    // Search functionality
+    const searchInput = document.getElementById('dua-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            filterDuaCategories(query);
+        });
+    }
+
+    // Back navigation - attach to all back buttons
+    document.querySelectorAll('.back-to-dua-categories').forEach(btn => {
+        btn.addEventListener('click', showDuaCategories);
+    });
+}
+
+// Load duas into the expandable section of a category card
+async function loadDuasIntoCategory(category, card) {
+    const itemsContainer = card.querySelector('.dua-category-items');
+    if (!itemsContainer) return;
+
+    // Check if already loaded
+    if (itemsContainer.querySelector('.dua-item')) {
+        return; // Already has items
+    }
+
+    const categoryInfo = duaState.categories[category];
+    if (!categoryInfo) return;
+
+    try {
+        // Load data if not cached
+        if (!categoryInfo.data) {
+            const response = await fetch(`./islamic_data/dua-dhikr/${category}/en.json`);
+            categoryInfo.data = await response.json();
+        }
+
+        // Render duas as expandable items
+        const duas = categoryInfo.data;
+        itemsContainer.innerHTML = duas.map((dua, index) => `
+            <div class="dua-item" data-category="${category}" data-dua-index="${index}">
+                <div class="dua-item-info">
+                    <span class="dua-item-title">${dua.name || dua.title || `Dua ${index + 1}`}</span>
+                    ${dua.reference ? `<span class="dua-item-tag">${dua.reference}</span>` : ''}
+                </div>
+                <div class="dua-item-actions">
+                    <button class="dua-item-open">
+                        <span class="material-symbols-outlined">arrow_forward_ios</span>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        // Add click handlers to new items
+        itemsContainer.querySelectorAll('.dua-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const duaIndex = parseInt(item.dataset.duaIndex);
+                const cat = item.dataset.category;
+                openDuaDetail(cat, duaIndex);
+            });
+        });
+
+        // Update count
+        const countEl = card.querySelector('.dua-category-count');
+        if (countEl) {
+            countEl.textContent = `${duas.length} Duas`;
+        }
+
+    } catch (error) {
+        console.error('Error loading duas:', error);
+        itemsContainer.innerHTML = `
+            <div class="dua-items-loading">
+                <span>Failed to load duas</span>
+            </div>
+        `;
+    }
+}
+
+// Open dua detail view
+function openDuaDetail(category, index) {
+    const categoryInfo = duaState.categories[category];
+    if (!categoryInfo || !categoryInfo.data) return;
+
+    const dua = categoryInfo.data[index];
+    if (!dua) return;
+
+    duaState.currentCategory = category;
+    duaState.currentDua = dua;
+
+    showDuaDetail(dua);
+}
+
+// Filter dua categories based on search query
+function filterDuaCategories(query) {
+    const cards = document.querySelectorAll('.dua-category-card');
+
+    cards.forEach(card => {
+        const name = card.querySelector('.dua-category-name')?.textContent.toLowerCase() || '';
+        const count = card.querySelector('.dua-category-count')?.textContent.toLowerCase() || '';
+
+        if (name.includes(query) || count.includes(query)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
     });
 }
 
 function showDuaCategories() {
-    document.querySelectorAll('#dua-tab > div').forEach(view => {
-        view.classList.add('hidden');
-    });
+    // Hide list and detail views, show categories view
+    document.getElementById('dua-list-view')?.classList.add('hidden');
+    document.getElementById('dua-detail-view')?.classList.add('hidden');
     document.getElementById('dua-categories-view')?.classList.remove('hidden');
 }
 
 function showDuaListView() {
-    document.querySelectorAll('#dua-tab > div').forEach(view => {
-        view.classList.add('hidden');
-    });
+    document.getElementById('dua-categories-view')?.classList.add('hidden');
+    document.getElementById('dua-detail-view')?.classList.add('hidden');
     document.getElementById('dua-list-view')?.classList.remove('hidden');
 }
 
 function showDuaDetailView() {
-    document.querySelectorAll('#dua-tab > div').forEach(view => {
-        view.classList.add('hidden');
-    });
+    document.getElementById('dua-categories-view')?.classList.add('hidden');
+    document.getElementById('dua-list-view')?.classList.add('hidden');
     document.getElementById('dua-detail-view')?.classList.remove('hidden');
 }
 
@@ -3352,7 +3461,7 @@ function getInternalViewInfo() {
         const duaListView = document.getElementById('dua-list-view');
         const duaCategoriesView = document.getElementById('dua-categories-view');
 
-        // Deepest level: Dua Detail View -> go back to Dua List
+        // Deepest level: Dua Detail View -> go back to Categories (skip list)
         if (duaDetailView && !duaDetailView.classList.contains('hidden')) {
             return {
                 tab: 'dua',
@@ -3361,7 +3470,7 @@ function getInternalViewInfo() {
                     duaDetailView.classList.add('slide-out-right');
                     setTimeout(() => {
                         duaDetailView.classList.remove('slide-out-right');
-                        showDuaListView();
+                        showDuaCategories();
                     }, 250);
                 }
             };
