@@ -3,14 +3,20 @@
  * QURAN PWA - Service Worker
  * ============================================
  * 
+ * IMPORTANT: Update APP_VERSION when deploying new code!
+ * This forces the service worker to update and clear old caches.
+ * 
  * Caching strategies:
- * - Static assets (HTML, CSS, JS, icons): Cache-first
+ * - Static assets (HTML, CSS, JS): Stale-while-revalidate
+ * - Icons/images: Cache-first
  * - API calls: Network-first with cache fallback
  * ============================================
  */
 
-const CACHE_NAME = 'quran-pwa-v1';
-const STATIC_CACHE = 'quran-static-v1';
+// ⚠️ UPDATE THIS VERSION NUMBER WHEN YOU MAKE CHANGES!
+const APP_VERSION = '2.0.0';
+const CACHE_NAME = `quran-pwa-${APP_VERSION}`;
+const STATIC_CACHE = `quran-static-${APP_VERSION}`;
 const API_CACHE = 'quran-api-v1';
 
 // Static assets to cache on install
@@ -30,9 +36,12 @@ const STATIC_ASSETS = [
     './icons/icon-512x512.png'
 ];
 
+// Assets that should always be fetched fresh (code files)
+const ALWAYS_FRESH = ['index.html', 'styles.css', 'app.js'];
+
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-    console.log('[Service Worker] Installing...');
+    console.log(`[Service Worker] Installing version ${APP_VERSION}...`);
 
     event.waitUntil(
         caches.open(STATIC_CACHE)
@@ -42,6 +51,7 @@ self.addEventListener('install', (event) => {
             })
             .then(() => {
                 console.log('[Service Worker] Static assets cached');
+                // Skip waiting to activate immediately
                 return self.skipWaiting();
             })
             .catch((error) => {
@@ -50,9 +60,9 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up ALL old caches when version changes
 self.addEventListener('activate', (event) => {
-    console.log('[Service Worker] Activating...');
+    console.log(`[Service Worker] Activating version ${APP_VERSION}...`);
 
     event.waitUntil(
         caches.keys()
@@ -60,6 +70,7 @@ self.addEventListener('activate', (event) => {
                 return Promise.all(
                     cacheNames
                         .filter((name) => {
+                            // Delete any cache that isn't the current version (except API cache)
                             return name !== STATIC_CACHE && name !== API_CACHE;
                         })
                         .map((name) => {
@@ -69,8 +80,17 @@ self.addEventListener('activate', (event) => {
                 );
             })
             .then(() => {
-                console.log('[Service Worker] Now active');
+                console.log('[Service Worker] Now active, taking control of all clients');
+                // Take control of all clients immediately
                 return self.clients.claim();
+            })
+            .then(() => {
+                // Notify all clients about the update
+                return self.clients.matchAll().then(clients => {
+                    clients.forEach(client => {
+                        client.postMessage({ type: 'SW_UPDATED', version: APP_VERSION });
+                    });
+                });
             })
     );
 });
@@ -86,14 +106,64 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Handle API requests (network-first)
-    if (url.hostname === 'api.alquran.cloud') {
+    if (url.hostname === 'api.alquran.cloud' || url.hostname === 'api.aladhan.com') {
         event.respondWith(networkFirst(request, API_CACHE));
         return;
     }
 
-    // Handle static assets (cache-first)
+    // For HTML, CSS, JS files - use stale-while-revalidate (show cached but fetch fresh in background)
+    const fileName = url.pathname.split('/').pop() || 'index.html';
+    if (ALWAYS_FRESH.some(f => fileName.includes(f))) {
+        event.respondWith(staleWhileRevalidate(request, STATIC_CACHE));
+        return;
+    }
+
+    // Handle other static assets (cache-first)
     event.respondWith(cacheFirst(request, STATIC_CACHE));
 });
+
+/**
+ * Stale-while-revalidate strategy
+ * Return cached response immediately, but fetch fresh in background
+ * This ensures users see updates quickly on next page load
+ */
+async function staleWhileRevalidate(request, cacheName) {
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+
+    // Fetch fresh version in background
+    const fetchPromise = fetch(request).then((networkResponse) => {
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+    }).catch(() => {
+        // Network failed, that's ok - we have cache
+        return null;
+    });
+
+    // Return cached response immediately if available
+    if (cachedResponse) {
+        return cachedResponse;
+    }
+
+    // No cache, wait for network
+    try {
+        const networkResponse = await fetchPromise;
+        if (networkResponse) {
+            return networkResponse;
+        }
+    } catch (error) {
+        // Ignore
+    }
+
+    // Fallback for HTML
+    if (request.destination === 'document') {
+        return caches.match('./index.html');
+    }
+
+    return new Response('Offline', { status: 503 });
+}
 
 /**
  * Cache-first strategy
