@@ -2102,14 +2102,14 @@ h3 {
     border-right: 1px solid rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(50px);
     -webkit-backdrop-filter: blur(50px);
-    box-shadow: 
+    box-shadow:
         0 25px 50px -12px rgba(0, 0, 0, 0.5),
         inset 0 0 20px rgba(255, 255, 255, 0.02);
     transition: all 0.7s;
 }
 
 .loader-glass-card:hover {
-    box-shadow: 
+    box-shadow:
         0 0 20px rgba(16, 185, 129, 0.6),
         0 25px 50px -12px rgba(0, 0, 0, 0.5),
         inset 0 0 20px rgba(255, 255, 255, 0.02);
@@ -2247,14 +2247,14 @@ h3 {
 /* Quote Card */
 .loader-quote-card {
     position: absolute;
-    bottom: 4rem;
+    bottom: env(safe-area-inset-bottom, 2rem);
     left: 50%;
     transform: translateX(-50%);
-    width: calc(100% - 3rem);
-    max-width: 320px;
-    padding: 1.5rem;
+    width: calc(100% - 2rem);
+    max-width: 340px;
+    padding: 1.25rem;
     border-radius: 1rem;
-    background: rgba(10, 20, 15, 0.6);
+    background: rgba(10, 20, 15, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-top-color: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
@@ -2265,6 +2265,8 @@ h3 {
     animation: fade-in-up 1s ease-out forwards;
     animation-delay: 0.3s;
     opacity: 0;
+    overflow: hidden;
+    margin-bottom: 1rem;
 }
 
 .loader-quote-corner {
@@ -2314,12 +2316,14 @@ h3 {
 
 .loader-quote-text {
     color: rgba(255, 255, 255, 0.9);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     line-height: 1.6;
     font-weight: 300;
     font-style: italic;
     font-family: serif;
     opacity: 0.9;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .loader-quote-mark {
@@ -2352,43 +2356,97 @@ h3 {
 
 /* Loader Animations */
 @keyframes pulse-slow {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-12px);
+    }
 }
 
 @keyframes spin-slower {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes spin-reverse-slow {
-    from { transform: rotate(360deg); }
-    to { transform: rotate(0deg); }
+    from {
+        transform: rotate(360deg);
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
 }
 
 @keyframes ripple-out {
-    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; border-width: 1px; }
-    100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; border-width: 0px; }
+    0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.6;
+        border-width: 1px;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(2.5);
+        opacity: 0;
+        border-width: 0px;
+    }
 }
 
 @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 @keyframes book-breathe {
-    0%, 100% { filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.3)); transform: scale(1); }
-    50% { filter: drop-shadow(0 0 45px rgba(52, 211, 153, 0.6)); transform: scale(1.08); }
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.3));
+        transform: scale(1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 45px rgba(52, 211, 153, 0.6));
+        transform: scale(1.08);
+    }
 }
 
 @keyframes fade-in-up {
-    0% { opacity: 0; transform: translateY(20px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Keep the spinner for backward compatibility */
