@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <!--
+    ============================================
+    QURAN PWA - Premium Dark Theme
+    ============================================
+    
+    HOW TO RUN LOCALLY:
+    1. Open terminal and navigate to this folder
+    2. Run: python3 -m http.server 8000
+    3. Open http://localhost:8000 in your browser
+    
+    HOW TO TEST PWA INSTALLATION:
+    1. Open Chrome DevTools (F12)
+    2. Go to Application → Manifest
+    3. Go to Application → Service Workers
+    4. Look for install button in address bar
+    ============================================
+    -->
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Read and listen to the Holy Quran anywhere, anytime.">
+    <meta name="theme-color" content="#102218">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Quran">
+    
+    <title>Quran PWA</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.webmanifest">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-pattern"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- App Container -->
+    <div class="app-container">
+        <!-- Install Banner -->
+        <div id="install-banner" class="install-banner hidden">
+            <p>📱 Install Quran PWA</p>
+            <div class="install-actions">
+                <button id="install-btn" class="btn btn-sm" style="background: var(--bg-dark); color: var(--primary);">Install</button>
+                <button id="install-dismiss" class="btn btn-sm" style="background: transparent; color: var(--bg-dark);">✕</button>
+            </div>
+        </div>
+
+        <!-- Offline Indicator -->
+        <div id="offline-indicator" class="offline-indicator hidden">
+            ⚠️ You're offline
+        </div>
+
+        <!-- Loading Overlay - Premium Loader -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <!-- Background Effects -->
+            <div class="loader-glow loader-glow-1"></div>
+            <div class="loader-glow loader-glow-2"></div>
+            <div class="loader-glow loader-glow-3"></div>
+            
+            <!-- Main Loader Content -->
+            <div class="loader-content">
+                <!-- Animated Icon Section -->
+                <div class="loader-icon-section">
+                    <!-- Ripple Effects -->
+                    <div class="loader-ripple"></div>
+                    <div class="loader-ripple loader-ripple-delayed"></div>
+                    
+                    <!-- Icon Container -->
+                    <div class="loader-icon-container">
+                        <!-- Orbiting Rings -->
+                        <div class="loader-orbit loader-orbit-outer"></div>
+                        <div class="loader-orbit loader-orbit-inner"></div>
+                        
+                        <!-- Glass Card with Icon -->
+                        <div class="loader-glass-card">
+                            <div class="loader-gradient-overlay"></div>
+                            <span class="material-symbols-outlined loader-book-icon">menu_book</span>
+                            <div class="loader-shimmer"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Title Section -->
+                <div class="loader-title-section">
+                    <h1 class="loader-title">Al-Quran</h1>
+                    <div class="loader-subtitle-wrapper">
+                        <div class="loader-subtitle-line"></div>
+                        <p class="loader-subtitle">Recite & Listen</p>
+                        <div class="loader-subtitle-line"></div>
+                    </div>
+                </div>
+                
+                <!-- Progress Section -->
+                <div class="loader-progress-section">
+                    <div class="loader-progress-track">
+                        <div class="loader-progress-fill"></div>
+                        <div class="loader-progress-glow"></div>
+                    </div>
+                    <div class="loader-progress-labels">
+                        <span class="loader-progress-text">Loading Experience</span>
+                        <span class="loader-progress-dots">...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quote Card -->
+            <div class="loader-quote-card">
+                <div class="loader-quote-corner loader-quote-corner-tl"></div>
+                <div class="loader-quote-corner loader-quote-corner-br"></div>
+                <div class="loader-quote-icon">
+                    <span class="material-symbols-outlined">format_quote</span>
+                </div>
+                <div class="loader-quote-content">
+                    <p class="loader-quote-text">
+                        <span class="loader-quote-mark">"</span>Indeed, It is We who have sent down the Qur'an and indeed, We will be its guardian.<span class="loader-quote-mark">"</span>
+                    </p>
+                    <div class="loader-quote-reference">
+                        <span class="loader-quote-line"></span>
+                        <span class="loader-quote-surah">Surah Al-Hijr 15:9</span>
+                        <span class="loader-quote-line"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Home Tab -->
+            <section id="home-tab" class="tab-content active">
+                <!-- Header -->
+                <header class="page-header">
+                    <div>
+                        <h1 class="header-title">Assalamu alaikum</h1>
+                        <p class="header-subtitle">Welcome back</p>
+                    </div>
+                    <button class="icon-btn">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </button>
+                </header>
+
+                <!-- Prayer Times Section (Compact/Collapsible) -->
+                <div class="section" id="prayer-times-section">
+                    <!-- Location Request State -->
+                    <div id="prayer-location-request" class="prayer-location-card-compact">
+                        <div class="prayer-compact-icon">
+                            <span class="material-symbols-outlined">location_on</span>
+                        </div>
+                        <div class="prayer-compact-info">
+                            <p class="prayer-compact-label">Prayer Times</p>
+                            <p class="prayer-compact-sublabel">Enable location for accurate times</p>
+                        </div>
+                        <button id="request-location-btn" class="btn btn-primary btn-sm">
+                            Enable
+                        </button>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="prayer-loading" class="prayer-loading-card-compact hidden">
+                        <div class="prayer-loading-spinner"></div>
+                        <p>Fetching times...</p>
+                    </div>
+
+                    <!-- Prayer Times Display (Compact + Expandable) -->
+                    <div id="prayer-times-display" class="hidden">
+                        <!-- Compact View (Click to expand) -->
+                        <div id="prayer-compact-card" class="prayer-compact-card">
+                            <div class="prayer-compact-main">
+                                <!-- Current Prayer -->
+                                <div class="prayer-current-section">
+                                    <p class="prayer-current-label">Current</p>
+                                    <p id="current-prayer-name" class="prayer-current-name">--</p>
+                                    <p id="current-prayer-time" class="prayer-current-time">--:--</p>
+                                </div>
+                                
+                                <!-- Divider -->
+                                <div class="prayer-divider"></div>
+                                
+                                <!-- Next Prayer -->
+                                <div class="prayer-next-section">
+                                    <p class="prayer-next-label">Next</p>
+                                    <p id="next-prayer-name" class="prayer-next-name">--</p>
+                                    <p id="next-prayer-countdown" class="prayer-next-countdown">--:--</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Location & Expand indicator -->
+                            <div class="prayer-compact-footer">
+                                <p id="prayer-location-name" class="prayer-compact-location">
+                                    <span class="material-symbols-outlined">location_on</span>
+                                    <span id="location-city">Loading...</span>
+                                </p>
+                                <span id="prayer-expand-icon" class="material-symbols-outlined prayer-expand-icon">expand_more</span>
+                            </div>
+                        </div>
+
+                        <!-- Expanded View (Hidden by default) -->
+                        <div id="prayer-expanded-view" class="prayer-expanded-view hidden">
+                            <!-- Hijri Date -->
+                            <div class="hijri-date-card-compact">
+                                <span class="material-symbols-outlined">calendar_month</span>
+                                <div class="hijri-date-info">
+                                    <p id="hijri-date" class="hijri-date-text">-- Jumada al-Akhirah 1447</p>
+                                    <p id="gregorian-date" class="gregorian-date-text">-- December 2025</p>
+                                </div>
+                            </div>
+
+                            <!-- All Prayer Times Grid -->
+                            <div class="prayer-times-grid">
+                                <div class="prayer-grid-item" id="fajr-card">
+                                    <p class="prayer-grid-name">Fajr</p>
+                                    <p class="prayer-grid-time" id="fajr-time">--:--</p>
+                                </div>
+                                <div class="prayer-grid-item" id="sunrise-card">
+                                    <p class="prayer-grid-name">Sunrise</p>
+                                    <p class="prayer-grid-time" id="sunrise-time">--:--</p>
+                                </div>
+                                <div class="prayer-grid-item" id="dhuhr-card">
+                                    <p class="prayer-grid-name">Dhuhr</p>
+                                    <p class="prayer-grid-time" id="dhuhr-time">--:--</p>
+                                </div>
+                                <div class="prayer-grid-item" id="asr-card">
+                                    <p class="prayer-grid-name">Asr</p>
+                                    <p class="prayer-grid-time" id="asr-time">--:--</p>
+                                </div>
+                                <div class="prayer-grid-item" id="maghrib-card">
+                                    <p class="prayer-grid-name">Maghrib</p>
+                                    <p class="prayer-grid-time" id="maghrib-time">--:--</p>
+                                </div>
+                                <div class="prayer-grid-item" id="isha-card">
+                                    <p class="prayer-grid-name">Isha</p>
+                                    <p class="prayer-grid-time" id="isha-time">--:--</p>
+                                </div>
+                            </div>
+
+                            <!-- Refresh Button -->
+                            <button id="refresh-prayer-times" class="refresh-prayer-btn-compact">
+                                <span class="material-symbols-outlined">refresh</span>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Read Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Last Read</h2>
+                        <button id="continue-reading-btn" class="section-action">Continue</button>
+                    </div>
+                    <div id="last-read-card" class="last-read-card">
+                        <div class="last-read-bg-icon">
+                            <span class="material-symbols-outlined">menu_book</span>
+                        </div>
+                        <div class="last-read-content">
+                            <div class="last-read-header">
+                                <div class="last-read-info">
+                                    <p id="last-read-surah" class="last-read-surah">No Reading History</p>
+                                    <h3 id="last-read-ayah" class="last-read-ayah">Start Reading</h3>
+                                </div>
+                                <button id="play-last-read" class="last-read-play-btn">
+                                    <span class="material-symbols-outlined">play_arrow</span>
+                                </button>
+                            </div>
+                            <div class="last-read-progress">
+                                <div class="progress-header">
+                                    <span>Progress</span>
+                                    <span id="last-read-percent">0%</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div id="last-read-progress-fill" class="progress-bar-fill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dua of the Day -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Dua of the Day</h2>
+                        <button class="section-action-icon">
+                            <span class="material-symbols-outlined">share</span>
+                        </button>
+                    </div>
+                    <div class="dua-day-card">
+                        <div class="dua-day-icon">
+                            <span class="material-symbols-outlined">volunteer_activism</span>
+                        </div>
+                        <h3 class="dua-day-arabic">Rabbana atina fid-dunya...</h3>
+                        <p class="dua-day-translation">"Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire."</p>
+                        <div class="dua-day-tags">
+                            <span class="dua-tag">Al-Baqarah 2:201</span>
+                            <span class="dua-tag">Protection</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Cards -->
+                <div class="grid-2 section">
+                    <button class="feature-card" data-action="start-reading">
+                        <div>
+                            <div class="feature-icon">
+                                <span class="material-symbols-outlined">menu_book</span>
+                            </div>
+                            <h3 class="feature-title">Read Quran</h3>
+                        </div>
+                        <p class="feature-subtitle">Continue reading</p>
+                    </button>
+                    <button class="feature-card" data-action="start-listening">
+                        <div>
+                            <div class="feature-icon">
+                                <span class="material-symbols-outlined">headset</span>
+                            </div>
+                            <h3 class="feature-title">Listen</h3>
+                        </div>
+                        <p class="feature-subtitle">Audio recitation</p>
+                    </button>
+                </div>
+
+                <!-- Qibla Finder Button -->
+                <div class="section">
+                    <button id="open-qibla-btn" class="qibla-finder-btn">
+                        <div class="qibla-btn-icon">
+                            <span class="material-symbols-outlined">explore</span>
+                        </div>
+                        <div class="qibla-btn-info">
+                            <h3 class="qibla-btn-title">Qibla Direction</h3>
+                            <p class="qibla-btn-subtitle">Find the direction to Mecca</p>
+                        </div>
+                        <span class="material-symbols-outlined qibla-btn-arrow">arrow_forward_ios</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Read Tab -->
+            <section id="read-tab" class="tab-content">
+                <!-- Surah List View -->
+                <div id="surah-list-view">
+                    <header class="page-header">
+                        <h1 class="header-title">Quran</h1>
+                        <button class="icon-btn">
+                            <span class="material-symbols-outlined">search</span>
+                        </button>
+                    </header>
+
+                    <div class="search-container">
+                        <span class="material-symbols-outlined search-icon">search</span>
+                        <input type="text" id="surah-search" class="search-input" placeholder="Search Surah...">
+                    </div>
+
+                    <div id="surah-list" class="surah-list">
+                        <!-- Surahs will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Surah View -->
+                <div id="surah-view" class="hidden">
+                    <div class="surah-header">
+                        <div class="surah-header-content">
+                            <button id="back-to-list" class="icon-btn">
+                                <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                            </button>
+                            <div class="surah-title-container">
+                                <h2 id="surah-title" class="surah-title"></h2>
+                                <p id="surah-subtitle" class="surah-subtitle"></p>
+                            </div>
+                            <button class="icon-btn primary">
+                                <span class="material-symbols-outlined filled">bookmark</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bismillah -->
+                    <div class="bismillah">
+                        <div class="bismillah-line"></div>
+                        <p class="bismillah-text">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+                        <div class="bismillah-line"></div>
+                    </div>
+
+                    <div id="ayahs-container" class="ayahs-container">
+                        <!-- Ayahs will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dua Tab -->
+            <section id="dua-tab" class="tab-content">
+                <!-- Dua Categories View -->
+                <div id="dua-categories-view">
+                    <header class="page-header">
+                        <h1 class="header-title">Dua & Dhikr</h1>
+                        <button class="icon-btn">
+                            <span class="material-symbols-outlined">favorite</span>
+                        </button>
+                    </header>
+
+                    <div class="dua-categories section">
+                        <button class="dua-category-card" data-category="daily-dua">
+                            <div class="dua-category-icon">
+                                <span class="material-symbols-outlined">wb_sunny</span>
+                            </div>
+                            <div class="dua-category-info">
+                                <h3>Daily Duas</h3>
+                                <p>Essential daily supplications</p>
+                            </div>
+                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
+                        </button>
+
+                        <button class="dua-category-card" data-category="morning-dhikr">
+                            <div class="dua-category-icon gold">
+                                <span class="material-symbols-outlined">light_mode</span>
+                            </div>
+                            <div class="dua-category-info">
+                                <h3>Morning Adhkar</h3>
+                                <p>Start your day blessed</p>
+                            </div>
+                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
+                        </button>
+
+                        <button class="dua-category-card" data-category="evening-dhikr">
+                            <div class="dua-category-icon">
+                                <span class="material-symbols-outlined">dark_mode</span>
+                            </div>
+                            <div class="dua-category-info">
+                                <h3>Evening Adhkar</h3>
+                                <p>End your day in peace</p>
+                            </div>
+                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
+                        </button>
+
+                        <button class="dua-category-card" data-category="dhikr-after-salah">
+                            <div class="dua-category-icon">
+                                <span class="material-symbols-outlined">mosque</span>
+                            </div>
+                            <div class="dua-category-info">
+                                <h3>After Salah</h3>
+                                <p>Dhikr after prayer</p>
+                            </div>
+                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
+                        </button>
+
+                        <button class="dua-category-card" data-category="selected-dua">
+                            <div class="dua-category-icon gold">
+                                <span class="material-symbols-outlined">star</span>
+                            </div>
+                            <div class="dua-category-info">
+                                <h3>Selected Duas</h3>
+                                <p>Popular supplications</p>
+                            </div>
+                            <span class="material-symbols-outlined dua-category-arrow">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dua List View -->
+                <div id="dua-list-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-dua-categories">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title" id="dua-list-title">Duas</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="dua-list" class="dua-list">
+                        <!-- Duas will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Dua Detail View -->
+                <div id="dua-detail-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-dua-list">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title" id="dua-detail-title">Dua</h2>
+                        <button class="icon-btn">
+                            <span class="material-symbols-outlined">share</span>
+                        </button>
+                    </div>
+                    <div id="dua-detail-content" class="dua-detail-content">
+                        <!-- Dua details will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Listen Tab (Accessible from Home button, not navigation bar) -->
+            <section id="listen-tab" class="tab-content">
+                <header class="page-header">
+                    <button class="icon-btn" id="back-to-home-from-listen">
+                        <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                    </button>
+                    <h1 class="header-title">Listen</h1>
+                    <div style="width: 40px;"></div>
+                </header>
+
+                <div class="section">
+                    <div class="form-group">
+                        <label class="form-label">Select Surah</label>
+                        <select id="audio-surah-select" class="form-select">
+                            <option value="">-- Select a Surah --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Reciter</label>
+                        <select id="reciter-select" class="form-select">
+                            <option value="">Loading reciters...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Audio Player -->
+                <div id="audio-player-container" class="audio-player-container hidden">
+                    <div class="now-playing">
+                        <div class="now-playing-info">
+                            <p class="now-playing-label">Now Playing</p>
+                            <h3 id="now-playing-surah" class="now-playing-surah"></h3>
+                            <p id="now-playing-reciter" class="now-playing-reciter"></p>
+                            <p id="ayah-counter" class="ayah-counter">Ayah 1 of 1</p>
+                        </div>
+                    </div>
+
+                    <div class="audio-progress">
+                        <div class="progress-bar" style="cursor: pointer;">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div class="progress-times">
+                            <span>0:00</span>
+                            <span>0:00</span>
+                        </div>
+                    </div>
+
+                    <div class="audio-controls-main">
+                        <button class="control-btn" id="prev-btn">
+                            <span class="material-symbols-outlined">skip_previous</span>
+                        </button>
+                        <button class="play-btn" id="play-pause-btn">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                        </button>
+                        <button class="control-btn" id="next-btn">
+                            <span class="material-symbols-outlined">skip_next</span>
+                        </button>
+                    </div>
+
+                    <audio id="audio-player"></audio>
+                </div>
+            </section>
+
+            <!-- More Tab (Hub) -->
+            <section id="more-tab" class="tab-content">
+                <!-- More Hub View -->
+                <div id="more-hub-view">
+                    <header class="page-header">
+                        <h1 class="header-title">More</h1>
+                        <button class="icon-btn" id="settings-btn">
+                            <span class="material-symbols-outlined">settings</span>
+                        </button>
+                    </header>
+
+                    <div class="more-features-grid section">
+                        <button class="more-feature-card" data-feature="names">
+                            <div class="more-feature-icon gold">
+                                <span class="material-symbols-outlined">stars</span>
+                            </div>
+                            <div class="more-feature-info">
+                                <h3>99 Names of Allah</h3>
+                                <p>Learn the beautiful names</p>
+                            </div>
+                            <span class="material-symbols-outlined more-feature-arrow">chevron_right</span>
+                        </button>
+
+                        <button class="more-feature-card" data-feature="hadith">
+                            <div class="more-feature-icon">
+                                <span class="material-symbols-outlined">library_books</span>
+                            </div>
+                            <div class="more-feature-info">
+                                <h3>Hadith Collections</h3>
+                                <p>7 authentic collections</p>
+                            </div>
+                            <span class="material-symbols-outlined more-feature-arrow">chevron_right</span>
+                        </button>
+
+                        <button class="more-feature-card" data-feature="prophets">
+                            <div class="more-feature-icon">
+                                <span class="material-symbols-outlined">history_edu</span>
+                            </div>
+                            <div class="more-feature-info">
+                                <h3>Prophet Stories</h3>
+                                <p>Stories of 25 prophets</p>
+                            </div>
+                            <span class="material-symbols-outlined more-feature-arrow">chevron_right</span>
+                        </button>
+
+                        <button class="more-feature-card" data-feature="wudu">
+                            <div class="more-feature-icon">
+                                <span class="material-symbols-outlined">water_drop</span>
+                            </div>
+                            <div class="more-feature-info">
+                                <h3>Wudu Guide</h3>
+                                <p>Step-by-step ablution</p>
+                            </div>
+                            <span class="material-symbols-outlined more-feature-arrow">chevron_right</span>
+                        </button>
+
+                        <button class="more-feature-card" data-feature="terms">
+                            <div class="more-feature-icon">
+                                <span class="material-symbols-outlined">dictionary</span>
+                            </div>
+                            <div class="more-feature-info">
+                                <h3>Islamic Terms</h3>
+                                <p>Glossary A-Z</p>
+                            </div>
+                            <span class="material-symbols-outlined more-feature-arrow">chevron_right</span>
+                        </button>
+
+                        <button class="more-feature-card" data-feature="facts">
+                            <div class="more-feature-icon">
+                                <span class="material-symbols-outlined">lightbulb</span>
+                            </div>
+                            <div class="more-feature-info">
+                                <h3>Islamic Facts</h3>
+                                <p>Did you know?</p>
+                            </div>
+                            <span class="material-symbols-outlined more-feature-arrow">chevron_right</span>
+                        </button>
+                    </div>
+
+                    <!-- Settings Section (Inline) -->
+                    <div class="settings-section">
+                        <p class="settings-label">Text Edition</p>
+                        <div class="settings-card">
+                            <div class="form-group" style="margin-bottom: var(--space-md);">
+                                <label class="form-label">Language</label>
+                                <select id="language-select" class="form-select">
+                                    <option value="">Loading languages...</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Edition / Translation</label>
+                                <select id="edition-select" class="form-select">
+                                    <option value="">Select a language first</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <p class="settings-label">Current Selection</p>
+                        <div class="settings-card">
+                            <div class="settings-row" style="border-bottom: none; padding-top: 0; padding-bottom: 0;">
+                                <div class="settings-info">
+                                    <h3 id="current-edition">quran-uthmani</h3>
+                                    <p id="current-language">Arabic</p>
+                                </div>
+                                <span class="material-symbols-outlined" style="color: var(--primary);">check_circle</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <p class="settings-label">About</p>
+                        <div class="settings-card">
+                            <p style="font-size: 0.9375rem; color: var(--text-secondary); margin-bottom: var(--space-sm);">
+                                This app uses the <a href="https://alquran.cloud/api" target="_blank" rel="noopener" style="color: var(--primary);">Al Quran Cloud API</a>.
+                            </p>
+                            <p style="font-size: 0.8125rem; color: var(--text-muted);">Version 2.1.0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 99 Names of Allah View -->
+                <div id="names-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-more">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title">99 Names of Allah</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="names-list" class="names-grid">
+                        <!-- Names will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Name Detail View -->
+                <div id="name-detail-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-names">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title" id="name-detail-title">Name</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="name-detail-content" class="name-detail-content">
+                        <!-- Name details will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Hadith View -->
+                <div id="hadith-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-more">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title">Hadith Collections</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="hadith-books-list" class="hadith-books-list">
+                        <!-- Hadith books will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Hadith Book View -->
+                <div id="hadith-book-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-hadith">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title" id="hadith-book-title">Book</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="hadith-sections-list" class="hadith-sections-list">
+                        <!-- Sections will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Hadith Section View -->
+                <div id="hadith-section-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-hadith-book">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title" id="hadith-section-title">Section</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="hadiths-list" class="hadiths-list">
+                        <!-- Hadiths will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Prophet Stories View -->
+                <div id="prophets-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-more">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title">Prophet Stories</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="prophets-list" class="prophets-list">
+                        <!-- Prophets will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Prophet Story View -->
+                <div id="prophet-story-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-prophets">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title" id="prophet-story-title">Story</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="prophet-story-content" class="prophet-story-content">
+                        <!-- Story will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Wudu Guide View -->
+                <div id="wudu-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-more">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title">Wudu Guide</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="wudu-content" class="wudu-content">
+                        <!-- Wudu guide will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Islamic Terms View -->
+                <div id="terms-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-more">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title">Islamic Terms</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div class="search-container">
+                        <span class="material-symbols-outlined search-icon">search</span>
+                        <input type="text" id="terms-search" class="search-input" placeholder="Search terms...">
+                    </div>
+                    <div id="terms-alphabet" class="terms-alphabet">
+                        <!-- Alphabet tabs will be here -->
+                    </div>
+                    <div id="terms-list" class="terms-list">
+                        <!-- Terms will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Islamic Facts View -->
+                <div id="facts-view" class="feature-view hidden">
+                    <div class="feature-header">
+                        <button class="icon-btn back-to-more">
+                            <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                        </button>
+                        <h2 class="feature-title">Islamic Facts</h2>
+                        <div style="width: 40px;"></div>
+                    </div>
+                    <div id="facts-list" class="facts-list">
+                        <!-- Facts will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Global Mini Player (shows when audio is playing) -->
+        <div id="global-mini-player" class="global-mini-player hidden">
+            <div class="mini-player-content" id="mini-player-expand">
+                <div class="mini-player-visualizer">
+                    <span class="visualizer-bar"></span>
+                    <span class="visualizer-bar"></span>
+                    <span class="visualizer-bar"></span>
+                </div>
+                <div class="mini-player-info">
+                    <p class="mini-player-title" id="mini-player-title">Not Playing</p>
+                    <p class="mini-player-subtitle" id="mini-player-subtitle">Tap to expand</p>
+                </div>
+            </div>
+            <div class="mini-player-controls">
+                <button class="mini-control-btn" id="mini-play-pause">
+                    <span class="material-symbols-outlined">pause</span>
+                </button>
+                <button class="mini-control-btn" id="mini-close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Qibla Direction Modal -->
+        <div id="qibla-modal" class="qibla-modal hidden">
+            <div class="qibla-modal-bg"></div>
+            <div class="qibla-content">
+                <!-- Header -->
+                <div class="qibla-header">
+                    <button id="qibla-close" class="qibla-header-btn">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <div class="qibla-header-info">
+                        <span class="qibla-header-label">Qibla Finder</span>
+                        <span class="qibla-header-distance">Mecca • <span id="qibla-distance">--</span> km</span>
+                    </div>
+                    <button class="qibla-header-btn">
+                        <span class="material-symbols-outlined">settings</span>
+                    </button>
+                </div>
+
+                <!-- Compass -->
+                <div class="qibla-compass-container">
+                    <div class="qibla-compass">
+                        <div class="qibla-compass-ring"></div>
+                        <div class="qibla-compass-dial">
+                            <span class="qibla-direction-n">N</span>
+                            <span class="qibla-direction-s">S</span>
+                            <span class="qibla-direction-e">E</span>
+                            <span class="qibla-direction-w">W</span>
+                            
+                            <!-- Qibla Pointer -->
+                            <div id="qibla-pointer" class="qibla-pointer">
+                                <div class="qibla-beam"></div>
+                                <div class="qibla-kaaba-icon">
+                                    <span class="material-symbols-outlined">mosque</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Center -->
+                            <div class="qibla-center">
+                                <div class="qibla-center-dot"></div>
+                                <div class="qibla-center-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="qibla-hint">
+                        <span class="material-symbols-outlined">vibration</span>
+                        <span>Align arrows to vibrate</span>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="qibla-stats">
+                    <div class="qibla-stat-card">
+                        <div class="qibla-stat-header">
+                            <span class="material-symbols-outlined">explore</span>
+                            <span>Latitude</span>
+                        </div>
+                        <span id="qibla-latitude" class="qibla-stat-value">--° N</span>
+                    </div>
+                    <div class="qibla-stat-card">
+                        <div class="qibla-stat-header">
+                            <span class="material-symbols-outlined">public</span>
+                            <span>Longitude</span>
+                        </div>
+                        <span id="qibla-longitude" class="qibla-stat-value">--° E</span>
+                    </div>
+                </div>
+
+                <!-- Calibrate Button -->
+                <button id="qibla-calibrate" class="qibla-calibrate-btn">
+                    <span class="material-symbols-outlined">my_location</span>
+                    <span>Recalibrate Compass</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Full Player Modal (Redesigned) -->
+        <div id="full-player-modal" class="full-player-modal hidden">
+            <div class="full-player-bg" id="full-player-bg"></div>
+            <div class="full-player-overlay"></div>
+            <div class="full-player-content">
+                <!-- Header -->
+                <div class="full-player-header">
+                    <button class="full-player-header-btn" id="full-player-collapse">
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </button>
+                    <div class="full-player-header-info">
+                        <span class="full-player-header-label">Now Playing</span>
+                        <span class="full-player-header-source">Al-Mushaf</span>
+                    </div>
+                    <button class="full-player-header-btn">
+                        <span class="material-symbols-outlined">more_horiz</span>
+                    </button>
+                </div>
+
+                <!-- Artwork -->
+                <div class="full-player-artwork-container">
+                    <div class="full-player-artwork" id="full-player-artwork">
+                        <div class="full-player-artwork-visualizer">
+                            <span class="material-symbols-outlined">graphic_eq</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info -->
+                <div class="full-player-info">
+                    <h1 class="full-player-title" id="full-player-title">Surah Name</h1>
+                    <p class="full-player-subtitle" id="full-player-ayah">Ayah 1-7 • Juz 1</p>
+                    
+                    <!-- Reciter Pill -->
+                    <button id="full-player-reciter-btn" class="full-player-reciter-pill">
+                        <span class="material-symbols-outlined">mic</span>
+                        <div class="reciter-pill-info">
+                            <span class="reciter-pill-label">Reciter</span>
+                            <span class="reciter-pill-name" id="full-player-reciter">Mishary Alafasy</span>
+                        </div>
+                        <span class="material-symbols-outlined">arrow_drop_down</span>
+                    </button>
+                </div>
+
+                <!-- Progress -->
+                <div class="full-player-progress">
+                    <div class="full-progress-bar" id="full-progress-bar">
+                        <div class="full-progress-fill" id="full-progress-fill"></div>
+                        <div class="full-progress-thumb"></div>
+                    </div>
+                    <div class="full-progress-times">
+                        <span id="full-current-time">0:00</span>
+                        <span id="full-duration">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="full-player-controls">
+                    <button class="full-control-secondary">
+                        <span class="material-symbols-outlined">shuffle</span>
+                    </button>
+                    <button class="full-control-btn" id="full-prev-btn">
+                        <span class="material-symbols-outlined">skip_previous</span>
+                    </button>
+                    <button class="full-play-btn" id="full-play-pause">
+                        <span class="material-symbols-outlined">pause</span>
+                    </button>
+                    <button class="full-control-btn" id="full-next-btn">
+                        <span class="material-symbols-outlined">skip_next</span>
+                    </button>
+                    <button class="full-control-secondary active">
+                        <span class="material-symbols-outlined">repeat</span>
+                    </button>
+                </div>
+
+                <!-- Bottom Actions -->
+                <div class="full-player-actions">
+                    <button class="full-action-btn">
+                        <span class="material-symbols-outlined">download</span>
+                    </button>
+                    <button class="full-action-btn">
+                        <span class="material-symbols-outlined">playlist_add</span>
+                    </button>
+                    <button class="full-action-btn">
+                        <span class="material-symbols-outlined">share</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reciter Selector Modal -->
+        <div id="reciter-modal" class="reciter-modal hidden">
+            <div class="reciter-modal-overlay"></div>
+            <div class="reciter-modal-content">
+                <div class="reciter-modal-header">
+                    <h3>Select Reciter</h3>
+                    <button id="reciter-modal-close" class="reciter-modal-close">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div id="reciter-list" class="reciter-list">
+                    <!-- Reciters will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <div class="nav-container">
+                <button class="nav-link active" data-tab="home">
+                    <span class="material-symbols-outlined nav-icon">home</span>
+                    <span>Home</span>
+                </button>
+                <button class="nav-link" data-tab="read">
+                    <span class="material-symbols-outlined nav-icon">auto_stories</span>
+                    <span>Quran</span>
+                </button>
+                <button class="nav-link" data-tab="dua">
+                    <span class="material-symbols-outlined nav-icon">self_improvement</span>
+                    <span>Dua</span>
+                </button>
+                <button class="nav-link" data-tab="more">
+                    <span class="material-symbols-outlined nav-icon">apps</span>
+                    <span>More</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="error-toast" class="toast hidden">
+        <span id="error-message"></span>
+        <button id="toast-close" class="toast-close">×</button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
