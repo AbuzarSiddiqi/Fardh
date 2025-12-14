@@ -152,6 +152,9 @@ function switchTab(tabId) {
     if (tabId === 'read' && state.surahs.length === 0) {
         fetchSurahs();
     }
+
+    // Reset scroll position
+    window.scrollTo(0, 0);
 }
 
 function initEventListeners() {
@@ -1702,10 +1705,39 @@ function initDuaTab() {
 
     // Search functionality
     const searchInput = document.getElementById('dua-search-input');
-    if (searchInput) {
+    const suggestionsBox = document.getElementById('dua-search-suggestions');
+
+    if (searchInput && suggestionsBox) {
+        let searchTimeout;
+
+        // Input handler
         searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            filterDuaCategories(query);
+            clearTimeout(searchTimeout);
+            const query = e.target.value.toLowerCase().trim();
+
+            if (query.length === 0) {
+                suggestionsBox.classList.add('hidden');
+                suggestionsBox.innerHTML = '';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                updateSearchSuggestions(query);
+            }, 300);
+        });
+
+        // Focus handler - show suggestions if input has value
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value.trim().length > 0) {
+                updateSearchSuggestions(searchInput.value.trim());
+            }
+        });
+
+        // Click outside handler to close suggestions
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.classList.add('hidden');
+            }
         });
     }
 
@@ -1716,12 +1748,13 @@ function initDuaTab() {
 }
 
 // Load duas into the expandable section of a category card
+// Load duas into the expandable section of a category card
 async function loadDuasIntoCategory(category, card) {
     const itemsContainer = card.querySelector('.dua-category-items');
     if (!itemsContainer) return;
 
     // Check if already loaded
-    if (itemsContainer.querySelector('.dua-item')) {
+    if (itemsContainer.querySelector('.dua-item') || itemsContainer.querySelector('.dua-group')) {
         return; // Already has items
     }
 
@@ -1732,26 +1765,87 @@ async function loadDuasIntoCategory(category, card) {
         // Load data if not cached
         if (!categoryInfo.data) {
             const response = await fetch(`./islamic_data/dua-dhikr/${category}/en.json`);
-            categoryInfo.data = await response.json();
+            const json = await response.json();
+
+            // Handle grouped data vs flat data
+            if (Array.isArray(json) && json.length > 0 && json[0].items) {
+                // It's grouped! Flatten for internal use but store structure for rendering
+                categoryInfo.groupedData = json;
+
+                // Flatten for linear indexing
+                const flatDuas = [];
+                json.forEach(group => {
+                    group.items.forEach(item => {
+                        flatDuas.push(item);
+                    });
+                });
+                categoryInfo.data = flatDuas; // Store flattened list as primary data
+            } else {
+                // It's already flat
+                categoryInfo.data = json;
+            }
         }
 
-        // Render duas as expandable items
-        const duas = categoryInfo.data;
-        itemsContainer.innerHTML = duas.map((dua, index) => `
-            <div class="dua-item" data-category="${category}" data-dua-index="${index}">
-                <div class="dua-item-info">
-                    <span class="dua-item-title">${dua.name || dua.title || `Dua ${index + 1}`}</span>
-                    ${dua.reference ? `<span class="dua-item-tag">${dua.reference}</span>` : ''}
+        // Render based on structure
+        if (categoryInfo.groupedData) {
+            // Render Groups
+            let globalIndex = 0;
+            itemsContainer.innerHTML = categoryInfo.groupedData.map(group => `
+                <div class="dua-group">
+                    <div class="dua-group-header">
+                        <div class="dua-group-label">
+                            ${group.icon ? `<span class="material-symbols-outlined">${group.icon}</span>` : ''}
+                            ${group.title}
+                        </div>
+                        <span class="material-symbols-outlined dua-group-toggle">expand_more</span>
+                    </div>
+                    <div class="dua-group-list">
+                        ${group.items.map((dua, i) => {
+                const currentIndex = globalIndex++;
+                return `
+                            <div class="dua-item" data-category="${category}" data-dua-index="${currentIndex}">
+                                <div class="dua-item-info">
+                                    <span class="dua-item-title">${dua.name || dua.title}</span>
+                                    ${dua.reference ? `<span class="dua-item-tag">${dua.reference}</span>` : ''}
+                                </div>
+                                <div class="dua-item-actions">
+                                    <button class="dua-item-open">
+                                        <span class="material-symbols-outlined">arrow_forward_ios</span>
+                                    </button>
+                                </div>
+                            </div>`;
+            }).join('')}
+                    </div>
                 </div>
-                <div class="dua-item-actions">
-                    <button class="dua-item-open">
-                        <span class="material-symbols-outlined">arrow_forward_ios</span>
-                    </button>
-                </div>
-            </div>
-        `).join('');
+            `).join('');
 
-        // Add click handlers to new items
+            // Add collapse/expand handlers
+            itemsContainer.querySelectorAll('.dua-group-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const group = header.parentElement;
+                    group.classList.toggle('expanded');
+                });
+            });
+
+        } else {
+            // Render Flat List (Legacy/Other categories)
+            const duas = categoryInfo.data;
+            itemsContainer.innerHTML = duas.map((dua, index) => `
+                <div class="dua-item" data-category="${category}" data-dua-index="${index}">
+                    <div class="dua-item-info">
+                        <span class="dua-item-title">${dua.name || dua.title || `Dua ${index + 1}`}</span>
+                        ${dua.reference ? `<span class="dua-item-tag">${dua.reference}</span>` : ''}
+                    </div>
+                    <div class="dua-item-actions">
+                        <button class="dua-item-open">
+                            <span class="material-symbols-outlined">arrow_forward_ios</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add click handlers to new items (works for both structures)
         itemsContainer.querySelectorAll('.dua-item').forEach(item => {
             item.addEventListener('click', () => {
                 const duaIndex = parseInt(item.dataset.duaIndex);
@@ -1763,7 +1857,7 @@ async function loadDuasIntoCategory(category, card) {
         // Update count
         const countEl = card.querySelector('.dua-category-count');
         if (countEl) {
-            countEl.textContent = `${duas.length} Duas`;
+            countEl.textContent = `${categoryInfo.data.length} Duas`;
         }
 
     } catch (error) {
@@ -1790,21 +1884,110 @@ function openDuaDetail(category, index) {
     showDuaDetail(dua);
 }
 
-// Filter dua categories based on search query
-function filterDuaCategories(query) {
-    const cards = document.querySelectorAll('.dua-category-card');
+// Update search suggestions dropdown
+async function updateSearchSuggestions(query) {
+    const suggestionsBox = document.getElementById('dua-search-suggestions');
+    if (!suggestionsBox) return;
 
-    cards.forEach(card => {
-        const name = card.querySelector('.dua-category-name')?.textContent.toLowerCase() || '';
-        const count = card.querySelector('.dua-category-count')?.textContent.toLowerCase() || '';
+    // Show loading state if needed, or just keep previous results until new ones are ready
+    // Ensure data is loaded
+    await loadAllDuaData();
 
-        if (name.includes(query) || count.includes(query)) {
-            card.style.display = '';
-        } else {
-            card.style.display = 'none';
+    // Flatten all duas
+    const allDuas = [];
+    Object.entries(duaState.categories).forEach(([catKey, catInfo]) => {
+        if (catInfo.data) {
+            catInfo.data.forEach(dua => {
+                allDuas.push({
+                    ...dua,
+                    categoryName: catInfo.name,
+                    categoryKey: catKey // Store key for potential use
+                });
+            });
         }
     });
+
+    // Filter
+    const results = allDuas.filter(dua => {
+        const title = (dua.title || dua.name || '').toLowerCase();
+        const translation = (dua.translation || '').toLowerCase();
+        const arabic = (dua.arabic || '').toLowerCase();
+        // We can include benefits in search but maybe prioritize title matches in sorting
+
+        return title.includes(query) ||
+            translation.includes(query) ||
+            arabic.includes(query);
+    }).slice(0, 10); // Limit to 10 suggestions
+
+    if (results.length === 0) {
+        suggestionsBox.innerHTML = `
+            <div style="padding: 12px 16px; color: var(--text-muted); font-size: 0.875rem; text-align: center;">
+                No results found
+            </div>
+        `;
+        suggestionsBox.classList.remove('hidden');
+        return;
+    }
+
+    // Render suggestions
+    suggestionsBox.innerHTML = results.map(dua => `
+        <div class="dua-suggestion-item">
+            <div class="dua-suggestion-icon">
+                <span class="material-symbols-outlined">menu_book</span>
+            </div>
+            <div class="dua-suggestion-content">
+                <div class="dua-suggestion-title">${dua.title || dua.name}</div>
+                <div class="dua-suggestion-preview">${dua.categoryName} • ${dua.translation.substring(0, 40)}...</div>
+            </div>
+        </div>
+    `).join('');
+
+    suggestionsBox.classList.remove('hidden');
+
+    // Add click handlers
+    const items = suggestionsBox.querySelectorAll('.dua-suggestion-item');
+    items.forEach((item, index) => {
+        item.addEventListener('click', () => {
+            showDuaDetail(results[index]);
+            suggestionsBox.classList.add('hidden');
+        });
+    });
 }
+
+// Load all dua data for search
+async function loadAllDuaData() {
+    const promises = Object.keys(duaState.categories).map(async (category) => {
+        const categoryInfo = duaState.categories[category];
+        if (!categoryInfo.data) {
+            try {
+                const response = await fetch(`./islamic_data/dua-dhikr/${category}/en.json`);
+                const json = await response.json();
+
+                // Handle grouped data
+                if (Array.isArray(json) && json.length > 0 && json[0].items) {
+                    categoryInfo.groupedData = json;
+                    const flatDuas = [];
+                    json.forEach(group => {
+                        group.items.forEach(item => {
+                            flatDuas.push(item);
+                        });
+                    });
+                    categoryInfo.data = flatDuas;
+                } else {
+                    categoryInfo.data = json;
+                }
+            } catch (err) {
+                console.error(`Failed to load ${category}`, err);
+                categoryInfo.data = [];
+            }
+        }
+    });
+
+    await Promise.all(promises);
+}
+
+// Unused - Old filter function was replaced
+// function filterDuaCategories(query) { ... }
 
 function showDuaCategories() {
     // Hide list and detail views, show categories view
