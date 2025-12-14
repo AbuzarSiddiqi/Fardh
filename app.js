@@ -2324,8 +2324,11 @@ async function getCityName(lat, lng) {
                 data.address.county ||
                 data.address.state ||
                 'Your Location';
+            const country = data.address.country || '';
+
             prayerState.cityName = city;
             localStorage.setItem('prayerCity', city);
+            localStorage.setItem('prayerCountry', country);
         }
     } catch (error) {
         console.warn('Could not get city name:', error);
@@ -2974,11 +2977,13 @@ function calculateAndDisplayQibla() {
         KAABA_LNG
     );
 
-    // Update UI
+    // Update UI elements
     const distanceEl = document.getElementById('qibla-distance');
     const latEl = document.getElementById('qibla-latitude');
     const lngEl = document.getElementById('qibla-longitude');
     const pointer = document.getElementById('qibla-pointer');
+    const locationNameEl = document.getElementById('qibla-location-name');
+    const bearingEl = document.getElementById('qibla-bearing');
 
     if (distanceEl) {
         distanceEl.textContent = Math.round(distance).toLocaleString();
@@ -2990,6 +2995,24 @@ function calculateAndDisplayQibla() {
     if (lngEl) {
         const lngDir = qiblaState.userLng >= 0 ? 'E' : 'W';
         lngEl.textContent = `${Math.abs(qiblaState.userLng).toFixed(2)}° ${lngDir}`;
+    }
+
+    // Update location name from prayer times storage
+    if (locationNameEl) {
+        const savedCity = localStorage.getItem('prayerCity');
+        const savedCountry = localStorage.getItem('prayerCountry');
+        if (savedCity && savedCountry) {
+            locationNameEl.textContent = `${savedCity}, ${savedCountry}`;
+        } else if (savedCity) {
+            locationNameEl.textContent = savedCity;
+        } else {
+            locationNameEl.textContent = 'Location found';
+        }
+    }
+
+    // Update bearing angle
+    if (bearingEl) {
+        bearingEl.textContent = `${Math.round(qiblaState.qiblaAngle)}°`;
     }
 
     // Set initial pointer rotation
@@ -3274,4 +3297,350 @@ function initReciterModal() {
 // Initialize reciter modal on page load
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initReciterModal, 400);
+});
+
+// ============================================
+// SWIPE GESTURE NAVIGATION
+// ============================================
+
+const swipeState = {
+    startX: 0,
+    startY: 0,
+    endX: 0,
+    endY: 0,
+    threshold: 80, // Minimum swipe distance
+    restraint: 100, // Maximum vertical deviation
+    allowedTime: 500, // Maximum time for swipe
+    startTime: 0
+};
+
+// Tab order for swipe navigation (matches bottom nav order)
+const TAB_ORDER = ['home', 'read', 'dua', 'more'];
+
+// Get current active tab
+function getCurrentTab() {
+    const activeNav = document.querySelector('.nav-link.active');
+    return activeNav ? activeNav.dataset.tab : 'home';
+}
+
+// Check if we're in an internal view and return the view info
+// Returns: { tab: string, level: number, goBack: function } or null
+function getInternalViewInfo() {
+    const currentTab = getCurrentTab();
+
+    // READ TAB - Surah Detail View
+    if (currentTab === 'read') {
+        const surahView = document.getElementById('surah-view');
+        if (surahView && !surahView.classList.contains('hidden')) {
+            return {
+                tab: 'read',
+                view: 'surah-detail',
+                goBack: () => {
+                    surahView.classList.add('slide-out-right');
+                    setTimeout(() => {
+                        surahView.classList.remove('slide-out-right');
+                        showSurahList();
+                    }, 250);
+                }
+            };
+        }
+    }
+
+    // DUA TAB - Check for nested views
+    if (currentTab === 'dua') {
+        const duaDetailView = document.getElementById('dua-detail-view');
+        const duaListView = document.getElementById('dua-list-view');
+        const duaCategoriesView = document.getElementById('dua-categories-view');
+
+        // Deepest level: Dua Detail View -> go back to Dua List
+        if (duaDetailView && !duaDetailView.classList.contains('hidden')) {
+            return {
+                tab: 'dua',
+                view: 'dua-detail',
+                goBack: () => {
+                    duaDetailView.classList.add('slide-out-right');
+                    setTimeout(() => {
+                        duaDetailView.classList.remove('slide-out-right');
+                        showDuaListView();
+                    }, 250);
+                }
+            };
+        }
+
+        // Second level: Dua List View -> go back to Categories
+        if (duaListView && !duaListView.classList.contains('hidden')) {
+            return {
+                tab: 'dua',
+                view: 'dua-list',
+                goBack: () => {
+                    duaListView.classList.add('slide-out-right');
+                    setTimeout(() => {
+                        duaListView.classList.remove('slide-out-right');
+                        showDuaCategories();
+                    }, 250);
+                }
+            };
+        }
+
+        // Categories view is root, no back navigation needed
+    }
+
+    // MORE TAB - Check for nested feature views
+    if (currentTab === 'more') {
+        const moreHubView = document.getElementById('more-hub-view');
+
+        // Check for deepest nested views first
+
+        // Hadith Section View (deepest) → go back to Book View
+        const hadithSectionView = document.getElementById('hadith-section-view');
+        if (hadithSectionView && !hadithSectionView.classList.contains('hidden')) {
+            return {
+                tab: 'more',
+                view: 'hadith-section',
+                goBack: () => {
+                    hadithSectionView.classList.add('slide-out-right');
+                    setTimeout(() => {
+                        hadithSectionView.classList.remove('slide-out-right');
+                        showFeatureView('hadith-book-view');
+                    }, 250);
+                }
+            };
+        }
+
+        // Hadith Book View → go back to Hadith View (books list)
+        const hadithBookView = document.getElementById('hadith-book-view');
+        if (hadithBookView && !hadithBookView.classList.contains('hidden')) {
+            return {
+                tab: 'more',
+                view: 'hadith-book',
+                goBack: () => {
+                    hadithBookView.classList.add('slide-out-right');
+                    setTimeout(() => {
+                        hadithBookView.classList.remove('slide-out-right');
+                        showFeatureView('hadith-view');
+                    }, 250);
+                }
+            };
+        }
+
+        // Name Detail View → go back to Names List
+        const nameDetailView = document.getElementById('name-detail-view');
+        if (nameDetailView && !nameDetailView.classList.contains('hidden')) {
+            return {
+                tab: 'more',
+                view: 'name-detail',
+                goBack: () => {
+                    nameDetailView.classList.add('slide-out-right');
+                    setTimeout(() => {
+                        nameDetailView.classList.remove('slide-out-right');
+                        showFeatureView('names-view');
+                    }, 250);
+                }
+            };
+        }
+
+        // Any other feature view → go back to More Hub
+        if (moreHubView && moreHubView.classList.contains('hidden')) {
+            const visibleViews = document.querySelectorAll('#more-tab .feature-view:not(.hidden)');
+            if (visibleViews.length > 0) {
+                const activeView = visibleViews[0];
+                return {
+                    tab: 'more',
+                    view: 'feature',
+                    goBack: () => {
+                        activeView.classList.add('slide-out-right');
+                        setTimeout(() => {
+                            activeView.classList.remove('slide-out-right');
+                            showMoreHub();
+                        }, 250);
+                    }
+                };
+            }
+        }
+    }
+
+    // No internal view detected - we're at root level
+    return null;
+}
+
+// Initialize swipe gestures
+function initSwipeNavigation() {
+    const mainContent = document.querySelector('.main-content');
+    if (!mainContent) return;
+
+    mainContent.addEventListener('touchstart', handleTouchStart, { passive: true });
+    mainContent.addEventListener('touchmove', handleTouchMove, { passive: true });
+    mainContent.addEventListener('touchend', handleTouchEnd, { passive: true });
+    mainContent.addEventListener('touchcancel', handleTouchCancel, { passive: true });
+}
+
+// Handle touch start
+function handleTouchStart(e) {
+    const touch = e.changedTouches[0];
+    swipeState.startX = touch.pageX;
+    swipeState.startY = touch.pageY;
+    swipeState.startTime = Date.now();
+}
+
+// Handle touch move - show indicator while swiping
+function handleTouchMove(e) {
+    const touch = e.changedTouches[0];
+    const distX = touch.pageX - swipeState.startX;
+    const distY = touch.pageY - swipeState.startY;
+
+    // Only show indicator for horizontal swipes
+    if (Math.abs(distX) > 30 && Math.abs(distY) < Math.abs(distX)) {
+        // Check for open modals
+        const qiblaModal = document.getElementById('qibla-modal');
+        const fullPlayerModal = document.getElementById('full-player-modal');
+        const reciterModal = document.getElementById('reciter-modal');
+
+        if (qiblaModal && !qiblaModal.classList.contains('hidden')) return;
+        if (fullPlayerModal && !fullPlayerModal.classList.contains('hidden')) return;
+        if (reciterModal && !reciterModal.classList.contains('hidden')) return;
+
+        const internalViewInfo = getInternalViewInfo();
+        const currentTab = getCurrentTab();
+        const currentIndex = TAB_ORDER.indexOf(currentTab);
+
+        // Calculate intensity based on swipe progress (0 to 1)
+        const intensity = Math.min(Math.abs(distX) / swipeState.threshold, 1);
+
+        if (distX > 0) {
+            // Swiping right
+            if (internalViewInfo) {
+                showSwipeIndicatorLive('left', 'Back', intensity);
+            } else if (currentIndex > 0) {
+                const prevTab = TAB_ORDER[currentIndex - 1];
+                showSwipeIndicatorLive('left', prevTab.charAt(0).toUpperCase() + prevTab.slice(1), intensity);
+            }
+        } else {
+            // Swiping left
+            if (!internalViewInfo && currentIndex < TAB_ORDER.length - 1) {
+                const nextTab = TAB_ORDER[currentIndex + 1];
+                showSwipeIndicatorLive('right', nextTab.charAt(0).toUpperCase() + nextTab.slice(1), intensity);
+            }
+        }
+    }
+}
+
+// Handle touch cancel
+function handleTouchCancel() {
+    hideSwipeIndicator();
+}
+
+// Handle touch end
+function handleTouchEnd(e) {
+    const touch = e.changedTouches[0];
+    swipeState.endX = touch.pageX;
+    swipeState.endY = touch.pageY;
+
+    // Hide indicator after a brief delay
+    setTimeout(() => hideSwipeIndicator(), 150);
+
+    handleSwipe();
+}
+
+// Process swipe gesture
+function handleSwipe() {
+    const elapsedTime = Date.now() - swipeState.startTime;
+    const distX = swipeState.endX - swipeState.startX;
+    const distY = swipeState.endY - swipeState.startY;
+
+    // Check if it's a valid horizontal swipe
+    if (elapsedTime <= swipeState.allowedTime) {
+        if (Math.abs(distX) >= swipeState.threshold && Math.abs(distY) <= swipeState.restraint) {
+            // Check for open modals that should block swipe
+            const qiblaModal = document.getElementById('qibla-modal');
+            const fullPlayerModal = document.getElementById('full-player-modal');
+            const reciterModal = document.getElementById('reciter-modal');
+
+            if (qiblaModal && !qiblaModal.classList.contains('hidden')) return;
+            if (fullPlayerModal && !fullPlayerModal.classList.contains('hidden')) return;
+            if (reciterModal && !reciterModal.classList.contains('hidden')) return;
+
+            // Check if in internal view
+            const internalViewInfo = getInternalViewInfo();
+
+            if (internalViewInfo) {
+                // In internal view: swipe right goes BACK (not change tabs)
+                if (distX > 0) {
+                    showSwipeIndicator('left', 'Back');
+                    setTimeout(() => hideSwipeIndicator(), 300);
+                    internalViewInfo.goBack();
+                }
+                // Left swipe does nothing in internal views
+                return;
+            }
+
+            // At root level: swipe changes tabs
+            const currentTab = getCurrentTab();
+            const currentIndex = TAB_ORDER.indexOf(currentTab);
+
+            if (distX > 0) {
+                // Swiped right - go to previous tab
+                if (currentIndex > 0) {
+                    const prevTab = TAB_ORDER[currentIndex - 1];
+                    showSwipeIndicator('left', prevTab.charAt(0).toUpperCase() + prevTab.slice(1));
+                    setTimeout(() => hideSwipeIndicator(), 300);
+                    switchTab(prevTab);
+                }
+            } else {
+                // Swiped left - go to next tab
+                if (currentIndex < TAB_ORDER.length - 1) {
+                    const nextTab = TAB_ORDER[currentIndex + 1];
+                    showSwipeIndicator('right', nextTab.charAt(0).toUpperCase() + nextTab.slice(1));
+                    setTimeout(() => hideSwipeIndicator(), 300);
+                    switchTab(nextTab);
+                }
+            }
+        }
+    }
+}
+
+// Show swipe indicator (for completion)
+function showSwipeIndicator(direction, label) {
+    showSwipeIndicatorLive(direction, label, 1);
+}
+
+// Show swipe indicator with intensity (0-1) - used during live swiping
+function showSwipeIndicatorLive(direction, label, intensity) {
+    const indicator = document.getElementById('swipe-indicator');
+    if (!indicator) return;
+
+    const iconEl = indicator.querySelector('.swipe-indicator-icon');
+    const labelEl = indicator.querySelector('.swipe-indicator-label');
+
+    // Set direction and content
+    indicator.classList.remove('left', 'right', 'hidden');
+    indicator.classList.add(direction === 'right' ? 'right' : 'left');
+
+    if (iconEl) {
+        iconEl.textContent = direction === 'right' ? 'arrow_forward' : 'arrow_back';
+    }
+    if (labelEl) {
+        labelEl.textContent = label;
+    }
+
+    // Apply intensity (opacity and scale)
+    indicator.style.opacity = intensity;
+    indicator.style.setProperty('--glow-intensity', intensity);
+
+    // Show
+    indicator.classList.add('visible');
+}
+
+// Hide swipe indicator
+function hideSwipeIndicator() {
+    const indicator = document.getElementById('swipe-indicator');
+    if (!indicator) return;
+
+    indicator.classList.remove('visible');
+    indicator.classList.add('hidden');
+    indicator.style.opacity = '';
+}
+
+// Initialize swipe on page load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initSwipeNavigation, 500);
 });
