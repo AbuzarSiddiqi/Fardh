@@ -859,79 +859,128 @@
             </div>
         </div>
 
-        <!-- Qibla Direction Modal -->
+        <!-- Qibla Direction Modal - Premium Redesign -->
         <div id="qibla-modal" class="qibla-modal hidden">
-            <div class="qibla-modal-bg"></div>
-            <div class="qibla-content">
-                <!-- Header -->
-                <div class="qibla-header">
-                    <button id="qibla-close" class="qibla-header-btn">
-                        <span class="material-symbols-outlined">arrow_back</span>
-                    </button>
-                    <div class="qibla-header-info">
-                        <span class="qibla-header-label">Qibla Finder</span>
-                        <span class="qibla-header-distance">Mecca • <span id="qibla-distance">--</span> km</span>
-                    </div>
-                    <button class="qibla-header-btn">
-                        <span class="material-symbols-outlined">settings</span>
-                    </button>
+            <!-- Map Background -->
+            <div class="qibla-map-bg"></div>
+            <div class="qibla-gradient-overlay"></div>
+            
+            <!-- Header -->
+            <div class="qibla-header">
+                <button id="qibla-close" class="qibla-header-btn">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <div class="qibla-header-pill">
+                    <div class="qibla-header-indicator"></div>
+                    <span class="qibla-header-label">Qibla Finder</span>
+                    <div class="qibla-header-divider"></div>
+                    <span class="qibla-header-mecca">Mecca</span>
                 </div>
-
-                <!-- Compass -->
-                <div class="qibla-compass-container">
+                <button class="qibla-header-btn">
+                    <span class="material-symbols-outlined">settings</span>
+                </button>
+            </div>
+            
+            <!-- Compass Container -->
+            <div class="qibla-compass-container">
+                <!-- Outer Compass -->
+                <div class="qibla-compass-outer">
+                    <!-- Cardinal Directions -->
+                    <span class="qibla-direction qibla-direction-n">N</span>
+                    <span class="qibla-direction qibla-direction-s">S</span>
+                    <span class="qibla-direction qibla-direction-w">W</span>
+                    <span class="qibla-direction qibla-direction-e">E</span>
+                    
+                    <!-- Main Compass -->
                     <div class="qibla-compass">
-                        <div class="qibla-compass-ring"></div>
-                        <div class="qibla-compass-dial">
-                            <span class="qibla-direction-n">N</span>
-                            <span class="qibla-direction-s">S</span>
-                            <span class="qibla-direction-e">E</span>
-                            <span class="qibla-direction-w">W</span>
-                            
-                            <!-- Qibla Pointer -->
-                            <div id="qibla-pointer" class="qibla-pointer">
-                                <div class="qibla-beam"></div>
-                                <div class="qibla-kaaba-icon">
-                                    <span class="material-symbols-outlined">mosque</span>
+                        <!-- Radar Scan -->
+                        <div class="qibla-radar-scan">
+                            <div class="qibla-radar-gradient"></div>
+                        </div>
+                        
+                        <!-- Compass Rings -->
+                        <div class="qibla-compass-ring qibla-compass-ring-dashed"></div>
+                        <div class="qibla-compass-ring qibla-compass-ring-inner"></div>
+                        
+                        <!-- Qibla Pointer -->
+                        <div id="qibla-pointer" class="qibla-pointer">
+                            <div class="qibla-beam"></div>
+                            <div class="qibla-kaaba-icon">
+                                <span class="material-symbols-outlined">mosque</span>
+                            </div>
+                            <span class="qibla-kaaba-label">Kaaba</span>
+                        </div>
+                        
+                        <!-- Center -->
+                        <div class="qibla-center">
+                            <div class="qibla-center-pulse-ring"></div>
+                            <div class="qibla-center-inner">
+                                <div class="qibla-center-dot"></div>
+                                <div class="qibla-center-arrow"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Distance Badge -->
+                <div class="qibla-distance-badge">
+                    <span class="qibla-distance-label">Distance</span>
+                    <span class="qibla-distance-value"><span id="qibla-distance">--</span> <span class="qibla-distance-unit">KM</span></span>
+                </div>
+            </div>
+            
+            <!-- Bottom Info Panel -->
+            <div class="qibla-bottom-panel">
+                <div class="qibla-info-card">
+                    <div class="qibla-info-inner">
+                        <!-- Location Header -->
+                        <div class="qibla-location-row">
+                            <div class="qibla-location-left">
+                                <div class="qibla-location-icon">
+                                    <span class="material-symbols-outlined">near_me</span>
+                                </div>
+                                <div class="qibla-location-text">
+                                    <div class="qibla-location-title">Current Location</div>
+                                    <div id="qibla-location-name" class="qibla-location-subtitle">Locating...</div>
                                 </div>
                             </div>
-                            
-                            <!-- Center -->
-                            <div class="qibla-center">
-                                <div class="qibla-center-dot"></div>
-                                <div class="qibla-center-pulse"></div>
+                            <div class="qibla-bearing-info">
+                                <div id="qibla-bearing" class="qibla-bearing-value">--°</div>
+                                <div class="qibla-bearing-label">Target</div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="qibla-hint">
-                        <span class="material-symbols-outlined">vibration</span>
-                        <span>Align arrows to vibrate</span>
+                        
+                        <!-- Coordinates Grid -->
+                        <div class="qibla-coords-grid">
+                            <div class="qibla-coord-card">
+                                <div class="qibla-coord-icon">
+                                    <span class="material-symbols-outlined">north</span>
+                                </div>
+                                <span class="qibla-coord-label">Latitude</span>
+                                <span id="qibla-latitude" class="qibla-coord-value">--° N</span>
+                            </div>
+                            <div class="qibla-coord-card">
+                                <div class="qibla-coord-icon">
+                                    <span class="material-symbols-outlined">east</span>
+                                </div>
+                                <span class="qibla-coord-label">Longitude</span>
+                                <span id="qibla-longitude" class="qibla-coord-value">--° E</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Calibrate Button -->
+                        <button id="qibla-calibrate" class="qibla-calibrate-btn">
+                            <div class="qibla-calibrate-hover"></div>
+                            <span class="material-symbols-outlined">my_location</span>
+                            <span>Recalibrate Compass</span>
+                        </button>
                     </div>
                 </div>
-
-                <!-- Stats -->
-                <div class="qibla-stats">
-                    <div class="qibla-stat-card">
-                        <div class="qibla-stat-header">
-                            <span class="material-symbols-outlined">explore</span>
-                            <span>Latitude</span>
-                        </div>
-                        <span id="qibla-latitude" class="qibla-stat-value">--° N</span>
-                    </div>
-                    <div class="qibla-stat-card">
-                        <div class="qibla-stat-header">
-                            <span class="material-symbols-outlined">public</span>
-                            <span>Longitude</span>
-                        </div>
-                        <span id="qibla-longitude" class="qibla-stat-value">--° E</span>
-                    </div>
+                
+                <!-- Handle Bar -->
+                <div class="qibla-handle-bar">
+                    <div class="qibla-handle"></div>
                 </div>
-
-                <!-- Calibrate Button -->
-                <button id="qibla-calibrate" class="qibla-calibrate-btn">
-                    <span class="material-symbols-outlined">my_location</span>
-                    <span>Recalibrate Compass</span>
-                </button>
             </div>
         </div>
 
