@@ -261,6 +261,23 @@ function hideError() {
     elements.errorToast?.classList.add('hidden');
 }
 
+function showSuccess(message) {
+    const successToast = document.getElementById('success-toast');
+    const successMessage = document.getElementById('success-message');
+    if (successMessage) {
+        successMessage.textContent = message;
+    }
+    successToast?.classList.remove('hidden');
+
+    // Auto hide after 2 seconds
+    setTimeout(hideSuccess, 2000);
+}
+
+function hideSuccess() {
+    const successToast = document.getElementById('success-toast');
+    successToast?.classList.add('hidden');
+}
+
 // ============================================
 // API HELPERS
 // ============================================
@@ -389,22 +406,47 @@ function renderSurah() {
             </div>
         `;
 
-        // Render ayahs with individual play buttons
+        // Render ayahs with individual play buttons and bookmark buttons
         const ayahsHtml = arabic.ayahs.map((ayah, index) => {
             const translationText = translation?.ayahs?.[index]?.text || '';
+            const bookmarkId = `quran-${arabic.number}-${ayah.numberInSurah}`;
+            const ayahIsBookmarked = typeof isBookmarked === 'function' && isBookmarked('quran', bookmarkId);
             return `
                 <div class="ayah-card" data-ayah-number="${ayah.numberInSurah}">
                     <div class="ayah-header">
                         <span class="ayah-number">${ayah.numberInSurah}</span>
-                        <button class="ayah-play-btn" data-surah="${arabic.number}" data-ayah="${ayah.numberInSurah}" title="Play this ayah">
-                            <span class="material-symbols-outlined">play_arrow</span>
-                        </button>
+                        <div class="ayah-actions">
+                            <button class="ayah-play-btn" data-surah="${arabic.number}" data-ayah="${ayah.numberInSurah}" title="Play this ayah">
+                                <span class="material-symbols-outlined">play_arrow</span>
+                            </button>
+                            <button class="ayah-bookmark-btn ${ayahIsBookmarked ? 'bookmarked' : ''}" 
+                                data-surah-number="${arabic.number}"
+                                data-surah-name="${arabic.name}"
+                                data-surah-english="${arabic.englishName}"
+                                data-ayah-number="${ayah.numberInSurah}"
+                                data-arabic="${encodeURIComponent(ayah.text)}"
+                                data-translation="${encodeURIComponent(translationText)}"
+                                data-juz="${ayah.juz || ''}"
+                                data-revelation="${arabic.revelationType || 'Meccan'}"
+                                title="Bookmark this ayah">
+                                <span class="material-symbols-outlined">${ayahIsBookmarked ? 'bookmark' : 'bookmark_border'}</span>
+                            </button>
+                            <button class="ayah-share-btn" 
+                                data-surah-name="${arabic.englishName}"
+                                data-ayah-number="${ayah.numberInSurah}"
+                                data-arabic="${encodeURIComponent(ayah.text)}"
+                                data-translation="${encodeURIComponent(translationText)}"
+                                title="Share this ayah">
+                                <span class="material-symbols-outlined">share</span>
+                            </button>
+                        </div>
                     </div>
                     <p class="ayah-arabic">${ayah.text}</p>
                     ${translationText ? `<p class="ayah-translation">${translationText}</p>` : ''}
                 </div>
             `;
         }).join('');
+
 
         elements.ayahsContainer.innerHTML = playSurahBtn + ayahsHtml;
 
@@ -635,6 +677,9 @@ async function onReciterChange() {
 }
 
 async function playAudio(surahNumber, reciterEdition) {
+    // Stop any currently playing audio (from read tab)
+    stopAllAudio('listen');
+
     showLoading();
 
     try {
@@ -907,6 +952,9 @@ function attachReadAudioListeners() {
 }
 
 async function playReadAudio(surahNumber, startAyah, playWholeSurah) {
+    // Stop any currently playing audio (from listen tab)
+    stopAllAudio('read');
+
     showLoading();
 
     try {
@@ -1377,14 +1425,36 @@ function loadHadithSection(bookId, sectionNum) {
 
     // Limit to first 50 for performance
     const displayHadiths = filteredHadiths.slice(0, 50);
+    const collectionName = book.metadata?.name || bookId;
 
-    container.innerHTML = displayHadiths.map(hadith => `
+    container.innerHTML = displayHadiths.map(hadith => {
+        const hadithId = `hadith-${bookId}-${hadith.hadithnumber}`;
+        const hadithIsBookmarked = typeof isBookmarked === 'function' && isBookmarked('hadith', hadithId);
+        return `
         <div class="hadith-card">
-            <p class="hadith-number">Hadith #${hadith.hadithnumber}</p>
+            <div class="hadith-card-header">
+                <p class="hadith-number">Hadith #${hadith.hadithnumber}</p>
+                <div class="hadith-card-actions">
+                    <button class="hadith-bookmark-btn ${hadithIsBookmarked ? 'bookmarked' : ''}"
+                        data-hadith-id="${hadithId}"
+                        data-collection="${encodeURIComponent(collectionName)}"
+                        data-book="${encodeURIComponent(hadith.reference?.book || '')}"
+                        data-number="${hadith.hadithnumber}"
+                        data-text="${encodeURIComponent(hadith.text || '')}">
+                        <span class="material-symbols-outlined">${hadithIsBookmarked ? 'bookmark' : 'bookmark_border'}</span>
+                    </button>
+                    <button class="hadith-share-btn"
+                        data-collection="${encodeURIComponent(collectionName)}"
+                        data-number="${hadith.hadithnumber}"
+                        data-text="${encodeURIComponent(hadith.text || '')}">
+                        <span class="material-symbols-outlined">share</span>
+                    </button>
+                </div>
+            </div>
             <p class="hadith-text">${hadith.text}</p>
             <p class="hadith-reference">Book ${hadith.reference?.book}, Hadith ${hadith.reference?.hadith}</p>
         </div>
-    `).join('');
+    `}).join('');
 
     if (filteredHadiths.length > 50) {
         container.innerHTML += `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Showing first 50 of ${filteredHadiths.length} hadiths</p>`;
@@ -2070,8 +2140,28 @@ function showDuaDetail(dua) {
 
     if (contentEl) {
         const benefits = dua.fawaid || dua.benefits || '';
+        const duaId = `dua-${dua.title?.replace(/\s+/g, '-').toLowerCase() || Date.now()}`;
+        const duaIsBookmarked = typeof isBookmarked === 'function' && isBookmarked('duas', duaId);
 
         contentEl.innerHTML = `
+            <div class="dua-detail-actions">
+                <button class="dua-bookmark-btn ${duaIsBookmarked ? 'bookmarked' : ''}" 
+                    data-dua-id="${duaId}"
+                    data-title="${encodeURIComponent(dua.title || '')}"
+                    data-arabic="${encodeURIComponent(dua.arabic || '')}"
+                    data-translation="${encodeURIComponent(dua.translation || '')}"
+                    data-source="${encodeURIComponent(dua.source || '')}">
+                    <span class="material-symbols-outlined">${duaIsBookmarked ? 'bookmark' : 'bookmark_border'}</span>
+                </button>
+                <button class="dua-share-btn"
+                    data-title="${encodeURIComponent(dua.title || '')}"
+                    data-arabic="${encodeURIComponent(dua.arabic || '')}"
+                    data-translation="${encodeURIComponent(dua.translation || '')}"
+                    data-source="${encodeURIComponent(dua.source || '')}">
+                    <span class="material-symbols-outlined">share</span>
+                </button>
+            </div>
+            
             <div class="dua-detail-arabic">${dua.arabic}</div>
             
             <div class="dua-detail-section">
@@ -2109,6 +2199,50 @@ function showDuaDetail(dua) {
 // ============================================
 // GLOBAL MINI PLAYER
 // ============================================
+
+// Stop all currently playing audio (ensures only one audio plays at a time)
+function stopAllAudio(exceptSource = null) {
+    // Stop Listen tab audio
+    if (exceptSource !== 'listen' && elements.audioPlayer) {
+        elements.audioPlayer.pause();
+        elements.audioPlayer.currentTime = 0;
+    }
+
+    // Stop Read tab audio
+    if (exceptSource !== 'read') {
+        const readAudioPlayer = document.getElementById('read-audio-player');
+        if (readAudioPlayer) {
+            readAudioPlayer.pause();
+            readAudioPlayer.currentTime = 0;
+        }
+    }
+
+    // Clean up read player state if stopping read audio
+    if (exceptSource !== 'read') {
+        const inlinePlayer = document.getElementById('read-inline-player');
+        if (inlinePlayer) {
+            inlinePlayer.classList.add('hidden');
+        }
+        if (typeof readAudioState !== 'undefined') {
+            readAudioState.playlist = [];
+            readAudioState.currentIndex = 0;
+            readAudioState.isPlaying = false;
+        }
+
+        // Remove highlight from all ayahs
+        document.querySelectorAll('.ayah-card.playing').forEach(card => {
+            card.classList.remove('playing');
+        });
+    }
+
+    // Clean up listen player state if stopping listen audio
+    if (exceptSource !== 'listen') {
+        elements.audioPlayerContainer?.classList.add('hidden');
+        audioState.playlist = [];
+        audioState.currentIndex = 0;
+        audioState.isPlaying = false;
+    }
+}
 
 // Global player state that tracks which audio source is active
 const globalPlayerState = {
@@ -2213,6 +2347,226 @@ function initGlobalMiniPlayer() {
 
     // Hook into existing audio players for state updates
     hookAudioPlayerEvents();
+
+    // ========================================
+    // INTERACTIVE SWIPE GESTURE HANDLING
+    // ========================================
+
+    const SWIPE_THRESHOLD = 80; // Minimum swipe distance to trigger
+    const VELOCITY_THRESHOLD = 0.3; // Minimum velocity for quick swipes
+
+    // --- Mini Player Swipe Up (to expand) ---
+    if (miniPlayer) {
+        let touchStartY = 0;
+        let touchCurrentY = 0;
+        let isDragging = false;
+        let touchStartedOnButton = false;
+        let startTime = 0;
+
+        miniPlayer.addEventListener('touchstart', (e) => {
+            const target = e.target;
+            touchStartedOnButton = target.closest('button') || target.closest('.mini-control-btn');
+
+            if (!touchStartedOnButton) {
+                touchStartY = e.touches[0].clientY;
+                touchCurrentY = touchStartY;
+                isDragging = true;
+                startTime = Date.now();
+
+                // Prepare full modal for animation (show but off-screen)
+                fullModal.style.transition = 'none';
+                fullModal.classList.remove('hidden');
+                fullModal.style.opacity = '0';
+
+                const content = fullModal.querySelector('.full-player-content');
+                if (content) {
+                    content.style.transition = 'none';
+                    content.style.transform = 'translateY(100%)';
+                }
+            }
+        }, { passive: true });
+
+        miniPlayer.addEventListener('touchmove', (e) => {
+            if (!isDragging || touchStartedOnButton) return;
+
+            // Prevent page scrolling
+            e.preventDefault();
+
+            touchCurrentY = e.touches[0].clientY;
+            const deltaY = touchStartY - touchCurrentY; // Positive = swiping up
+
+            if (deltaY > 0) {
+                // Calculate progress (0 to 1)
+                const maxDrag = window.innerHeight * 0.4;
+                const progress = Math.min(deltaY / maxDrag, 1);
+
+                // Animate full modal in
+                fullModal.style.opacity = progress.toString();
+
+                const content = fullModal.querySelector('.full-player-content');
+                if (content) {
+                    const translateY = 100 - (progress * 100);
+                    content.style.transform = `translateY(${translateY}%)`;
+                }
+
+                // Animate mini player out
+                miniPlayer.style.transform = `translateX(-50%) translateY(${-deltaY * 0.3}px) scale(${1 - progress * 0.1})`;
+                miniPlayer.style.opacity = (1 - progress * 0.5).toString();
+            }
+        }, { passive: false });
+
+        miniPlayer.addEventListener('touchend', () => {
+            if (!isDragging || touchStartedOnButton) {
+                touchStartedOnButton = false;
+                return;
+            }
+
+            const deltaY = touchStartY - touchCurrentY;
+            const absDeltaY = Math.abs(deltaY);
+            const elapsed = Date.now() - startTime;
+            const velocity = deltaY / elapsed;
+
+            // TAP detection: minimal movement means it's a tap, not a swipe
+            const TAP_THRESHOLD = 10; // Max pixels moved to count as a tap
+            const isTap = absDeltaY < TAP_THRESHOLD && elapsed < 300;
+
+            // Determine if we should expand (swipe up OR tap)
+            const shouldExpand = isTap || deltaY > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD;
+
+            // Reset mini player with animation
+            miniPlayer.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            miniPlayer.style.transform = 'translateX(-50%)';
+            miniPlayer.style.opacity = '1';
+
+            const content = fullModal.querySelector('.full-player-content');
+
+            if (shouldExpand) {
+                // Complete the expansion
+                fullModal.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                fullModal.style.opacity = '1';
+
+                if (content) {
+                    content.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                    content.style.transform = 'translateY(0)';
+                }
+
+                // Update player state
+                updateMiniPlayerDisplay();
+                updateFullPlayerProgress();
+                const activePlayer = getActiveAudioPlayer();
+                updateMiniPlayerState(activePlayer?.paused ?? false);
+            } else {
+                // Cancel - hide full modal
+                fullModal.style.transition = 'opacity 0.2s ease';
+                fullModal.style.opacity = '0';
+
+                if (content) {
+                    content.style.transition = 'transform 0.2s ease';
+                    content.style.transform = 'translateY(100%)';
+                }
+
+                setTimeout(() => {
+                    fullModal.classList.add('hidden');
+                }, 200);
+            }
+
+            // Cleanup after animation
+            setTimeout(() => {
+                miniPlayer.style.transition = '';
+            }, 300);
+
+            isDragging = false;
+            touchStartedOnButton = false;
+        });
+    }
+
+    // --- Full Player Swipe Down (to collapse) ---
+    if (fullModal) {
+        const fullContent = fullModal.querySelector('.full-player-content');
+
+        if (fullContent) {
+            let touchStartY = 0;
+            let touchCurrentY = 0;
+            let isDragging = false;
+            let startTime = 0;
+
+            fullContent.addEventListener('touchstart', (e) => {
+                // Only start drag if touching the content directly (not buttons)
+                const target = e.target;
+                if (target.closest('button') || target.closest('.full-progress-bar')) return;
+
+                touchStartY = e.touches[0].clientY;
+                touchCurrentY = touchStartY;
+                isDragging = true;
+                startTime = Date.now();
+
+                fullContent.style.transition = 'none';
+                fullModal.style.transition = 'none';
+            }, { passive: true });
+
+            fullContent.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+
+                // Prevent page scrolling
+                e.preventDefault();
+
+                touchCurrentY = e.touches[0].clientY;
+                const deltaY = touchCurrentY - touchStartY; // Positive = swiping down
+
+                if (deltaY > 0) {
+                    // Calculate progress
+                    const maxDrag = window.innerHeight * 0.4;
+                    const progress = Math.min(deltaY / maxDrag, 1);
+
+                    // Animate content down
+                    fullContent.style.transform = `translateY(${deltaY}px)`;
+
+                    // Fade out modal background
+                    fullModal.style.opacity = (1 - progress * 0.5).toString();
+                }
+            }, { passive: false });
+
+            fullContent.addEventListener('touchend', () => {
+                if (!isDragging) return;
+
+                const deltaY = touchCurrentY - touchStartY;
+                const elapsed = Date.now() - startTime;
+                const velocity = deltaY / elapsed;
+
+                // Determine if we should collapse
+                const shouldCollapse = deltaY > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD;
+
+                fullContent.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                fullModal.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+
+                if (shouldCollapse) {
+                    // Complete the collapse
+                    fullContent.style.transform = 'translateY(100%)';
+                    fullModal.style.opacity = '0';
+
+                    setTimeout(() => {
+                        fullModal.classList.add('hidden');
+                        fullContent.style.transform = '';
+                        fullModal.style.opacity = '';
+                        fullContent.style.transition = '';
+                        fullModal.style.transition = '';
+                    }, 300);
+                } else {
+                    // Cancel - return to original position
+                    fullContent.style.transform = 'translateY(0)';
+                    fullModal.style.opacity = '1';
+
+                    setTimeout(() => {
+                        fullContent.style.transition = '';
+                        fullModal.style.transition = '';
+                    }, 300);
+                }
+
+                isDragging = false;
+            });
+        }
+    }
+
 }
 
 // Get the currently active audio player element
@@ -2848,12 +3202,23 @@ function startPrayerCountdown() {
         const now = new Date();
         const { hours, minutes } = prayerState.nextPrayer.time;
 
-        // Create target time
+        // Create target time for today
         let target = new Date();
         target.setHours(hours, minutes, 0, 0);
 
-        // If target is in the past, it's tomorrow's Fajr
-        if (target <= now) {
+        // Check if we've passed the prayer time (within the same minute)
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        const targetMinutes = hours * 60 + minutes;
+
+        // If the prayer time has arrived or passed, recalculate immediately
+        if (nowMinutes >= targetMinutes && prayerState.nextPrayer.name !== 'Fajr') {
+            // Prayer time reached, recalculate
+            calculateNextPrayer();
+            return;
+        }
+
+        // For Fajr (next day), check if target is in the past
+        if (target <= now && prayerState.nextPrayer.name === 'Fajr') {
             target.setDate(target.getDate() + 1);
         }
 
@@ -3535,49 +3900,91 @@ function selectReciter(reciterId) {
         // Close modal first
         closeReciterModal();
 
-        // If audio is currently playing, reload with new reciter
+        // If audio is currently playing OR paused (but mini player visible), reload with new reciter
         const listenAudio = elements.audioPlayer;
         const readAudio = document.getElementById('read-audio-player');
 
         // Check Listen tab audio
-        if (globalPlayerState.source === 'listen' && listenAudio && !listenAudio.paused) {
+        if (globalPlayerState.source === 'listen' && listenAudio) {
             const surahSelect = document.getElementById('audio-surah-select');
             const currentSurah = surahSelect?.value;
-            if (currentSurah) {
-                // Remember current ayah
+            if (currentSurah && audioState.playlist.length > 0) {
+                const wasPlaying = !listenAudio.paused;
                 const currentAyahIndex = audioState.currentIndex || 0;
+                const currentTime = listenAudio.currentTime || 0;
+
                 // Reload with new reciter
                 playAudio(currentSurah, reciterId).then(() => {
-                    // Try to continue from same ayah
-                    if (currentAyahIndex > 0 && currentAyahIndex < audioState.playlist.length) {
+                    // Continue from same ayah
+                    if (currentAyahIndex < audioState.playlist.length) {
                         audioState.currentIndex = currentAyahIndex;
                         listenAudio.src = audioState.playlist[currentAyahIndex];
-                        listenAudio.play();
+                        listenAudio.load();
+
+                        listenAudio.addEventListener('loadedmetadata', function onLoad() {
+                            // Try to restore the time position
+                            if (currentTime > 0 && currentTime < listenAudio.duration) {
+                                listenAudio.currentTime = currentTime;
+                            }
+                            if (wasPlaying) {
+                                listenAudio.play();
+                            }
+                            listenAudio.removeEventListener('loadedmetadata', onLoad);
+                        });
+
+                        updateAyahCounter();
                     }
                 });
             }
         }
         // Check Read tab audio
-        else if (globalPlayerState.source === 'read' && readAudio && !readAudio.paused) {
-            const currentAyahIndex = readAudioState.currentIndex || 0;
+        else if (globalPlayerState.source === 'read' && readAudio) {
             const surahNumber = readAudioState.surahNumber;
-            if (surahNumber && readAudioState.ayahNumbers.length > 0) {
-                // Reload the playlist with new reciter
-                const newPlaylist = readAudioState.ayahNumbers.map(ayahNum =>
-                    `https://cdn.islamic.network/quran/audio/128/${reciterId}/${(surahNumber - 1) * 1000 + ayahNum}.mp3`
-                );
-                readAudioState.playlist = newPlaylist;
-                // Play current ayah with new reciter
-                if (currentAyahIndex < newPlaylist.length) {
-                    readAudio.src = newPlaylist[currentAyahIndex];
-                    readAudio.play();
-                }
+            if (surahNumber && readAudioState.playlist.length > 0) {
+                const wasPlaying = !readAudio.paused;
+                const currentAyahIndex = readAudioState.currentIndex || 0;
+                const currentTime = readAudio.currentTime || 0;
+
+                // Fetch new audio URLs from API
+                fetchAPI(`/surah/${surahNumber}/${reciterId}`).then(data => {
+                    if (data.ayahs && data.ayahs.length > 0) {
+                        // Rebuild playlist with same structure
+                        const startOffset = readAudioState.startAyahOffset || 1;
+
+                        // If playing whole surah
+                        if (readAudioState.playlist.length > 1 || startOffset === 1) {
+                            const newPlaylist = data.ayahs.map(a => a.audio).filter(Boolean);
+                            readAudioState.playlist = newPlaylist;
+                        } else {
+                            // Single ayah mode
+                            const ayah = data.ayahs.find(a => a.numberInSurah === startOffset);
+                            if (ayah && ayah.audio) {
+                                readAudioState.playlist = [ayah.audio];
+                            }
+                        }
+
+                        // Play current ayah with new reciter
+                        if (currentAyahIndex < readAudioState.playlist.length) {
+                            readAudio.src = readAudioState.playlist[currentAyahIndex];
+                            readAudio.load();
+
+                            readAudio.addEventListener('loadedmetadata', function onLoad() {
+                                if (currentTime > 0 && currentTime < readAudio.duration) {
+                                    readAudio.currentTime = currentTime;
+                                }
+                                if (wasPlaying) {
+                                    readAudio.play();
+                                }
+                                readAudio.removeEventListener('loadedmetadata', onLoad);
+                            });
+
+                            updateReadPlayerUI();
+                        }
+                    }
+                }).catch(err => {
+                    console.error('Error loading new reciter audio:', err);
+                });
             }
-        }
-        // If nothing playing but mini player is visible, just update state
-        else if (globalPlayerState.source) {
-            // Audio was paused, will use new reciter when resumed
-            console.log('Reciter changed to:', edition.englishName);
         }
     }
 }
@@ -3944,4 +4351,795 @@ function hideSwipeIndicator() {
 // Initialize swipe on page load
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initSwipeNavigation, 500);
+});
+
+// ============================================
+// BOOKMARK SYSTEM
+// ============================================
+
+// Bookmark state
+const bookmarkState = {
+    quran: [],
+    hadith: [],
+    duas: []
+};
+
+// Load bookmarks from localStorage
+function loadBookmarks() {
+    try {
+        const saved = localStorage.getItem('bookmarks');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            bookmarkState.quran = parsed.quran || [];
+            bookmarkState.hadith = parsed.hadith || [];
+            bookmarkState.duas = parsed.duas || [];
+        }
+    } catch (e) {
+        console.error('Error loading bookmarks:', e);
+    }
+}
+
+// Save bookmarks to localStorage
+function saveBookmarks() {
+    try {
+        localStorage.setItem('bookmarks', JSON.stringify(bookmarkState));
+    } catch (e) {
+        console.error('Error saving bookmarks:', e);
+    }
+}
+
+// Open bookmark modal
+function openBookmarkModal() {
+    const modal = document.getElementById('bookmark-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        renderBookmarks('quran');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Close bookmark modal
+function closeBookmarkModal() {
+    const modal = document.getElementById('bookmark-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+}
+
+// Switch bookmark tab
+function switchBookmarkTab(tab) {
+    // Update tab buttons
+    document.querySelectorAll('.bookmark-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.bookmarkTab === tab);
+    });
+
+    // Update content lists
+    document.querySelectorAll('.bookmark-list').forEach(list => {
+        list.classList.toggle('active', list.id === `bookmark-${tab}`);
+    });
+
+    // Render bookmarks for this tab
+    renderBookmarks(tab);
+}
+
+// Render bookmarks for a category
+function renderBookmarks(category) {
+    const container = document.getElementById(`bookmark-${category}-items`);
+    const emptyState = document.getElementById(`bookmark-${category}-empty`);
+
+    if (!container) return;
+
+    const bookmarks = bookmarkState[category] || [];
+
+    if (bookmarks.length === 0) {
+        container.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'flex';
+        return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+
+    if (category === 'quran') {
+        container.innerHTML = bookmarks.map(bookmark => `
+            <div class="bookmark-card" data-id="${bookmark.id}">
+                <div class="bookmark-card-header">
+                    <div class="bookmark-card-info">
+                        <div class="bookmark-card-badges">
+                            <span class="bookmark-card-badge">Juz ${bookmark.juz || '—'}</span>
+                            <span class="bookmark-card-type">${bookmark.revelationType || 'Meccan'}</span>
+                        </div>
+                        <h3 class="bookmark-card-title">${bookmark.surahName}</h3>
+                        <span class="bookmark-card-subtitle">${bookmark.surahEnglishName} • Verse ${bookmark.ayahNumber}</span>
+                    </div>
+                    <button class="bookmark-card-remove" onclick="removeBookmark('quran', '${bookmark.id}')">
+                        <span class="material-symbols-outlined">bookmark</span>
+                    </button>
+                </div>
+                <div class="bookmark-card-arabic">
+                    <p>${bookmark.arabicText}</p>
+                </div>
+                <div class="bookmark-card-translation">
+                    <p>"${bookmark.translationText || bookmark.arabicText}"</p>
+                </div>
+                <div class="bookmark-card-actions">
+                    <button class="bookmark-play-btn" onclick="playBookmarkAudio(${bookmark.surahNumber}, ${bookmark.ayahNumber})">
+                        <span class="material-symbols-outlined">play_arrow</span>
+                        <span>Listen</span>
+                    </button>
+                    <div class="bookmark-action-btns">
+                        <button class="bookmark-action-btn" onclick="shareBookmark('quran', '${bookmark.id}')">
+                            <span class="material-symbols-outlined">share</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } else if (category === 'hadith') {
+        container.innerHTML = bookmarks.map(bookmark => `
+            <div class="bookmark-card" data-id="${bookmark.id}">
+                <div class="bookmark-card-header">
+                    <div class="bookmark-card-info">
+                        <h3 class="bookmark-card-title">${bookmark.collection || 'Hadith'}</h3>
+                        <span class="bookmark-card-subtitle">${bookmark.book || ''} • #${bookmark.number || ''}</span>
+                    </div>
+                    <button class="bookmark-card-remove" onclick="removeBookmark('hadith', '${bookmark.id}')">
+                        <span class="material-symbols-outlined">bookmark</span>
+                    </button>
+                </div>
+                <div class="bookmark-card-translation">
+                    <p>"${bookmark.text}"</p>
+                </div>
+            </div>
+        `).join('');
+    } else if (category === 'duas') {
+        container.innerHTML = bookmarks.map(bookmark => `
+            <div class="bookmark-card" data-id="${bookmark.id}">
+                <div class="bookmark-card-header">
+                    <div class="bookmark-card-info">
+                        <h3 class="bookmark-card-title">${bookmark.title}</h3>
+                        <span class="bookmark-card-subtitle">${bookmark.category || ''}</span>
+                    </div>
+                    <button class="bookmark-card-remove" onclick="removeBookmark('duas', '${bookmark.id}')">
+                        <span class="material-symbols-outlined">bookmark</span>
+                    </button>
+                </div>
+                ${bookmark.arabic ? `
+                <div class="bookmark-card-arabic">
+                    <p>${bookmark.arabic}</p>
+                </div>
+                ` : ''}
+                <div class="bookmark-card-translation">
+                    <p>"${bookmark.translation || bookmark.arabic}"</p>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+// Add a bookmark
+function addBookmark(category, data) {
+    if (!bookmarkState[category]) return false;
+
+    // Check if already bookmarked
+    const exists = bookmarkState[category].some(b => b.id === data.id);
+    if (exists) return false;
+
+    // Add with timestamp
+    data.timestamp = Date.now();
+    bookmarkState[category].push(data);
+    saveBookmarks();
+
+    return true;
+}
+
+// Remove a bookmark
+function removeBookmark(category, id) {
+    if (!bookmarkState[category]) return;
+
+    bookmarkState[category] = bookmarkState[category].filter(b => b.id !== id);
+    saveBookmarks();
+    renderBookmarks(category);
+}
+
+// Check if item is bookmarked
+function isBookmarked(category, id) {
+    if (!bookmarkState[category]) return false;
+    return bookmarkState[category].some(b => b.id === id);
+}
+
+// Toggle bookmark
+function toggleBookmark(category, data) {
+    if (isBookmarked(category, data.id)) {
+        removeBookmark(category, data.id);
+        return false;
+    } else {
+        addBookmark(category, data);
+        return true;
+    }
+}
+
+// Play audio for bookmarked ayah
+function playBookmarkAudio(surahNumber, ayahNumber) {
+    closeBookmarkModal();
+    playReadAudio(surahNumber, ayahNumber, false);
+}
+
+// Share bookmark
+function shareBookmark(category, id) {
+    const bookmark = bookmarkState[category]?.find(b => b.id === id);
+    if (!bookmark) return;
+
+    let shareText = '';
+    if (category === 'quran') {
+        shareText = `${bookmark.arabicText}\n\n"${bookmark.translationText || ''}"\n\n— ${bookmark.surahName} (${bookmark.surahEnglishName}), Verse ${bookmark.ayahNumber}`;
+    } else if (category === 'hadith') {
+        shareText = `"${bookmark.text}"\n\n— ${bookmark.collection}, ${bookmark.book} #${bookmark.number}`;
+    } else if (category === 'duas') {
+        shareText = `${bookmark.arabic || ''}\n\n"${bookmark.translation || ''}"\n\n— ${bookmark.title}`;
+    }
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'Shared from Quran App',
+            text: shareText
+        }).catch(err => console.log('Share cancelled'));
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(shareText).then(() => {
+            showSuccess('Copied to clipboard!');
+        }).catch(err => console.error('Copy failed:', err));
+    }
+}
+
+// Initialize bookmark modal events
+document.addEventListener('DOMContentLoaded', () => {
+    loadBookmarks();
+
+    // Bookmark button click
+    const bookmarkBtn = document.getElementById('bookmark-btn');
+    if (bookmarkBtn) {
+        bookmarkBtn.addEventListener('click', openBookmarkModal);
+    }
+
+    // Close button
+    const closeBtn = document.getElementById('bookmark-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeBookmarkModal);
+    }
+
+    // Tab switching
+    document.querySelectorAll('.bookmark-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            switchBookmarkTab(tab.dataset.bookmarkTab);
+        });
+    });
+
+    // Event delegation for ayah bookmark buttons
+    document.addEventListener('click', (e) => {
+        const bookmarkBtn = e.target.closest('.ayah-bookmark-btn');
+        if (bookmarkBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const data = {
+                id: `quran-${bookmarkBtn.dataset.surahNumber}-${bookmarkBtn.dataset.ayahNumber}`,
+                surahNumber: parseInt(bookmarkBtn.dataset.surahNumber),
+                surahName: bookmarkBtn.dataset.surahName,
+                surahEnglishName: bookmarkBtn.dataset.surahEnglish,
+                ayahNumber: parseInt(bookmarkBtn.dataset.ayahNumber),
+                arabicText: decodeURIComponent(bookmarkBtn.dataset.arabic || ''),
+                translationText: decodeURIComponent(bookmarkBtn.dataset.translation || ''),
+                juz: bookmarkBtn.dataset.juz,
+                revelationType: bookmarkBtn.dataset.revelation
+            };
+
+            const wasBookmarked = bookmarkBtn.classList.contains('bookmarked');
+            const isNowBookmarked = toggleBookmark('quran', data);
+
+            // Update button UI
+            bookmarkBtn.classList.toggle('bookmarked', isNowBookmarked);
+            const icon = bookmarkBtn.querySelector('.material-symbols-outlined');
+            if (icon) {
+                icon.textContent = isNowBookmarked ? 'bookmark' : 'bookmark_border';
+            }
+
+            // Show toast
+            showSuccess(isNowBookmarked ? 'Ayah bookmarked!' : 'Bookmark removed');
+        }
+
+        // Dua bookmark button
+        const duaBtn = e.target.closest('.dua-bookmark-btn');
+        if (duaBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const data = {
+                id: duaBtn.dataset.duaId,
+                title: decodeURIComponent(duaBtn.dataset.title || ''),
+                arabic: decodeURIComponent(duaBtn.dataset.arabic || ''),
+                translation: decodeURIComponent(duaBtn.dataset.translation || ''),
+                source: decodeURIComponent(duaBtn.dataset.source || ''),
+                category: 'Dua'
+            };
+
+            const isNowBookmarked = toggleBookmark('duas', data);
+
+            // Update button UI
+            duaBtn.classList.toggle('bookmarked', isNowBookmarked);
+            const icon = duaBtn.querySelector('.material-symbols-outlined');
+            if (icon) {
+                icon.textContent = isNowBookmarked ? 'bookmark' : 'bookmark_border';
+            }
+
+            // Show toast
+            showSuccess(isNowBookmarked ? 'Dua bookmarked!' : 'Bookmark removed');
+        }
+
+        // Hadith bookmark button
+        const hadithBtn = e.target.closest('.hadith-bookmark-btn');
+        if (hadithBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const data = {
+                id: hadithBtn.dataset.hadithId,
+                collection: decodeURIComponent(hadithBtn.dataset.collection || ''),
+                book: decodeURIComponent(hadithBtn.dataset.book || ''),
+                number: hadithBtn.dataset.number,
+                text: decodeURIComponent(hadithBtn.dataset.text || '')
+            };
+
+            const isNowBookmarked = toggleBookmark('hadith', data);
+
+            // Update button UI
+            hadithBtn.classList.toggle('bookmarked', isNowBookmarked);
+            const icon = hadithBtn.querySelector('.material-symbols-outlined');
+            if (icon) {
+                icon.textContent = isNowBookmarked ? 'bookmark' : 'bookmark_border';
+            }
+
+            // Show toast
+            showSuccess(isNowBookmarked ? 'Hadith bookmarked!' : 'Bookmark removed');
+        }
+    });
+});
+
+// ============================================
+// DUA OF THE DAY WIDGET
+// ============================================
+
+const duaOfDayState = {
+    allDuas: [],
+    currentDua: null,
+    currentIndex: 0
+};
+
+// Load all duas for the widget
+async function loadDuasForWidget() {
+    try {
+        // Load daily duas (usually shorter)
+        const response = await fetch('./islamic_data/dua-dhikr/daily-dua/en.json');
+        const data = await response.json();
+
+        // The data is organized by categories with 'items' arrays
+        // Flatten all items from all categories
+        let allDuas = [];
+        data.forEach(category => {
+            if (category.items && Array.isArray(category.items)) {
+                allDuas = allDuas.concat(category.items);
+            }
+        });
+
+        // Filter to shorter duas (Arabic text < 100 chars) for better widget display
+        duaOfDayState.allDuas = allDuas.filter(dua =>
+            dua.arabic && dua.arabic.length < 100 && dua.translation
+        );
+
+        // If not enough short duas, include slightly longer ones
+        if (duaOfDayState.allDuas.length < 5) {
+            duaOfDayState.allDuas = allDuas.filter(dua =>
+                dua.arabic && dua.arabic.length < 200 && dua.translation
+            );
+        }
+
+        // Shuffle the array
+        duaOfDayState.allDuas = shuffleArray(duaOfDayState.allDuas);
+
+        // Display first dua
+        if (duaOfDayState.allDuas.length > 0) {
+            displayDuaOfDay(0);
+        }
+    } catch (error) {
+        console.error('Failed to load duas for widget:', error);
+    }
+}
+
+// Shuffle array (Fisher-Yates)
+function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// Display a dua in the widget
+function displayDuaOfDay(index) {
+    if (duaOfDayState.allDuas.length === 0) return;
+
+    // Wrap index
+    index = index % duaOfDayState.allDuas.length;
+    duaOfDayState.currentIndex = index;
+
+    const dua = duaOfDayState.allDuas[index];
+    duaOfDayState.currentDua = dua;
+
+    const arabicEl = document.getElementById('dua-day-arabic');
+    const translationEl = document.getElementById('dua-day-translation');
+    const sourceEl = document.getElementById('dua-day-source');
+
+    if (arabicEl) {
+        // Truncate Arabic if too long
+        const arabic = dua.arabic.length > 80 ? dua.arabic.substring(0, 80) + '...' : dua.arabic;
+        arabicEl.textContent = arabic;
+    }
+
+    if (translationEl) {
+        // Truncate translation if too long
+        const translation = dua.translation.length > 120
+            ? '"' + dua.translation.substring(0, 120) + '..."'
+            : '"' + dua.translation + '"';
+        translationEl.textContent = translation;
+    }
+
+    if (sourceEl) {
+        sourceEl.textContent = dua.source || dua.title || 'Daily Dua';
+    }
+}
+
+// Change to next dua with animation
+function changeToNextDua() {
+    const content = document.getElementById('dua-day-content');
+    if (!content) return;
+
+    // Add swiping animation
+    content.classList.add('swiping');
+
+    setTimeout(() => {
+        // Change dua
+        displayDuaOfDay(duaOfDayState.currentIndex + 1);
+
+        // Remove swiping, add entering animation
+        content.classList.remove('swiping');
+        content.classList.add('entering');
+
+        setTimeout(() => {
+            content.classList.remove('entering');
+        }, 300);
+    }, 150);
+}
+
+// Navigate to dua detail
+function openDuaOfDayDetail() {
+    if (!duaOfDayState.currentDua) return;
+
+    // Switch to dua tab
+    switchTab('dua');
+
+    // Wait for tab to load, then show dua detail
+    setTimeout(() => {
+        showDuaDetail(duaOfDayState.currentDua);
+    }, 300);
+}
+
+// Share current dua
+function shareDuaOfDay() {
+    if (!duaOfDayState.currentDua) return;
+
+    const dua = duaOfDayState.currentDua;
+    const shareText = `${dua.arabic}\n\n"${dua.translation}"\n\n— ${dua.source || dua.title || 'Daily Dua'}`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'Dua of the Day',
+            text: shareText
+        }).catch(err => console.log('Share cancelled'));
+    } else {
+        navigator.clipboard.writeText(shareText).then(() => {
+            showSuccess('Copied to clipboard!');
+        }).catch(err => console.error('Copy failed:', err));
+    }
+}
+
+// Initialize Dua of Day widget
+document.addEventListener('DOMContentLoaded', () => {
+    loadDuasForWidget();
+
+    const card = document.getElementById('dua-day-card');
+    if (card) {
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        // Swipe detection
+        card.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        card.addEventListener('touchend', (e) => {
+            touchEndY = e.changedTouches[0].clientY;
+            const deltaY = touchStartY - touchEndY;
+
+            // Swipe up detected (> 30px)
+            if (deltaY > 30) {
+                changeToNextDua();
+            }
+        }, { passive: true });
+
+        // Click to open detail
+        card.addEventListener('click', (e) => {
+            // Don't open if user was swiping
+            if (Math.abs(touchStartY - touchEndY) < 10) {
+                openDuaOfDayDetail();
+            }
+        });
+    }
+
+    // Share button - now opens share modal
+    const shareBtn = document.getElementById('share-dua-of-day');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (duaOfDayState.currentDua) {
+                openShareModal({
+                    type: 'Dua of the Day',
+                    arabic: duaOfDayState.currentDua.arabic,
+                    translation: duaOfDayState.currentDua.translation,
+                    source: duaOfDayState.currentDua.source || duaOfDayState.currentDua.title || 'Daily Dua'
+                });
+            }
+        });
+    }
+});
+
+// ============================================
+// SHARE CARD MODAL
+// ============================================
+
+const shareCardState = {
+    currentData: null
+};
+
+// Open share modal with content
+function openShareModal(data) {
+    shareCardState.currentData = data;
+
+    const modal = document.getElementById('share-modal');
+    const typeEl = document.getElementById('share-card-type');
+    const arabicEl = document.getElementById('share-card-arabic');
+    const translationEl = document.getElementById('share-card-translation');
+    const sourceEl = document.getElementById('share-card-source');
+
+    if (typeEl) typeEl.textContent = data.type || 'Verse of the Day';
+    if (arabicEl) arabicEl.textContent = data.arabic || '';
+    if (translationEl) translationEl.textContent = `"${data.translation || ''}"`;
+    if (sourceEl) sourceEl.textContent = data.source || '';
+
+    modal?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+// Close share modal
+function closeShareModal() {
+    const modal = document.getElementById('share-modal');
+    modal?.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Copy text to clipboard
+function copyShareText() {
+    if (!shareCardState.currentData) return;
+
+    const data = shareCardState.currentData;
+    const text = `${data.arabic}\n\n"${data.translation}"\n\n— ${data.source}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        showSuccess('Copied to clipboard!');
+    }).catch(err => {
+        console.error('Copy failed:', err);
+    });
+}
+
+// Share to stories (generates image and shares via Web Share API)
+async function shareToStories() {
+    if (!shareCardState.currentData) return;
+
+    const card = document.querySelector('.share-card-preview');
+    if (!card) return;
+
+    try {
+        // Load dom-to-image-more if not loaded
+        if (typeof domtoimage === 'undefined') {
+            await loadScript('https://cdn.jsdelivr.net/npm/dom-to-image-more@3.3.0/dist/dom-to-image-more.min.js');
+        }
+
+        showSuccess('Preparing for Stories...');
+
+        // Get card dimensions for high quality output
+        const rect = card.getBoundingClientRect();
+        const scale = 3; // 3x scale for high quality
+
+        // Use dom-to-image-more for better RTL/Arabic support
+        const blob = await domtoimage.toBlob(card, {
+            quality: 1,
+            bgcolor: '#0d1f12',
+            width: rect.width * scale,
+            height: rect.height * scale,
+            style: {
+                'transform': `scale(${scale})`,
+                'transform-origin': 'top left',
+                'width': rect.width + 'px',
+                'height': rect.height + 'px'
+            }
+        });
+
+        const file = new File([blob], 'fard-share.png', { type: 'image/png' });
+
+        // Check if Web Share API with files is supported
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: 'Fard App',
+                text: shareCardState.currentData.type || 'Shared from Fard App'
+            });
+        } else if (navigator.share) {
+            // Fallback to text share if files not supported
+            const data = shareCardState.currentData;
+            const text = `${data.arabic}\n\n"${data.translation}"\n\n— ${data.source}\n\nDownload: fardh.netlify.app`;
+            await navigator.share({
+                title: 'Fard App',
+                text: text
+            });
+        } else {
+            // Fallback: save the image instead
+            saveShareCardAsImage();
+        }
+    } catch (error) {
+        console.error('Share to stories failed:', error);
+        if (error.name !== 'AbortError') {
+            showError('Share cancelled. Try Save Image instead.');
+        }
+    }
+}
+
+// Save card as image using dom-to-image-more (better Arabic support)
+async function saveShareCardAsImage() {
+    const card = document.querySelector('.share-card-preview');
+    if (!card) return;
+
+    try {
+        // Load dom-to-image-more if not loaded
+        if (typeof domtoimage === 'undefined') {
+            await loadScript('https://cdn.jsdelivr.net/npm/dom-to-image-more@3.3.0/dist/dom-to-image-more.min.js');
+        }
+
+        showSuccess('Generating image...');
+
+        // Get card dimensions for high quality output
+        const rect = card.getBoundingClientRect();
+        const scale = 3; // 3x scale for high quality
+
+        // Use dom-to-image-more for better RTL/Arabic support
+        const blob = await domtoimage.toBlob(card, {
+            quality: 1,
+            bgcolor: '#0d1f12',
+            width: rect.width * scale,
+            height: rect.height * scale,
+            style: {
+                'transform': `scale(${scale})`,
+                'transform-origin': 'top left',
+                'width': rect.width + 'px',
+                'height': rect.height + 'px'
+            }
+        });
+
+        // Download the image
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `fard-${shareCardState.currentData?.type || 'share'}-${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showSuccess('Image saved!');
+    } catch (error) {
+        console.error('Failed to save image:', error);
+        showError('Failed to save image. Try copying text instead.');
+    }
+}
+
+// Helper to load script dynamically
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+// Global share function - can be called from anywhere
+function openShareCardForContent(type, arabic, translation, source) {
+    openShareModal({ type, arabic, translation, source });
+}
+
+// Initialize share modal events
+document.addEventListener('DOMContentLoaded', () => {
+    // Close buttons
+    document.getElementById('share-modal-close')?.addEventListener('click', closeShareModal);
+    document.getElementById('share-modal-done')?.addEventListener('click', closeShareModal);
+
+    // Action buttons
+    document.getElementById('share-to-stories')?.addEventListener('click', shareToStories);
+    document.getElementById('share-save-image')?.addEventListener('click', saveShareCardAsImage);
+    document.getElementById('share-copy-text')?.addEventListener('click', copyShareText);
+
+    // Ayah share button (event delegation)
+    document.addEventListener('click', (e) => {
+        const ayahShareBtn = e.target.closest('.ayah-share-btn');
+        if (ayahShareBtn) {
+            e.preventDefault();
+            const surahName = ayahShareBtn.dataset.surahName || '';
+            const ayahNumber = ayahShareBtn.dataset.ayahNumber || '';
+            const arabic = decodeURIComponent(ayahShareBtn.dataset.arabic || '');
+            const translation = decodeURIComponent(ayahShareBtn.dataset.translation || '');
+
+            openShareModal({
+                type: 'Verse of the Day',
+                arabic: arabic,
+                translation: translation,
+                source: `${surahName} • Ayah ${ayahNumber}`
+            });
+        }
+    });
+
+    // Hadith share button (event delegation)
+    document.addEventListener('click', (e) => {
+        const hadithShareBtn = e.target.closest('.hadith-share-btn');
+        if (hadithShareBtn) {
+            e.preventDefault();
+            const collection = decodeURIComponent(hadithShareBtn.dataset.collection || '');
+            const number = hadithShareBtn.dataset.number || '';
+            const text = decodeURIComponent(hadithShareBtn.dataset.text || '');
+
+            openShareModal({
+                type: 'Hadith of the Day',
+                arabic: '',
+                translation: text,
+                source: `${collection} • Hadith ${number}`
+            });
+        }
+    });
+
+    // Dua share button (event delegation)
+    document.addEventListener('click', (e) => {
+        const duaShareBtn = e.target.closest('.dua-share-btn');
+        if (duaShareBtn) {
+            e.preventDefault();
+            const title = decodeURIComponent(duaShareBtn.dataset.title || '');
+            const arabic = decodeURIComponent(duaShareBtn.dataset.arabic || '');
+            const translation = decodeURIComponent(duaShareBtn.dataset.translation || '');
+            const source = decodeURIComponent(duaShareBtn.dataset.source || '');
+
+            openShareModal({
+                type: title || 'Dua',
+                arabic: arabic,
+                translation: translation,
+                source: source
+            });
+        }
+    });
 });

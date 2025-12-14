@@ -158,8 +158,8 @@
                         <h1 class="header-title">Assalamu alaikum</h1>
                         <p class="header-subtitle">Welcome back</p>
                     </div>
-                    <button class="icon-btn">
-                        <span class="material-symbols-outlined">notifications</span>
+                    <button class="icon-btn" id="bookmark-btn">
+                        <span class="material-symbols-outlined">bookmarks</span>
                     </button>
                 </header>
 
@@ -303,19 +303,21 @@
                 <div class="section">
                     <div class="section-header">
                         <h2 class="section-title">Dua of the Day</h2>
-                        <button class="section-action-icon">
+                        <button class="section-action-icon" id="share-dua-of-day">
                             <span class="material-symbols-outlined">share</span>
                         </button>
                     </div>
-                    <div class="dua-day-card">
-                        <div class="dua-day-icon">
-                            <span class="material-symbols-outlined">volunteer_activism</span>
+                    <div class="dua-day-card" id="dua-day-card">
+                        <div class="dua-day-swipe-hint">
+                            <span class="material-symbols-outlined">swipe_up</span>
+                            <span>Swipe for new dua</span>
                         </div>
-                        <h3 class="dua-day-arabic">Rabbana atina fid-dunya...</h3>
-                        <p class="dua-day-translation">"Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire."</p>
-                        <div class="dua-day-tags">
-                            <span class="dua-tag">Al-Baqarah 2:201</span>
-                            <span class="dua-tag">Protection</span>
+                        <div class="dua-day-content" id="dua-day-content">
+                            <h3 class="dua-day-arabic" id="dua-day-arabic">Loading...</h3>
+                            <p class="dua-day-translation" id="dua-day-translation"></p>
+                            <div class="dua-day-tags" id="dua-day-tags">
+                                <span class="dua-tag" id="dua-day-source"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -424,10 +426,6 @@
                                 <h1 class="dua-header-title">Dua & Dhikr</h1>
                                 <span class="dua-header-subtitle">Your Spiritual Companion</span>
                             </div>
-                            <button class="dua-bookmark-btn">
-                                <div class="dua-bookmark-glow"></div>
-                                <span class="material-symbols-outlined">bookmarks</span>
-                            </button>
                         </div>
                         <div class="dua-search-wrapper">
                             <div class="dua-search-glow"></div>
@@ -776,10 +774,14 @@
                     <div class="settings-section">
                         <p class="settings-label">About</p>
                         <div class="settings-card">
-                            <p style="font-size: 0.9375rem; color: var(--text-secondary); margin-bottom: var(--space-sm);">
-                                This app uses the <a href="https://alquran.cloud/api" target="_blank" rel="noopener" style="color: var(--primary);">Al Quran Cloud API</a>.
+                            <p style="font-size: 0.9375rem; color: var(--text-primary); margin-bottom: var(--space-sm); font-weight: 600;">
+                                Made by Abuzar Siddiqi
                             </p>
-                            <p style="font-size: 0.8125rem; color: var(--text-muted);">Version 2.1.0</p>
+                            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: var(--space-sm);">
+                                For any issues or feedback:<br>
+                                <a href="mailto:abuzarxsiddiqi@gmail.com" style="color: var(--primary);">abuzarxsiddiqi@gmail.com</a>
+                            </p>
+                            <p style="font-size: 0.8125rem; color: var(--text-muted);">Version 3.3.3</p>
                         </div>
                     </div>
                 </div>
@@ -1188,7 +1190,91 @@
             </div>
         </div>
 
+        <!-- Bookmark Modal -->
+        <div id="bookmark-modal" class="bookmark-modal hidden">
+            <!-- Header -->
+            <div class="bookmark-header">
+                <button class="bookmark-header-btn" id="bookmark-close">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h1 class="bookmark-header-title">Saved Items</h1>
+                <button class="bookmark-header-btn">
+                    <span class="material-symbols-outlined">search</span>
+                </button>
+            </div>
+            
+            <!-- Segmented Tabs -->
+            <div class="bookmark-tabs-container">
+                <div class="bookmark-tabs">
+                    <button class="bookmark-tab active" data-bookmark-tab="quran">Quran</button>
+                    <button class="bookmark-tab" data-bookmark-tab="hadith">Hadith</button>
+                    <button class="bookmark-tab" data-bookmark-tab="duas">Duas</button>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="bookmark-content">
+                <!-- Quran Bookmarks -->
+                <div id="bookmark-quran" class="bookmark-list active">
+                    <div class="bookmark-list-header">
+                        <h2>Bookmarked Ayahs</h2>
+                        <button class="bookmark-sort-btn">
+                            <span>Sort by</span>
+                            <span class="material-symbols-outlined">sort</span>
+                        </button>
+                    </div>
+                    <div id="bookmark-quran-items" class="bookmark-items">
+                        <!-- Quran bookmarks will be loaded here -->
+                    </div>
+                    <div class="bookmark-empty" id="bookmark-quran-empty">
+                        <span class="material-symbols-outlined">bookmark_border</span>
+                        <p>No saved ayahs yet</p>
+                        <span class="bookmark-empty-hint">Tap the bookmark icon on any ayah to save it</span>
+                    </div>
+                </div>
+                
+                <!-- Hadith Bookmarks -->
+                <div id="bookmark-hadith" class="bookmark-list">
+                    <div class="bookmark-list-header">
+                        <h2>Bookmarked Hadith</h2>
+                        <button class="bookmark-sort-btn">
+                            <span>Sort by</span>
+                            <span class="material-symbols-outlined">sort</span>
+                        </button>
+                    </div>
+                    <div id="bookmark-hadith-items" class="bookmark-items">
+                        <!-- Hadith bookmarks will be loaded here -->
+                    </div>
+                    <div class="bookmark-empty" id="bookmark-hadith-empty">
+                        <span class="material-symbols-outlined">bookmark_border</span>
+                        <p>No saved hadith yet</p>
+                        <span class="bookmark-empty-hint">Tap the bookmark icon on any hadith to save it</span>
+                    </div>
+                </div>
+                
+                <!-- Duas Bookmarks -->
+                <div id="bookmark-duas" class="bookmark-list">
+                    <div class="bookmark-list-header">
+                        <h2>Bookmarked Duas</h2>
+                        <button class="bookmark-sort-btn">
+                            <span>Sort by</span>
+                            <span class="material-symbols-outlined">sort</span>
+                        </button>
+                    </div>
+                    <div id="bookmark-duas-items" class="bookmark-items">
+                        <!-- Duas bookmarks will be loaded here -->
+                    </div>
+                    <div class="bookmark-empty" id="bookmark-duas-empty">
+                        <span class="material-symbols-outlined">bookmark_border</span>
+                        <p>No saved duas yet</p>
+                        <span class="bookmark-empty-hint">Tap the bookmark icon on any dua to save it</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Bottom Navigation -->
+
         <nav class="bottom-nav">
             <div class="nav-container">
                 <button class="nav-link active" data-tab="home">
@@ -1215,6 +1301,99 @@
     <div id="error-toast" class="toast hidden">
         <span id="error-message"></span>
         <button id="toast-close" class="toast-close">×</button>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="toast toast-success hidden">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span id="success-message"></span>
+    </div>
+
+    <!-- Share Card Modal -->
+    <div id="share-modal" class="share-modal hidden">
+        <div class="share-modal-content">
+            <!-- Header -->
+            <div class="share-modal-header">
+                <button class="share-modal-close" id="share-modal-close">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h2 class="share-modal-title">Share Preview</h2>
+                <button class="share-modal-done" id="share-modal-done">Done</button>
+            </div>
+            
+            <!-- Card Preview Area -->
+            <div class="share-card-preview">
+                <!-- Background Effects -->
+                <div class="share-card-bg"></div>
+                <div class="share-card-orb share-card-orb-1"></div>
+                <div class="share-card-orb share-card-orb-2"></div>
+                
+                <!-- The Shareable Card -->
+                <div class="share-card" id="share-card">
+                    <div class="share-card-inner">
+                        <!-- Card Header -->
+                        <div class="share-card-header">
+                            <span class="share-card-type" id="share-card-type">Dua of the Day</span>
+                            <div class="share-card-decor">
+                                <svg width="120" height="24" viewBox="0 0 200 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M100 20C100 20 80 5 50 5C20 5 10 20 10 20M100 20C100 20 120 5 150 5C180 5 190 20 190 20" stroke="currentColor" stroke-width="2" fill="none" opacity="0.5"></path>
+                                    <circle cx="100" cy="25" r="3" fill="currentColor"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Main Content -->
+                        <div class="share-card-body">
+                            <h1 class="share-card-arabic" id="share-card-arabic">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</h1>
+                            <div class="share-card-divider"></div>
+                            <p class="share-card-translation" id="share-card-translation">"In the name of Allah, the Most Gracious, the Most Merciful."</p>
+                            <div class="share-card-source-pill">
+                                <span id="share-card-source">Al-Fatiha • Ayah 1</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer / Branding -->
+                        <div class="share-card-footer">
+                            <div class="share-card-brand">
+                                <div class="share-card-brand-icon">
+                                    <span class="share-card-brand-letter">F</span>
+                                </div>
+                                <div class="share-card-brand-text">
+                                    <span class="share-card-brand-name">Fard App</span>
+                                    <span class="share-card-brand-tagline">fardh.netlify.app</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Corner accents -->
+                        <div class="share-card-corner share-card-corner-tl"></div>
+                        <div class="share-card-corner share-card-corner-br"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Bar -->
+            <div class="share-actions">
+                <button class="share-action-btn" id="share-to-stories">
+                    <div class="share-action-icon">
+                        <span class="material-symbols-outlined">share</span>
+                    </div>
+                    <span>Stories</span>
+                </button>
+                <button class="share-action-btn share-action-primary" id="share-save-image">
+                    <div class="share-action-icon share-action-icon-primary">
+                        <span class="material-symbols-outlined">download</span>
+                    </div>
+                    <span>Save Image</span>
+                </button>
+                <button class="share-action-btn" id="share-copy-text">
+                    <div class="share-action-icon">
+                        <span class="material-symbols-outlined">content_copy</span>
+                    </div>
+                    <span>Copy Text</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->

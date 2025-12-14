@@ -1203,11 +1203,14 @@ h3 {
 }
 
 .dua-day-arabic {
-    font-size: 1.125rem;
-    font-weight: 700;
+    font-size: 1.375rem;
+    font-weight: 600;
+    font-family: 'Traditional Arabic', 'Scheherazade New', 'Amiri', serif;
     color: var(--text-primary);
     margin-bottom: var(--space-sm);
-    letter-spacing: 0.02em;
+    line-height: 2;
+    direction: rtl;
+    text-align: right;
 }
 
 .dua-day-translation {
@@ -1230,6 +1233,68 @@ h3 {
     border: 1px solid rgba(255, 255, 255, 0.05);
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+
+/* Dua of Day - Interactive Widget */
+.dua-day-card {
+    cursor: pointer;
+    overflow: hidden;
+    touch-action: pan-x;
+}
+
+.dua-day-content {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.dua-day-content.swiping {
+    transform: translateY(-20px);
+    opacity: 0.5;
+}
+
+.dua-day-content.entering {
+    animation: duaSlideIn 0.3s ease forwards;
+}
+
+@keyframes duaSlideIn {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.dua-day-swipe-hint {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.dua-day-swipe-hint .material-symbols-outlined {
+    font-size: 14px;
+    animation: swipeHintBounce 2s ease-in-out infinite;
+}
+
+@keyframes swipeHintBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
 }
 
 /* Surah List */
@@ -1497,6 +1562,74 @@ h3 {
 
 .ayah-play-btn .material-symbols-outlined {
     font-size: 20px;
+}
+
+/* Ayah Actions Container */
+.ayah-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-left: auto;
+}
+
+/* Ayah Bookmark Button */
+.ayah-bookmark-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.ayah-bookmark-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--border-primary);
+    color: var(--primary);
+}
+
+.ayah-bookmark-btn.bookmarked {
+    background: var(--primary-light);
+    border-color: var(--border-primary);
+    color: var(--primary);
+}
+
+.ayah-bookmark-btn.bookmarked .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1;
+}
+
+.ayah-bookmark-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Ayah Share Button */
+.ayah-share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.ayah-share-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--border-primary);
+    color: var(--primary);
+}
+
+.ayah-share-btn .material-symbols-outlined {
+    font-size: 18px;
 }
 
 /* Ayah Card Playing State */
@@ -2496,6 +2629,14 @@ h3 {
     animation: slideUp var(--transition-base);
 }
 
+.toast-success {
+    background: rgba(20, 184, 75, 0.95);
+}
+
+.toast-success .material-symbols-outlined {
+    font-size: 18px;
+}
+
 @keyframes slideUp {
     from {
         opacity: 0;
@@ -3317,20 +3458,14 @@ audio::-webkit-media-controls-panel {
 .dua-header-title {
     font-size: 1.875rem;
     font-weight: 700;
-    background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0.7));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    letter-spacing: -0.02em;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    color: #ffffff;
+    letter-spacing: -0.015em;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .dua-header-subtitle {
-    font-size: 0.75rem;
-    color: rgba(17, 212, 98, 0.8);
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    margin-top: 2px;
+    display: none;
+    /* Hide subtitle per design reference */
 }
 
 .dua-bookmark-btn {
@@ -3572,11 +3707,11 @@ audio::-webkit-media-controls-panel {
     gap: var(--space-md);
 }
 
-/* Category Card */
+/* Category Card - Premium Glassmorphism */
 .dua-category-card {
     position: relative;
-    border-radius: 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2rem;
+    background: rgba(26, 46, 37, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -3586,7 +3721,7 @@ audio::-webkit-media-controls-panel {
 }
 
 .dua-category-card:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(26, 46, 37, 0.6);
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
@@ -3606,10 +3741,15 @@ audio::-webkit-media-controls-panel {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--space-md);
+    padding: 20px;
     cursor: pointer;
     position: relative;
     z-index: 1;
+    transition: all 0.2s ease;
+}
+
+.dua-category-card.expanded .dua-category-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .dua-category-left {
@@ -3622,11 +3762,11 @@ audio::-webkit-media-controls-panel {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-xl);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.7);
     transition: all 0.3s ease;
 }
@@ -3640,7 +3780,8 @@ audio::-webkit-media-controls-panel {
 
 .dua-category-card:hover .dua-category-icon {
     color: var(--primary);
-    background: rgba(16, 185, 129, 0.1);
+    background: rgba(17, 212, 98, 0.15);
+    box-shadow: 0 0 15px rgba(17, 212, 98, 0.2);
 }
 
 .dua-category-icon .material-symbols-outlined {
@@ -3654,9 +3795,10 @@ audio::-webkit-media-controls-panel {
 }
 
 .dua-category-name {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1.0625rem;
+    font-weight: 700;
     color: var(--text-primary);
+    letter-spacing: 0.02em;
     transition: color 0.3s ease;
 }
 
@@ -3668,6 +3810,8 @@ audio::-webkit-media-controls-panel {
     font-size: 0.75rem;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.05em;
+    margin-top: 2px;
 }
 
 .dua-category-arrow {
@@ -3696,12 +3840,14 @@ audio::-webkit-media-controls-panel {
     transform: rotate(180deg);
 }
 
-/* Category Items (Expandable) */
+/* Category Items (Expandable) - Premium Nested Design */
 .dua-category-items {
     display: none;
     flex-direction: column;
-    gap: 8px;
-    padding: 0 12px 12px;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.15);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .dua-category-card.expanded .dua-category-items {
@@ -3712,12 +3858,21 @@ audio::-webkit-media-controls-panel {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px;
-    border-radius: var(--radius-lg);
-    background: rgba(0, 0, 0, 0.2);
+    padding: 16px;
+    border-radius: 1rem;
+    background: rgba(10, 22, 16, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.05);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+}
+
+.dua-item:hover {
+    background: rgba(10, 22, 16, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dua-item:active {
+    transform: scale(0.99);
 }
 
 /* Dua Groups */
@@ -3994,6 +4149,146 @@ audio::-webkit-media-controls-panel {
     border-top: 1px solid var(--border-light);
 }
 
+/* Dua Detail Actions */
+.dua-detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-md);
+}
+
+.dua-bookmark-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.dua-bookmark-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--border-primary);
+    color: var(--primary);
+}
+
+.dua-bookmark-btn.bookmarked {
+    background: var(--primary-light);
+    border-color: var(--border-primary);
+    color: var(--primary);
+}
+
+.dua-bookmark-btn.bookmarked .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1;
+}
+
+.dua-bookmark-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Dua Share Button */
+.dua-share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.dua-share-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--border-primary);
+    color: var(--primary);
+}
+
+.dua-share-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Hadith Card Header */
+.hadith-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-sm);
+}
+
+.hadith-bookmark-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.hadith-bookmark-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--border-primary);
+    color: var(--primary);
+}
+
+.hadith-bookmark-btn.bookmarked {
+    background: var(--primary-light);
+    border-color: var(--border-primary);
+    color: var(--primary);
+}
+
+.hadith-bookmark-btn.bookmarked .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1;
+}
+
+.hadith-bookmark-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Hadith Card Actions */
+.hadith-card-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+/* Hadith Share Button */
+.hadith-share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.hadith-share-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--border-primary);
+    color: var(--primary);
+}
+
+.hadith-share-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
 /* ===========================================
    GLOBAL MINI PLAYER
    =========================================== */
@@ -4153,12 +4448,28 @@ audio::-webkit-media-controls-panel {
     background: rgba(13, 27, 20, 0.98);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
-    animation: fadeIn 0.3s ease;
+    /* Animation properties */
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.full-player-modal .full-player-content {
+    transform: translateY(0);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .full-player-modal.hidden {
-    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
+
+.full-player-modal.hidden .full-player-content {
+    transform: translateY(100%);
+}
+
 
 .full-player-container {
     width: 100%;
@@ -5599,6 +5910,388 @@ body.mini-player-active .main-content {
 }
 
 /* ============================================
+   BOOKMARK MODAL
+   ============================================ */
+
+.bookmark-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    background: #112116;
+    /* Solid opaque background */
+    display: flex;
+    flex-direction: column;
+    animation: slideInFromRight 0.3s ease-out;
+}
+
+.bookmark-modal.hidden {
+    display: none;
+}
+
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Bookmark Header */
+.bookmark-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--space-md));
+    background: rgba(17, 33, 22, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.bookmark-header-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.bookmark-header-btn:hover,
+.bookmark-header-btn:active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.bookmark-header-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Bookmark Tabs */
+.bookmark-tabs-container {
+    padding: var(--space-sm) var(--space-lg) var(--space-md);
+    background: rgba(17, 33, 22, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: sticky;
+    top: 72px;
+    z-index: 9;
+}
+
+.bookmark-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-xl);
+    padding: 4px;
+}
+
+.bookmark-tab {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.bookmark-tab:hover {
+    color: var(--text-primary);
+}
+
+.bookmark-tab.active {
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(20, 184, 75, 0.3);
+}
+
+/* Bookmark Content */
+.bookmark-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-lg);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-xl));
+}
+
+.bookmark-list {
+    display: none;
+}
+
+.bookmark-list.active {
+    display: block;
+}
+
+.bookmark-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+    padding: 0 var(--space-xs);
+}
+
+.bookmark-list-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.bookmark-sort-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--primary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.bookmark-sort-btn .material-symbols-outlined {
+    font-size: 16px;
+}
+
+.bookmark-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+/* Bookmark Card (Glass Panel) */
+.bookmark-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-lg);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    transition: transform var(--transition-fast);
+}
+
+.bookmark-card:active {
+    transform: scale(0.98);
+}
+
+.bookmark-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+}
+
+.bookmark-card-info {
+    flex: 1;
+}
+
+.bookmark-card-badges {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+}
+
+.bookmark-card-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid var(--border-primary);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.bookmark-card-type {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.bookmark-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.bookmark-card-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.bookmark-card-remove {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.bookmark-card-remove:hover {
+    color: var(--primary);
+}
+
+.bookmark-card-remove .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1;
+}
+
+/* Arabic Text */
+.bookmark-card-arabic {
+    direction: rtl;
+    text-align: right;
+    padding: var(--space-sm) 0;
+}
+
+.bookmark-card-arabic p {
+    font-size: 1.5rem;
+    font-family: 'Traditional Arabic', 'Scheherazade New', serif;
+    color: var(--text-primary);
+    line-height: 2.2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Translation */
+.bookmark-card-translation {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.bookmark-card-translation p {
+    font-size: 0.9375rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Card Actions */
+.bookmark-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.bookmark-play-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: var(--space-sm) var(--space-md);
+    padding-left: var(--space-sm);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(20, 184, 75, 0.3);
+    transition: all var(--transition-fast);
+}
+
+.bookmark-play-btn:hover {
+    background: var(--primary-hover);
+}
+
+.bookmark-play-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.bookmark-action-btns {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.bookmark-action-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.bookmark-action-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.bookmark-action-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+/* Empty State */
+.bookmark-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3xl) var(--space-lg);
+    text-align: center;
+}
+
+.bookmark-empty .material-symbols-outlined {
+    font-size: 64px;
+    color: var(--text-muted);
+    opacity: 0.3;
+    margin-bottom: var(--space-md);
+}
+
+.bookmark-empty p {
+    font-size: 1.125rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-sm);
+}
+
+.bookmark-empty-hint {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+/* Hide empty state when there are items */
+.bookmark-items:not(:empty)+.bookmark-empty {
+    display: none;
+}
+
+/* ============================================
    QIBLA FINDER - MOBILE OPTIMIZED
    ============================================ */
 
@@ -5926,4 +6619,401 @@ body.mini-player-active .main-content {
     text-transform: uppercase;
     letter-spacing: 0.15em;
     text-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+}
+
+/* ===========================================
+   SHARE CARD MODAL
+   =========================================== */
+
+.share-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #0d1f12;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.share-modal.hidden {
+    display: none;
+}
+
+.share-modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    width: 100%;
+}
+
+.share-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    z-index: 10;
+}
+
+.share-modal-close {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.share-modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.share-modal-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    flex: 1;
+}
+
+.share-modal-done {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+    font-weight: 700;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-sm);
+    transition: color var(--transition-fast);
+}
+
+.share-modal-done:hover {
+    color: white;
+}
+
+/* Card Preview Area */
+.share-card-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 9 / 16;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.share-card-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, #14B84B 0%, #0d1f12 60%, #000000 100%);
+    z-index: 0;
+}
+
+.share-card-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.share-card-orb-1 {
+    top: -10%;
+    right: -10%;
+    width: 256px;
+    height: 256px;
+    background: rgba(20, 184, 75, 0.4);
+}
+
+.share-card-orb-2 {
+    bottom: -10%;
+    left: -10%;
+    width: 256px;
+    height: 256px;
+    background: rgba(4, 120, 87, 0.4);
+}
+
+/* The Share Card */
+.share-card {
+    position: relative;
+    width: 90%;
+    max-width: 320px;
+    z-index: 10;
+}
+
+.share-card-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-lg);
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-2xl);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.share-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    width: 100%;
+    text-align: center;
+}
+
+.share-card-type {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+.share-card-decor {
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0.8;
+}
+
+.share-card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: var(--space-md);
+    flex: 1;
+    width: 100%;
+}
+
+.share-card-arabic {
+    font-size: 1.4rem;
+    line-height: 1.8;
+    font-family: 'Amiri', 'Traditional Arabic', 'Noto Naskh Arabic', serif;
+    font-weight: 400;
+    color: white;
+    text-align: center;
+    direction: rtl;
+    text-shadow: 0 0 20px rgba(20, 184, 75, 0.5);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+.share-card-divider {
+    width: 48px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+}
+
+.share-card-translation {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.share-card-source-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 16px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    margin-top: var(--space-sm);
+}
+
+.share-card-source-pill span {
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.share-card-footer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--space-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.share-card-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.share-card-brand-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, #14B84B, #047857);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(20, 184, 75, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.share-card-brand-icon .material-symbols-outlined {
+    font-size: 20px;
+    color: white;
+}
+
+.share-card-brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.share-card-brand-name {
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.share-card-brand-letter {
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+}
+
+.share-card-brand-tagline {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.625rem;
+    line-height: 1.2;
+}
+
+.share-card-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    background: white;
+    color: #14B84B;
+    border-radius: var(--radius-lg);
+    padding: 8px 14px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+}
+
+.share-card-cta span:first-child {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #14B84B;
+}
+
+.share-card-cta-link {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: #666;
+}
+
+.share-card-corner {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    pointer-events: none;
+}
+
+.share-card-corner-tl {
+    top: 0;
+    left: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+    border-top-left-radius: var(--radius-2xl);
+}
+
+.share-card-corner-br {
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(315deg, rgba(255, 255, 255, 0.1), transparent);
+    border-bottom-right-radius: var(--radius-2xl);
+}
+
+/* Action Bar */
+.share-actions {
+    padding: var(--space-md);
+    background: rgba(13, 31, 18, 0.8);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+    padding-bottom: env(safe-area-inset-bottom, var(--space-lg));
+}
+
+.share-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    border-radius: var(--radius-xl);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.share-action-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.share-action-btn:active {
+    transform: scale(0.95);
+}
+
+.share-action-btn span {
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.share-action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(46, 40, 57, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.share-action-btn:hover .share-action-icon {
+    background: #14B84B;
+}
+
+.share-action-icon .material-symbols-outlined {
+    font-size: 24px;
+    color: white;
+}
+
+.share-action-icon-primary {
+    background: #14B84B;
+    box-shadow: 0 0 15px rgba(20, 184, 75, 0.4);
+}
+
+.share-action-icon-primary:hover {
+    box-shadow: 0 0 25px rgba(20, 184, 75, 0.6);
 }
