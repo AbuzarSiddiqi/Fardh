@@ -438,8 +438,8 @@ function renderSurah() {
         attachReadAudioListeners();
     }
 
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to top instantly
+    window.scrollTo(0, 0);
 }
 
 function showSurahView() {
@@ -451,6 +451,7 @@ function showSurahList() {
     elements.surahView?.classList.add('hidden');
     elements.surahListView?.classList.remove('hidden');
     state.currentSurah = null;
+    window.scrollTo(0, 0);
 }
 
 // ============================================
@@ -1142,6 +1143,7 @@ function showMoreHub() {
         view.classList.add('hidden');
     });
     document.getElementById('more-hub-view')?.classList.remove('hidden');
+    window.scrollTo(0, 0);
 }
 
 function showFeatureView(viewId) {
@@ -1149,6 +1151,7 @@ function showFeatureView(viewId) {
         view.classList.add('hidden');
     });
     document.getElementById(viewId)?.classList.remove('hidden');
+    window.scrollTo(0, 0);
 }
 
 async function openFeature(feature) {
@@ -1808,18 +1811,24 @@ function showDuaCategories() {
     document.getElementById('dua-list-view')?.classList.add('hidden');
     document.getElementById('dua-detail-view')?.classList.add('hidden');
     document.getElementById('dua-categories-view')?.classList.remove('hidden');
+    // Scroll to top
+    window.scrollTo(0, 0);
 }
 
 function showDuaListView() {
     document.getElementById('dua-categories-view')?.classList.add('hidden');
     document.getElementById('dua-detail-view')?.classList.add('hidden');
     document.getElementById('dua-list-view')?.classList.remove('hidden');
+    // Scroll to top
+    window.scrollTo(0, 0);
 }
 
 function showDuaDetailView() {
     document.getElementById('dua-categories-view')?.classList.add('hidden');
     document.getElementById('dua-list-view')?.classList.add('hidden');
     document.getElementById('dua-detail-view')?.classList.remove('hidden');
+    // Scroll to top
+    window.scrollTo(0, 0);
 }
 
 async function loadDuaCategory(category) {
