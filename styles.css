@@ -6963,26 +6963,30 @@ body.mini-player-active .main-content {
 }
 
 .share-card-source-pill {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 16px;
-    border-radius: var(--radius-xl);
+    padding: 6px 14px;
+    border-radius: var(--radius-lg);
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(8px);
     margin-top: var(--space-sm);
-    max-width: 100%;
+    max-width: 90%;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .share-card-source-pill span {
     color: white;
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    word-break: break-word;
-    line-height: 1.4;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .share-card-footer {
@@ -7174,6 +7178,894 @@ body.mini-player-active .main-content {
 .share-action-primary:hover .share-action-icon {
     background: #17cf55;
     box-shadow: 0 0 20px rgba(20, 184, 75, 0.4);
+}
+
+/* ===========================================
+   SHARE CARD DESIGN THEMES
+   =========================================== */
+
+/* Design Indicator Dots - Curved Arc */
+.share-design-indicator {
+    position: fixed;
+    bottom: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    z-index: 100;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Create curved arrangement with individual positioning */
+.design-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+}
+
+/* Curved arc effect for 8 dots - symmetrical */
+.design-dot:nth-child(1) {
+    transform: translateY(8px);
+}
+
+.design-dot:nth-child(2) {
+    transform: translateY(5px);
+}
+
+.design-dot:nth-child(3) {
+    transform: translateY(2px);
+}
+
+.design-dot:nth-child(4) {
+    transform: translateY(0);
+}
+
+.design-dot:nth-child(5) {
+    transform: translateY(0);
+}
+
+.design-dot:nth-child(6) {
+    transform: translateY(2px);
+}
+
+.design-dot:nth-child(7) {
+    transform: translateY(5px);
+}
+
+.design-dot:nth-child(8) {
+    transform: translateY(8px);
+}
+
+.design-dot:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: translateY(0) scale(1.4);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.design-dot.active {
+    background: var(--primary);
+    width: 20px;
+    border-radius: 10px;
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(20, 184, 75, 0.5);
+    transform: translateY(0) scale(1.1);
+}
+
+/* Swipe Hint */
+.share-swipe-hint {
+    position: fixed;
+    bottom: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    animation: swipeHintFade 4s ease forwards;
+}
+
+.share-swipe-hint span {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.share-swipe-hint .material-symbols-outlined {
+    font-size: 18px;
+    animation: swipeIcon 1.5s ease-in-out infinite;
+}
+
+@keyframes swipeIcon {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(-5px);
+    }
+}
+
+@keyframes swipeHintFade {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+
+    10% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+/* Card Swipe Animations */
+.share-card.swiping-left {
+    animation: cardSwipeLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.share-card.swiping-right {
+    animation: cardSwipeRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.share-card.entering-left {
+    animation: cardEnterFromRight 0.5s cubic-bezier(0.0, 0, 0.2, 1) forwards;
+}
+
+.share-card.entering-right {
+    animation: cardEnterFromLeft 0.5s cubic-bezier(0.0, 0, 0.2, 1) forwards;
+}
+
+@keyframes cardSwipeLeft {
+    0% {
+        transform: translateX(0) translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(-120%) translateY(80px) rotate(-15deg);
+        opacity: 0;
+    }
+}
+
+@keyframes cardSwipeRight {
+    0% {
+        transform: translateX(0) translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(120%) translateY(80px) rotate(15deg);
+        opacity: 0;
+    }
+}
+
+@keyframes cardEnterFromRight {
+    0% {
+        transform: translateX(100%) translateY(100px) rotate(10deg) scale(0.8);
+        opacity: 0;
+    }
+
+    50% {
+        transform: translateX(20%) translateY(-20px) rotate(2deg) scale(0.95);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateX(0) translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes cardEnterFromLeft {
+    0% {
+        transform: translateX(-100%) translateY(100px) rotate(-10deg) scale(0.8);
+        opacity: 0;
+    }
+
+    50% {
+        transform: translateX(-20%) translateY(-20px) rotate(-2deg) scale(0.95);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateX(0) translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+/* ===== DESIGN 0: Glass (Default) ===== */
+/* Already defined above - glassmorphism style */
+
+/* ===== DESIGN 1: Golden Elegance ===== */
+/* Ornate style with decorative borders */
+.share-card-preview[data-design="1"] .share-card-bg {
+    background: linear-gradient(135deg, #1a1410 0%, #2d1f14 50%, #1a1410 100%);
+}
+
+.share-card-preview[data-design="1"] .share-card-orb-1 {
+    background: rgba(212, 175, 55, 0.3);
+}
+
+.share-card-preview[data-design="1"] .share-card-orb-2 {
+    background: rgba(185, 140, 45, 0.25);
+}
+
+.share-card-preview[data-design="1"] .share-card-inner {
+    background: linear-gradient(145deg, rgba(212, 175, 55, 0.1), rgba(139, 90, 43, 0.05));
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    border-radius: var(--radius-lg);
+    box-shadow:
+        0 0 0 1px rgba(212, 175, 55, 0.2),
+        0 0 30px rgba(212, 175, 55, 0.15),
+        inset 0 0 40px rgba(212, 175, 55, 0.05);
+}
+
+.share-card-preview[data-design="1"] .share-card-type {
+    color: #d4af37;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+}
+
+.share-card-preview[data-design="1"] .share-card-decor {
+    color: #d4af37;
+    transform: scale(1.2);
+}
+
+.share-card-preview[data-design="1"] .share-card-arabic {
+    text-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+    font-size: 1.3rem;
+}
+
+.share-card-preview[data-design="1"] .share-card-divider {
+    background: linear-gradient(to right, transparent, rgba(212, 175, 55, 0.5), transparent);
+    height: 2px;
+    width: 80px;
+}
+
+.share-card-preview[data-design="1"] .share-card-source-pill {
+    background: rgba(212, 175, 55, 0.15);
+    border: 1.5px solid rgba(212, 175, 55, 0.3);
+}
+
+.share-card-preview[data-design="1"] .share-card-brand-icon {
+    background: linear-gradient(135deg, #d4af37, #b8860b);
+    border-radius: var(--radius-md);
+}
+
+.share-card-preview[data-design="1"] .share-card-corner-tl {
+    background: radial-gradient(ellipse at top left, rgba(212, 175, 55, 0.25), transparent 70%);
+    width: 100px;
+    height: 100px;
+}
+
+.share-card-preview[data-design="1"] .share-card-corner-br {
+    background: radial-gradient(ellipse at bottom right, rgba(212, 175, 55, 0.2), transparent 70%);
+    width: 100px;
+    height: 100px;
+}
+
+/* ===== DESIGN 2: Midnight Dark ===== */
+/* Minimal style with clean lines */
+.share-card-preview[data-design="2"] .share-card-bg {
+    background: linear-gradient(180deg, #0a0a0f 0%, #12121a 50%, #0a0a0f 100%);
+}
+
+.share-card-preview[data-design="2"] .share-card-orb-1 {
+    background: rgba(99, 102, 241, 0.15);
+    filter: blur(100px);
+}
+
+.share-card-preview[data-design="2"] .share-card-orb-2 {
+    background: rgba(139, 92, 246, 0.1);
+    filter: blur(100px);
+}
+
+.share-card-preview[data-design="2"] .share-card-inner {
+    background: rgba(10, 10, 15, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.share-card-preview[data-design="2"] .share-card-type {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.625rem;
+    letter-spacing: 0.4em;
+}
+
+.share-card-preview[data-design="2"] .share-card-decor {
+    display: none;
+}
+
+.share-card-preview[data-design="2"] .share-card-arabic {
+    text-shadow: none;
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
+.share-card-preview[data-design="2"] .share-card-translation {
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+.share-card-preview[data-design="2"] .share-card-divider {
+    background: rgba(255, 255, 255, 0.1);
+    width: 40px;
+    height: 1px;
+}
+
+.share-card-preview[data-design="2"] .share-card-source-pill {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.share-card-preview[data-design="2"] .share-card-brand-icon {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.share-card-preview[data-design="2"] .share-card-brand-letter {
+    color: white;
+}
+
+.share-card-preview[data-design="2"] .share-card-corner-tl,
+.share-card-preview[data-design="2"] .share-card-corner-br {
+    display: none;
+}
+
+/* ===== DESIGN 3: Ocean Depths ===== */
+/* Flowing style with rounded edges */
+.share-card-preview[data-design="3"] .share-card-bg {
+    background: linear-gradient(160deg, #071620 0%, #0c3040 40%, #0a2535 100%);
+}
+
+.share-card-preview[data-design="3"] .share-card-orb-1 {
+    background: rgba(6, 182, 212, 0.35);
+    width: 300px;
+    height: 300px;
+    top: -20%;
+    right: -20%;
+}
+
+.share-card-preview[data-design="3"] .share-card-orb-2 {
+    background: rgba(34, 211, 238, 0.25);
+    width: 200px;
+    height: 200px;
+}
+
+.share-card-preview[data-design="3"] .share-card-inner {
+    background: linear-gradient(145deg, rgba(6, 182, 212, 0.1), rgba(14, 116, 144, 0.05));
+    border: 1px solid rgba(6, 182, 212, 0.25);
+    border-radius: 32px;
+    box-shadow:
+        0 0 40px rgba(6, 182, 212, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.share-card-preview[data-design="3"] .share-card-type {
+    color: #22d3ee;
+    font-size: 0.6875rem;
+}
+
+.share-card-preview[data-design="3"] .share-card-decor {
+    color: #06b6d4;
+    opacity: 0.6;
+}
+
+.share-card-preview[data-design="3"] .share-card-arabic {
+    text-shadow: 0 0 40px rgba(6, 182, 212, 0.5);
+}
+
+.share-card-preview[data-design="3"] .share-card-divider {
+    background: linear-gradient(to right, transparent, rgba(6, 182, 212, 0.6), transparent);
+    width: 60px;
+    height: 2px;
+    border-radius: 1px;
+}
+
+.share-card-preview[data-design="3"] .share-card-source-pill {
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.25);
+    border-radius: 20px;
+}
+
+.share-card-preview[data-design="3"] .share-card-brand-icon {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    border-radius: 50%;
+}
+
+.share-card-preview[data-design="3"] .share-card-corner-tl {
+    background: radial-gradient(ellipse at top left, rgba(6, 182, 212, 0.25), transparent 70%);
+    width: 120px;
+    height: 120px;
+}
+
+.share-card-preview[data-design="3"] .share-card-corner-br {
+    background: radial-gradient(ellipse at bottom right, rgba(34, 211, 238, 0.2), transparent 70%);
+    width: 90px;
+    height: 90px;
+}
+
+/* ===== DESIGN 4: Sunset Warmth ===== */
+/* Vibrant style with bold colors */
+.share-card-preview[data-design="4"] .share-card-bg {
+    background: linear-gradient(135deg, #1a0a1a 0%, #2d1525 40%, #1a0f1e 100%);
+}
+
+.share-card-preview[data-design="4"] .share-card-orb-1 {
+    background: rgba(251, 146, 60, 0.4);
+    top: -10%;
+    right: -15%;
+    width: 280px;
+    height: 280px;
+}
+
+.share-card-preview[data-design="4"] .share-card-orb-2 {
+    background: rgba(217, 70, 239, 0.3);
+    bottom: -15%;
+    left: -10%;
+}
+
+.share-card-preview[data-design="4"] .share-card-inner {
+    background: linear-gradient(145deg, rgba(251, 146, 60, 0.1), rgba(217, 70, 239, 0.08));
+    border: 2px solid;
+    border-image: linear-gradient(135deg, rgba(251, 146, 60, 0.4), rgba(217, 70, 239, 0.4)) 1;
+    border-radius: var(--radius-2xl);
+    box-shadow:
+        0 0 50px rgba(251, 146, 60, 0.15),
+        0 0 50px rgba(217, 70, 239, 0.1);
+}
+
+.share-card-preview[data-design="4"] .share-card-type {
+    color: #fb923c;
+    font-weight: 800;
+}
+
+.share-card-preview[data-design="4"] .share-card-decor {
+    color: #f97316;
+    opacity: 0.8;
+}
+
+.share-card-preview[data-design="4"] .share-card-arabic {
+    text-shadow:
+        0 0 30px rgba(251, 146, 60, 0.4),
+        0 0 60px rgba(217, 70, 239, 0.2);
+    font-size: 1.35rem;
+}
+
+.share-card-preview[data-design="4"] .share-card-translation {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.share-card-preview[data-design="4"] .share-card-divider {
+    background: linear-gradient(to right, #fb923c, #d946ef);
+    width: 50px;
+    height: 3px;
+    border-radius: 2px;
+}
+
+.share-card-preview[data-design="4"] .share-card-source-pill {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(217, 70, 239, 0.15));
+    border: 1.5px solid rgba(251, 146, 60, 0.25);
+}
+
+.share-card-preview[data-design="4"] .share-card-brand-icon {
+    background: linear-gradient(135deg, #f97316, #d946ef);
+}
+
+.share-card-preview[data-design="4"] .share-card-corner-tl {
+    background: radial-gradient(ellipse at top left, rgba(251, 146, 60, 0.25), transparent 70%);
+    width: 110px;
+    height: 110px;
+}
+
+.share-card-preview[data-design="4"] .share-card-corner-br {
+    background: radial-gradient(ellipse at bottom right, rgba(217, 70, 239, 0.2), transparent 70%);
+    width: 110px;
+    height: 110px;
+}
+
+/* ===== DESIGN 5: Rose Garden ===== */
+/* Romantic style with soft pinks */
+.share-card-preview[data-design="5"] .share-card-bg {
+    background: linear-gradient(135deg, #1a0f15 0%, #2d1520 40%, #1a0f15 100%);
+}
+
+.share-card-preview[data-design="5"] .share-card-orb-1 {
+    background: rgba(244, 114, 182, 0.35);
+    width: 260px;
+    height: 260px;
+    top: -15%;
+    right: -10%;
+}
+
+.share-card-preview[data-design="5"] .share-card-orb-2 {
+    background: rgba(251, 113, 133, 0.25);
+    width: 180px;
+    height: 180px;
+}
+
+.share-card-preview[data-design="5"] .share-card-inner {
+    background: linear-gradient(145deg, rgba(244, 114, 182, 0.08), rgba(251, 113, 133, 0.05));
+    border: 1px solid rgba(244, 114, 182, 0.2);
+    border-radius: var(--radius-2xl);
+    box-shadow: 0 0 60px rgba(244, 114, 182, 0.1);
+}
+
+.share-card-preview[data-design="5"] .share-card-type {
+    color: #f472b6;
+    font-weight: 600;
+}
+
+.share-card-preview[data-design="5"] .share-card-decor {
+    color: #ec4899;
+    opacity: 0.7;
+}
+
+.share-card-preview[data-design="5"] .share-card-arabic {
+    text-shadow: 0 0 35px rgba(244, 114, 182, 0.4);
+}
+
+.share-card-preview[data-design="5"] .share-card-translation {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.share-card-preview[data-design="5"] .share-card-divider {
+    background: linear-gradient(to right, transparent, rgba(244, 114, 182, 0.5), transparent);
+    height: 1px;
+}
+
+.share-card-preview[data-design="5"] .share-card-source-pill {
+    background: rgba(244, 114, 182, 0.12);
+    border: 1px solid rgba(244, 114, 182, 0.2);
+}
+
+.share-card-preview[data-design="5"] .share-card-brand-icon {
+    background: linear-gradient(135deg, #ec4899, #f472b6);
+}
+
+.share-card-preview[data-design="5"] .share-card-corner-tl {
+    background: radial-gradient(ellipse at top left, rgba(244, 114, 182, 0.2), transparent 70%);
+    width: 100px;
+    height: 100px;
+}
+
+.share-card-preview[data-design="5"] .share-card-corner-br {
+    background: radial-gradient(ellipse at bottom right, rgba(251, 113, 133, 0.15), transparent 70%);
+    width: 80px;
+    height: 80px;
+}
+
+/* ===== DESIGN 6: Emerald Forest ===== */
+/* Nature style with rich greens - different from default */
+.share-card-preview[data-design="6"] .share-card-bg {
+    background: linear-gradient(160deg, #071a0f 0%, #0f2d1a 40%, #0a1f10 100%);
+}
+
+.share-card-preview[data-design="6"] .share-card-orb-1 {
+    background: rgba(52, 211, 153, 0.3);
+    width: 300px;
+    height: 300px;
+    filter: blur(80px);
+}
+
+.share-card-preview[data-design="6"] .share-card-orb-2 {
+    background: rgba(16, 185, 129, 0.25);
+    filter: blur(60px);
+}
+
+.share-card-preview[data-design="6"] .share-card-inner {
+    background: linear-gradient(145deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
+    border: 1.5px solid rgba(52, 211, 153, 0.25);
+    border-radius: 24px;
+    box-shadow:
+        0 0 50px rgba(16, 185, 129, 0.1),
+        inset 0 0 30px rgba(52, 211, 153, 0.03);
+}
+
+.share-card-preview[data-design="6"] .share-card-type {
+    color: #34d399;
+    font-size: 0.625rem;
+    letter-spacing: 0.25em;
+}
+
+.share-card-preview[data-design="6"] .share-card-decor {
+    color: #10b981;
+    transform: scale(0.9);
+}
+
+.share-card-preview[data-design="6"] .share-card-arabic {
+    text-shadow: 0 0 40px rgba(52, 211, 153, 0.35);
+    font-size: 1.4rem;
+}
+
+.share-card-preview[data-design="6"] .share-card-divider {
+    background: linear-gradient(to right, transparent, rgba(52, 211, 153, 0.6), transparent);
+    width: 70px;
+    height: 2px;
+}
+
+.share-card-preview[data-design="6"] .share-card-source-pill {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    border-radius: var(--radius-full);
+}
+
+.share-card-preview[data-design="6"] .share-card-brand-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 50%;
+}
+
+.share-card-preview[data-design="6"] .share-card-corner-tl {
+    background: radial-gradient(ellipse at top left, rgba(52, 211, 153, 0.25), transparent 70%);
+    width: 130px;
+    height: 130px;
+}
+
+.share-card-preview[data-design="6"] .share-card-corner-br {
+    background: radial-gradient(ellipse at bottom right, rgba(16, 185, 129, 0.2), transparent 70%);
+    width: 100px;
+    height: 100px;
+}
+
+/* ===== DESIGN 7: Arctic Aurora ===== */
+/* Cool northern lights effect */
+.share-card-preview[data-design="7"] .share-card-bg {
+    background: linear-gradient(180deg, #050815 0%, #0a1628 30%, #0f172a 100%);
+}
+
+.share-card-preview[data-design="7"] .share-card-orb-1 {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(139, 92, 246, 0.2));
+    width: 350px;
+    height: 200px;
+    top: -10%;
+    right: -20%;
+    border-radius: 50%;
+    filter: blur(60px);
+}
+
+.share-card-preview[data-design="7"] .share-card-orb-2 {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.25), rgba(168, 85, 247, 0.15));
+    width: 250px;
+    height: 150px;
+    bottom: -10%;
+    left: -15%;
+    border-radius: 50%;
+    filter: blur(50px);
+}
+
+.share-card-preview[data-design="7"] .share-card-inner {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid;
+    border-image: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(139, 92, 246, 0.3), rgba(34, 211, 238, 0.2)) 1;
+    border-radius: var(--radius-2xl);
+    box-shadow:
+        0 0 80px rgba(56, 189, 248, 0.1),
+        0 0 40px rgba(139, 92, 246, 0.1);
+}
+
+.share-card-preview[data-design="7"] .share-card-type {
+    color: #38bdf8;
+    font-weight: 500;
+}
+
+.share-card-preview[data-design="7"] .share-card-decor {
+    color: #a855f7;
+    opacity: 0.6;
+}
+
+.share-card-preview[data-design="7"] .share-card-arabic {
+    text-shadow:
+        0 0 30px rgba(56, 189, 248, 0.3),
+        0 0 60px rgba(139, 92, 246, 0.2);
+}
+
+.share-card-preview[data-design="7"] .share-card-translation {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.share-card-preview[data-design="7"] .share-card-divider {
+    background: linear-gradient(to right, #38bdf8, #a855f7, #22d3ee);
+    width: 60px;
+    height: 2px;
+    border-radius: 1px;
+}
+
+.share-card-preview[data-design="7"] .share-card-source-pill {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.share-card-preview[data-design="7"] .share-card-brand-icon {
+    background: linear-gradient(135deg, #38bdf8, #a855f7);
+}
+
+.share-card-preview[data-design="7"] .share-card-corner-tl {
+    background: radial-gradient(ellipse at top left, rgba(56, 189, 248, 0.2), transparent 70%);
+    width: 120px;
+    height: 120px;
+}
+
+.share-card-preview[data-design="7"] .share-card-corner-br {
+    background: radial-gradient(ellipse at bottom right, rgba(139, 92, 246, 0.15), transparent 70%);
+    width: 100px;
+    height: 100px;
+}
+
+/* ===========================================
+   SHARE MODAL THEMED HEADER/ACTION BAR
+   =========================================== */
+
+/* Design 1: Golden Elegance */
+.share-modal[data-design="1"] .share-modal-done {
+    color: #d4af37;
+    background: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.2);
+}
+
+.share-modal[data-design="1"] .share-action-primary {
+    color: #d4af37;
+}
+
+.share-modal[data-design="1"] .share-action-primary .share-action-icon {
+    background: linear-gradient(135deg, #d4af37, #b8860b);
+}
+
+.share-modal[data-design="1"] .design-dot.active {
+    background: #d4af37;
+    border-color: #d4af37;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+/* Design 2: Midnight Dark */
+.share-modal[data-design="2"] .share-modal-done {
+    color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.2);
+}
+
+.share-modal[data-design="2"] .share-action-primary {
+    color: #8b5cf6;
+}
+
+.share-modal[data-design="2"] .share-action-primary .share-action-icon {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+.share-modal[data-design="2"] .design-dot.active {
+    background: #8b5cf6;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+/* Design 3: Ocean Depths */
+.share-modal[data-design="3"] .share-modal-done {
+    color: #06b6d4;
+    background: rgba(6, 182, 212, 0.1);
+    border-color: rgba(6, 182, 212, 0.2);
+}
+
+.share-modal[data-design="3"] .share-action-primary {
+    color: #06b6d4;
+}
+
+.share-modal[data-design="3"] .share-action-primary .share-action-icon {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.share-modal[data-design="3"] .design-dot.active {
+    background: #06b6d4;
+    border-color: #06b6d4;
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+/* Design 4: Sunset Warmth */
+.share-modal[data-design="4"] .share-modal-done {
+    color: #f97316;
+    background: rgba(249, 115, 22, 0.1);
+    border-color: rgba(249, 115, 22, 0.2);
+}
+
+.share-modal[data-design="4"] .share-action-primary {
+    color: #f97316;
+}
+
+.share-modal[data-design="4"] .share-action-primary .share-action-icon {
+    background: linear-gradient(135deg, #f97316, #d946ef);
+}
+
+.share-modal[data-design="4"] .design-dot.active {
+    background: linear-gradient(135deg, #f97316, #d946ef);
+    border-color: #f97316;
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+}
+
+/* Design 5: Rose Garden */
+.share-modal[data-design="5"] .share-modal-done {
+    color: #ec4899;
+    background: rgba(236, 72, 153, 0.1);
+    border-color: rgba(236, 72, 153, 0.2);
+}
+
+.share-modal[data-design="5"] .share-action-primary {
+    color: #ec4899;
+}
+
+.share-modal[data-design="5"] .share-action-primary .share-action-icon {
+    background: linear-gradient(135deg, #ec4899, #f472b6);
+}
+
+.share-modal[data-design="5"] .design-dot.active {
+    background: #ec4899;
+    border-color: #ec4899;
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+}
+
+/* Design 6: Emerald Forest */
+.share-modal[data-design="6"] .share-modal-done {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.share-modal[data-design="6"] .share-action-primary {
+    color: #10b981;
+}
+
+.share-modal[data-design="6"] .share-action-primary .share-action-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.share-modal[data-design="6"] .design-dot.active {
+    background: #10b981;
+    border-color: #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+/* Design 7: Arctic Aurora */
+.share-modal[data-design="7"] .share-modal-done {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.2);
+}
+
+.share-modal[data-design="7"] .share-action-primary {
+    color: #38bdf8;
+}
+
+.share-modal[data-design="7"] .share-action-primary .share-action-icon {
+    background: linear-gradient(135deg, #38bdf8, #a855f7);
+}
+
+.share-modal[data-design="7"] .design-dot.active {
+    background: linear-gradient(135deg, #38bdf8, #a855f7);
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
 }
 
 /* ===========================================

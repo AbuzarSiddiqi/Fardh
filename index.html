@@ -1339,9 +1339,9 @@
             </div>
             
             <!-- Card Preview Area -->
-            <div class="share-card-preview">
+            <div class="share-card-preview" id="share-card-preview" data-design="0">
                 <!-- Background Effects -->
-                <div class="share-card-bg"></div>
+                <div class="share-card-bg" id="share-card-bg"></div>
                 <div class="share-card-orb share-card-orb-1"></div>
                 <div class="share-card-orb share-card-orb-2"></div>
                 
@@ -1387,6 +1387,24 @@
                         <div class="share-card-corner share-card-corner-br"></div>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Design Indicator Dots (Outside capture area) -->
+            <div class="share-design-indicator" id="share-design-indicator">
+                <button class="design-dot active" data-design="0"></button>
+                <button class="design-dot" data-design="1"></button>
+                <button class="design-dot" data-design="2"></button>
+                <button class="design-dot" data-design="3"></button>
+                <button class="design-dot" data-design="4"></button>
+                <button class="design-dot" data-design="5"></button>
+                <button class="design-dot" data-design="6"></button>
+                <button class="design-dot" data-design="7"></button>
+            </div>
+            
+            <!-- Swipe Hint (Outside capture area) -->
+            <div class="share-swipe-hint" id="share-swipe-hint">
+                <span class="material-symbols-outlined">swipe</span>
+                <span>Swipe card to change design</span>
             </div>
             
             <!-- Action Bar -->

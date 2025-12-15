@@ -5245,23 +5245,101 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 
 const shareCardState = {
-    currentData: null
+    currentData: null,
+    currentDesign: 0,
+    totalDesigns: 8,
+    isAnimating: false
 };
+
+// Design names for reference
+const SHARE_CARD_DESIGNS = [
+    'Glass',
+    'Golden Elegance',
+    'Midnight Dark',
+    'Ocean Depths',
+    'Sunset Warmth',
+    'Rose Garden',
+    'Emerald Forest',
+    'Arctic Aurora'
+];
+
+// Change share card design with animation
+function changeShareCardDesign(newDesign, direction = 'left') {
+    if (shareCardState.isAnimating) return;
+    if (newDesign === shareCardState.currentDesign) return;
+
+    const preview = document.getElementById('share-card-preview');
+    const card = document.getElementById('share-card');
+    const dots = document.querySelectorAll('.design-dot');
+
+    if (!preview || !card) return;
+
+    shareCardState.isAnimating = true;
+
+    const modal = document.getElementById('share-modal');
+
+    // Add exit animation
+    card.classList.add(direction === 'left' ? 'swiping-left' : 'swiping-right');
+
+    setTimeout(() => {
+        // Update design
+        shareCardState.currentDesign = newDesign;
+        preview.dataset.design = newDesign;
+        if (modal) modal.dataset.design = newDesign;
+
+        // Update dots
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === newDesign);
+        });
+
+        // Remove exit animation, add enter animation
+        card.classList.remove('swiping-left', 'swiping-right');
+        card.classList.add(direction === 'left' ? 'entering-left' : 'entering-right');
+
+        setTimeout(() => {
+            card.classList.remove('entering-left', 'entering-right');
+            shareCardState.isAnimating = false;
+        }, 500);
+    }, 400);
+}
+
+// Go to next design
+function nextShareCardDesign() {
+    const newDesign = (shareCardState.currentDesign + 1) % shareCardState.totalDesigns;
+    changeShareCardDesign(newDesign, 'left');
+}
+
+// Go to previous design
+function prevShareCardDesign() {
+    const newDesign = (shareCardState.currentDesign - 1 + shareCardState.totalDesigns) % shareCardState.totalDesigns;
+    changeShareCardDesign(newDesign, 'right');
+}
 
 // Open share modal with content
 function openShareModal(data) {
     shareCardState.currentData = data;
+    shareCardState.currentDesign = 0;
+    shareCardState.isAnimating = false;
 
     const modal = document.getElementById('share-modal');
+    const preview = document.getElementById('share-card-preview');
     const typeEl = document.getElementById('share-card-type');
     const arabicEl = document.getElementById('share-card-arabic');
     const translationEl = document.getElementById('share-card-translation');
     const sourceEl = document.getElementById('share-card-source');
+    const dots = document.querySelectorAll('.design-dot');
 
     if (typeEl) typeEl.textContent = data.type || 'Verse of the Day';
     if (arabicEl) arabicEl.textContent = data.arabic || '';
     if (translationEl) translationEl.textContent = `"${data.translation || ''}"`;
     if (sourceEl) sourceEl.textContent = data.source || '';
+
+    // Reset to first design
+    if (preview) preview.dataset.design = '0';
+    if (modal) modal.dataset.design = '0';
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === 0);
+    });
 
     modal?.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -5524,6 +5602,45 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, { passive: true });
     }
+
+    // Swipe on card to change design
+    const cardPreview = document.getElementById('share-card-preview');
+    if (cardPreview) {
+        let cardSwipeStartX = 0;
+        let cardSwipeStartY = 0;
+
+        cardPreview.addEventListener('touchstart', (e) => {
+            cardSwipeStartX = e.touches[0].clientX;
+            cardSwipeStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        cardPreview.addEventListener('touchend', (e) => {
+            const distX = e.changedTouches[0].clientX - cardSwipeStartX;
+            const distY = Math.abs(e.changedTouches[0].clientY - cardSwipeStartY);
+
+            // Only trigger if horizontal swipe is greater than vertical and exceeds threshold
+            if (Math.abs(distX) > 50 && Math.abs(distX) > distY) {
+                if (distX < 0) {
+                    // Swiped left - next design
+                    nextShareCardDesign();
+                } else {
+                    // Swiped right - previous design
+                    prevShareCardDesign();
+                }
+            }
+        }, { passive: true });
+    }
+
+    // Design dot click handlers
+    document.querySelectorAll('.design-dot').forEach(dot => {
+        dot.addEventListener('click', (e) => {
+            const newDesign = parseInt(e.target.dataset.design);
+            if (!isNaN(newDesign)) {
+                const direction = newDesign > shareCardState.currentDesign ? 'left' : 'right';
+                changeShareCardDesign(newDesign, direction);
+            }
+        });
+    });
 
     // Ayah share button (event delegation)
     document.addEventListener('click', (e) => {
