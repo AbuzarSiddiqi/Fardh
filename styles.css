@@ -6813,7 +6813,9 @@ body.mini-player-active .main-content {
     text-shadow: 0 0 20px rgba(20, 184, 75, 0.5);
     word-wrap: break-word;
     overflow-wrap: break-word;
-    max-width: 100%;
+    width: 100%;
+    min-width: 100%;
+    box-sizing: border-box;
 }
 
 .share-card-divider {

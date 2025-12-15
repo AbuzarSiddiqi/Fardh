@@ -4970,6 +4970,26 @@ async function shareToStories() {
         const rect = card.getBoundingClientRect();
         const scale = 3; // 3x scale for high quality
 
+        // Freeze all element widths inside the card to prevent text reflow during capture
+        const shareCardInner = card.querySelector('.share-card-inner');
+        const shareCardBody = card.querySelector('.share-card-body');
+        const shareCardArabic = card.querySelector('.share-card-arabic');
+
+        const originalStyles = [];
+
+        // Save original styles and apply fixed widths
+        const elementsToFreeze = [shareCardInner, shareCardBody, shareCardArabic].filter(Boolean);
+        elementsToFreeze.forEach(el => {
+            const computed = window.getComputedStyle(el);
+            originalStyles.push({
+                el,
+                width: el.style.width,
+                minWidth: el.style.minWidth
+            });
+            el.style.width = computed.width;
+            el.style.minWidth = computed.width;
+        });
+
         // Use dom-to-image-more for better RTL/Arabic support
         const blob = await domtoimage.toBlob(card, {
             quality: 1,
@@ -4982,6 +5002,12 @@ async function shareToStories() {
                 'width': rect.width + 'px',
                 'height': rect.height + 'px'
             }
+        });
+
+        // Restore original styles
+        originalStyles.forEach(({ el, width, minWidth }) => {
+            el.style.width = width;
+            el.style.minWidth = minWidth;
         });
 
         const file = new File([blob], 'fard-share.png', { type: 'image/png' });
@@ -5030,6 +5056,26 @@ async function saveShareCardAsImage() {
         const rect = card.getBoundingClientRect();
         const scale = 3; // 3x scale for high quality
 
+        // Freeze all element widths inside the card to prevent text reflow during capture
+        const shareCardInner = card.querySelector('.share-card-inner');
+        const shareCardBody = card.querySelector('.share-card-body');
+        const shareCardArabic = card.querySelector('.share-card-arabic');
+
+        const originalStyles = [];
+
+        // Save original styles and apply fixed widths
+        const elementsToFreeze = [shareCardInner, shareCardBody, shareCardArabic].filter(Boolean);
+        elementsToFreeze.forEach(el => {
+            const computed = window.getComputedStyle(el);
+            originalStyles.push({
+                el,
+                width: el.style.width,
+                minWidth: el.style.minWidth
+            });
+            el.style.width = computed.width;
+            el.style.minWidth = computed.width;
+        });
+
         // Use dom-to-image-more for better RTL/Arabic support
         const blob = await domtoimage.toBlob(card, {
             quality: 1,
@@ -5042,6 +5088,12 @@ async function saveShareCardAsImage() {
                 'width': rect.width + 'px',
                 'height': rect.height + 'px'
             }
+        });
+
+        // Restore original styles
+        originalStyles.forEach(({ el, width, minWidth }) => {
+            el.style.width = width;
+            el.style.minWidth = minWidth;
         });
 
         // Download the image
