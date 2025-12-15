@@ -8069,6 +8069,148 @@ body.mini-player-active .main-content {
 }
 
 /* ===========================================
+   SHARE MODAL BACKGROUND THEMING
+   =========================================== */
+
+/* Design 0: Glass (Default) - green tinted dark */
+.share-modal[data-design="0"] {
+    background: #0d1f12;
+}
+
+/* Design 1: Golden Elegance - warm brown dark */
+.share-modal[data-design="1"] {
+    background: #1a1410;
+}
+
+.share-modal[data-design="1"] .share-modal-close {
+    background: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.2);
+}
+
+.share-modal[data-design="1"] .share-modal-close:hover {
+    background: rgba(212, 175, 55, 0.2);
+}
+
+.share-modal[data-design="1"] .share-action-btn:hover .share-action-icon {
+    background: rgba(212, 175, 55, 0.1);
+    color: #d4af37;
+}
+
+/* Design 2: Midnight Dark - deep purple/blue */
+.share-modal[data-design="2"] {
+    background: #0a0a0f;
+}
+
+.share-modal[data-design="2"] .share-modal-close {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.2);
+}
+
+.share-modal[data-design="2"] .share-modal-close:hover {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.share-modal[data-design="2"] .share-action-btn:hover .share-action-icon {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+/* Design 3: Ocean Depths - deep cyan/teal */
+.share-modal[data-design="3"] {
+    background: #071620;
+}
+
+.share-modal[data-design="3"] .share-modal-close {
+    background: rgba(6, 182, 212, 0.1);
+    border-color: rgba(6, 182, 212, 0.2);
+}
+
+.share-modal[data-design="3"] .share-modal-close:hover {
+    background: rgba(6, 182, 212, 0.2);
+}
+
+.share-modal[data-design="3"] .share-action-btn:hover .share-action-icon {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+}
+
+/* Design 4: Sunset Warmth - warm magenta/orange */
+.share-modal[data-design="4"] {
+    background: #1a0a1a;
+}
+
+.share-modal[data-design="4"] .share-modal-close {
+    background: rgba(249, 115, 22, 0.1);
+    border-color: rgba(249, 115, 22, 0.2);
+}
+
+.share-modal[data-design="4"] .share-modal-close:hover {
+    background: rgba(249, 115, 22, 0.2);
+}
+
+.share-modal[data-design="4"] .share-action-btn:hover .share-action-icon {
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
+}
+
+/* Design 5: Rose Garden - soft pink */
+.share-modal[data-design="5"] {
+    background: #1a0f15;
+}
+
+.share-modal[data-design="5"] .share-modal-close {
+    background: rgba(236, 72, 153, 0.1);
+    border-color: rgba(236, 72, 153, 0.2);
+}
+
+.share-modal[data-design="5"] .share-modal-close:hover {
+    background: rgba(236, 72, 153, 0.2);
+}
+
+.share-modal[data-design="5"] .share-action-btn:hover .share-action-icon {
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+/* Design 6: Emerald Forest - rich green */
+.share-modal[data-design="6"] {
+    background: #071a0f;
+}
+
+.share-modal[data-design="6"] .share-modal-close {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.share-modal[data-design="6"] .share-modal-close:hover {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.share-modal[data-design="6"] .share-action-btn:hover .share-action-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Design 7: Arctic Aurora - cool blue/purple */
+.share-modal[data-design="7"] {
+    background: #050815;
+}
+
+.share-modal[data-design="7"] .share-modal-close {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.2);
+}
+
+.share-modal[data-design="7"] .share-modal-close:hover {
+    background: rgba(56, 189, 248, 0.2);
+}
+
+.share-modal[data-design="7"] .share-action-btn:hover .share-action-icon {
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+}
+
+/* ===========================================
    QUICK LANGUAGE SELECTOR MODAL
    =========================================== */
 
