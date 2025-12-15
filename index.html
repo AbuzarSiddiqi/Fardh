@@ -391,8 +391,9 @@
                                 <h2 id="surah-title" class="surah-title"></h2>
                                 <p id="surah-subtitle" class="surah-subtitle"></p>
                             </div>
-                            <button class="icon-btn primary">
-                                <span class="material-symbols-outlined filled">bookmark</span>
+                            <button id="surah-language-btn" class="surah-language-btn">
+                                <span class="material-symbols-outlined">translate</span>
+                                <span id="surah-lang-label" class="surah-lang-label">EN</span>
                             </button>
                         </div>
                     </div>
@@ -1307,6 +1308,22 @@
     <div id="success-toast" class="toast toast-success hidden">
         <span class="material-symbols-outlined">check_circle</span>
         <span id="success-message"></span>
+    </div>
+
+    <!-- Quick Language Selector Modal -->
+    <div id="lang-selector-modal" class="lang-selector-modal hidden">
+        <div class="lang-selector-backdrop"></div>
+        <div class="lang-selector-content">
+            <div class="lang-selector-header">
+                <h3>Translation Language</h3>
+                <button id="lang-selector-close" class="lang-selector-close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="lang-selector-list" class="lang-selector-list">
+                <!-- Language options will be loaded here -->
+            </div>
+        </div>
     </div>
 
     <!-- Share Card Modal -->
