@@ -6965,12 +6965,14 @@ body.mini-player-active .main-content {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 16px;
+    padding: 8px 20px;
     border-radius: var(--radius-full);
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(8px);
     margin-top: var(--space-sm);
+    max-width: 90%;
+    text-align: center;
 }
 
 .share-card-source-pill span {
@@ -6978,6 +6980,10 @@ body.mini-player-active .main-content {
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .share-card-footer {
