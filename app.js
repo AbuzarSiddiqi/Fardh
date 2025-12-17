@@ -5475,6 +5475,7 @@ async function shareToStories() {
             bgcolor: '#0d1f12',
             width: rect.width * scale,
             height: rect.height * scale,
+            cacheBust: true,
             style: {
                 'transform': `scale(${scale})`,
                 'transform-origin': 'top left',
@@ -5561,6 +5562,7 @@ async function saveShareCardAsImage() {
             bgcolor: '#0d1f12',
             width: rect.width * scale,
             height: rect.height * scale,
+            cacheBust: true,
             style: {
                 'transform': `scale(${scale})`,
                 'transform-origin': 'top left',
