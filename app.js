@@ -3745,8 +3745,9 @@ renderSurah = function () {
 
         // Only reset to ayah 1 if this is a different surah than the saved one
         // This preserves the position when continuing reading
-        const savedAyah = (lastReadState.surahNumber === arabic.number)
-            ? lastReadState.ayahNumber
+        // Use parseInt to ensure proper comparison (avoid string/number mismatch)
+        const savedAyah = (parseInt(lastReadState.surahNumber) === parseInt(arabic.number))
+            ? (lastReadState.ayahNumber || 1)
             : 1;
 
         saveReadingPosition(
