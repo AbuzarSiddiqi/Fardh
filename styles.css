@@ -7016,6 +7016,16 @@ body.mini-player-active .main-content {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Logo-only mode - transparent container, logo is the shape */
+.share-card-brand-icon.logo-only {
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+}
+
 .share-card-brand-icon .material-symbols-outlined {
     font-size: 20px;
     color: white;
@@ -7040,10 +7050,10 @@ body.mini-player-active .main-content {
 }
 
 .share-card-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    object-fit: cover;
 }
 
 .share-card-brand-tagline {
