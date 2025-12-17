@@ -5176,7 +5176,6 @@ async function loadDuasForWidget() {
                 const response = await fetch(source);
                 const data = await response.json();
 
-                // The data is organized by categories with 'items' arrays
                 // Flatten all items from all categories
                 data.forEach(category => {
                     if (category.items && Array.isArray(category.items)) {
@@ -5233,37 +5232,37 @@ function displayDuaOfDay(index) {
     const readMoreEl = document.getElementById('dua-day-read-more');
 
     // Check if dua is long
-    const isLongDua = dua.arabic.length > 100 || dua.translation.length > 150;
+    const isLongDua = dua.arabic.length > 80 || dua.translation.length > 120;
 
     if (titleEl) {
         titleEl.textContent = dua.title || 'Daily Dua';
     }
 
     if (arabicEl) {
-        // Truncate Arabic if too long (approx 2 lines)
-        if (dua.arabic.length > 100) {
-            arabicEl.textContent = dua.arabic.substring(0, 100) + '...';
-        } else {
-            arabicEl.textContent = dua.arabic;
-        }
+        // Truncate Arabic if too long
+        const arabic = dua.arabic.length > 80 ? dua.arabic.substring(0, 80) + '...' : dua.arabic;
+        arabicEl.textContent = arabic;
     }
 
     if (translationEl) {
-        // Truncate translation if too long (approx 2 lines)
-        if (dua.translation.length > 150) {
-            translationEl.textContent = '"' + dua.translation.substring(0, 150) + '... tap to read full dua"';
-        } else {
-            translationEl.textContent = '"' + dua.translation + '"';
-        }
+        // Truncate translation if too long
+        const translation = dua.translation.length > 120
+            ? '"' + dua.translation.substring(0, 120) + '..."'
+            : '"' + dua.translation + '"';
+        translationEl.textContent = translation;
     }
 
     if (sourceEl) {
         sourceEl.textContent = dua.source || 'Hadith';
     }
 
-    // Hide read more link since text is now inline
+    // Show/hide read more link for long duas
     if (readMoreEl) {
-        readMoreEl.classList.add('hidden');
+        if (isLongDua) {
+            readMoreEl.classList.remove('hidden');
+        } else {
+            readMoreEl.classList.add('hidden');
+        }
     }
 }
 
