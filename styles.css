@@ -7470,10 +7470,7 @@ body.mini-player-active .main-content {
     border: 1.5px solid rgba(212, 175, 55, 0.3);
 }
 
-.share-card-preview[data-design="1"] .share-card-brand-icon {
-    background: linear-gradient(135deg, #d4af37, #b8860b);
-    border-radius: var(--radius-md);
-}
+/* Logo styling removed - using consistent logo-only class */
 
 .share-card-preview[data-design="1"] .share-card-corner-tl {
     background: radial-gradient(ellipse at top left, rgba(212, 175, 55, 0.25), transparent 70%);
@@ -7542,10 +7539,7 @@ body.mini-player-active .main-content {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.share-card-preview[data-design="2"] .share-card-brand-icon {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
+/* Logo styling removed - using consistent logo-only class */
 
 .share-card-preview[data-design="2"] .share-card-brand-letter {
     color: white;
@@ -7612,10 +7606,7 @@ body.mini-player-active .main-content {
     border-radius: 20px;
 }
 
-.share-card-preview[data-design="3"] .share-card-brand-icon {
-    background: linear-gradient(135deg, #06b6d4, #0891b2);
-    border-radius: 50%;
-}
+/* Logo styling removed - using consistent logo-only class */
 
 .share-card-preview[data-design="3"] .share-card-corner-tl {
     background: radial-gradient(ellipse at top left, rgba(6, 182, 212, 0.25), transparent 70%);
@@ -7692,9 +7683,7 @@ body.mini-player-active .main-content {
     border: 1.5px solid rgba(251, 146, 60, 0.25);
 }
 
-.share-card-preview[data-design="4"] .share-card-brand-icon {
-    background: linear-gradient(135deg, #f97316, #d946ef);
-}
+/* Logo styling removed - using consistent logo-only class */
 
 .share-card-preview[data-design="4"] .share-card-corner-tl {
     background: radial-gradient(ellipse at top left, rgba(251, 146, 60, 0.25), transparent 70%);
@@ -7763,9 +7752,7 @@ body.mini-player-active .main-content {
     border: 1px solid rgba(244, 114, 182, 0.2);
 }
 
-.share-card-preview[data-design="5"] .share-card-brand-icon {
-    background: linear-gradient(135deg, #ec4899, #f472b6);
-}
+/* Logo styling removed - using consistent logo-only class */
 
 .share-card-preview[data-design="5"] .share-card-corner-tl {
     background: radial-gradient(ellipse at top left, rgba(244, 114, 182, 0.2), transparent 70%);
@@ -7834,10 +7821,7 @@ body.mini-player-active .main-content {
     border-radius: var(--radius-full);
 }
 
-.share-card-preview[data-design="6"] .share-card-brand-icon {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border-radius: 50%;
-}
+/* Logo styling removed - using consistent logo-only class */
 
 .share-card-preview[data-design="6"] .share-card-corner-tl {
     background: radial-gradient(ellipse at top left, rgba(52, 211, 153, 0.25), transparent 70%);
@@ -7919,9 +7903,7 @@ body.mini-player-active .main-content {
     border: 1px solid rgba(56, 189, 248, 0.2);
 }
 
-.share-card-preview[data-design="7"] .share-card-brand-icon {
-    background: linear-gradient(135deg, #38bdf8, #a855f7);
-}
+/* Logo styling removed - using consistent logo-only class */
 
 .share-card-preview[data-design="7"] .share-card-corner-tl {
     background: radial-gradient(ellipse at top left, rgba(56, 189, 248, 0.2), transparent 70%);
