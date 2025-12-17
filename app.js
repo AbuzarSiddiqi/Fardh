@@ -155,8 +155,8 @@ function initNavigation() {
 }
 
 function switchTab(tabId) {
-    // Track navigation
-    trackEvent('tab-navigation', { tab: tabId });
+    // Track navigation with specific event name for each tab
+    trackEvent(`tab-${tabId}`);
 
     // Update nav links
     elements.navLinks.forEach(link => {
