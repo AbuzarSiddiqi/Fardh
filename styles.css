@@ -7039,6 +7039,13 @@ body.mini-player-active .main-content {
     color: white;
 }
 
+.share-card-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    object-fit: contain;
+}
+
 .share-card-brand-tagline {
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.625rem;

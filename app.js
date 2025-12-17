@@ -4943,7 +4943,7 @@ function shareBookmark(category, id) {
 
     if (navigator.share) {
         navigator.share({
-            title: 'Shared from Quran App',
+            title: 'Shared from Fardh App',
             text: shareText
         }).catch(err => console.log('Share cancelled'));
     } else {
