@@ -7018,12 +7018,12 @@ body.mini-player-active .main-content {
 
 /* Logo-only mode - container clips logo for curved corners */
 .share-card-brand-icon.logo-only {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     background: transparent;
     border: none;
     box-shadow: none;
-    border-radius: 10px;
+    border-radius: 11px;
     overflow: hidden;
     -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
@@ -7054,7 +7054,7 @@ body.mini-player-active .main-content {
 .share-card-logo {
     width: 100%;
     height: 100%;
-    border-radius: 10px;
+    border-radius: 11px;
     object-fit: cover;
     display: block;
 }
