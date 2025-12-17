@@ -1,6 +1,6 @@
 {
-  "name": "Quran PWA",
-  "short_name": "Quran",
+  "name": "Fardh",
+  "short_name": "Fardh",
   "description": "Read and listen to the Holy Quran anywhere, anytime.",
   "start_url": "./",
   "scope": "./",
