@@ -1244,6 +1244,14 @@ h3 {
     color: var(--text-muted);
 }
 
+.dua-day-read-more {
+    margin-top: var(--space-sm);
+    font-size: 0.8125rem;
+    color: var(--primary);
+    font-weight: 500;
+    text-align: left;
+}
+
 /* Dua of Day - Interactive Widget */
 .dua-day-card {
     cursor: pointer;

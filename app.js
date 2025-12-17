@@ -5158,33 +5158,40 @@ const duaOfDayState = {
     currentIndex: 0
 };
 
-// Load all duas for the widget
+// Load all duas for the widget from multiple sources
 async function loadDuasForWidget() {
     try {
-        // Load daily duas (usually shorter)
-        const response = await fetch('./islamic_data/dua-dhikr/daily-dua/en.json');
-        const data = await response.json();
+        // Load from multiple dua sources for variety
+        const sources = [
+            './islamic_data/dua-dhikr/daily-dua/en.json',
+            './islamic_data/dua-dhikr/morning-dhikr/en.json',
+            './islamic_data/dua-dhikr/evening-dhikr/en.json',
+            './islamic_data/dua-dhikr/selected-dua/en.json'
+        ];
 
-        // The data is organized by categories with 'items' arrays
-        // Flatten all items from all categories
         let allDuas = [];
-        data.forEach(category => {
-            if (category.items && Array.isArray(category.items)) {
-                allDuas = allDuas.concat(category.items);
+
+        for (const source of sources) {
+            try {
+                const response = await fetch(source);
+                const data = await response.json();
+
+                // The data is organized by categories with 'items' arrays
+                // Flatten all items from all categories
+                data.forEach(category => {
+                    if (category.items && Array.isArray(category.items)) {
+                        allDuas = allDuas.concat(category.items);
+                    }
+                });
+            } catch (e) {
+                console.warn(`Could not load ${source}:`, e);
             }
-        });
-
-        // Filter to shorter duas (Arabic text < 100 chars) for better widget display
-        duaOfDayState.allDuas = allDuas.filter(dua =>
-            dua.arabic && dua.arabic.length < 100 && dua.translation
-        );
-
-        // If not enough short duas, include slightly longer ones
-        if (duaOfDayState.allDuas.length < 5) {
-            duaOfDayState.allDuas = allDuas.filter(dua =>
-                dua.arabic && dua.arabic.length < 200 && dua.translation
-            );
         }
+
+        // Filter to duas that have both arabic and translation
+        duaOfDayState.allDuas = allDuas.filter(dua =>
+            dua.arabic && dua.translation
+        );
 
         // Shuffle the array
         duaOfDayState.allDuas = shuffleArray(duaOfDayState.allDuas);
@@ -5223,27 +5230,40 @@ function displayDuaOfDay(index) {
     const arabicEl = document.getElementById('dua-day-arabic');
     const translationEl = document.getElementById('dua-day-translation');
     const sourceEl = document.getElementById('dua-day-source');
+    const readMoreEl = document.getElementById('dua-day-read-more');
+
+    // Check if dua is long
+    const isLongDua = dua.arabic.length > 100 || dua.translation.length > 150;
 
     if (titleEl) {
         titleEl.textContent = dua.title || 'Daily Dua';
     }
 
     if (arabicEl) {
-        // Truncate Arabic if too long
-        const arabic = dua.arabic.length > 80 ? dua.arabic.substring(0, 80) + '...' : dua.arabic;
-        arabicEl.textContent = arabic;
+        // Truncate Arabic if too long (approx 2 lines)
+        if (dua.arabic.length > 100) {
+            arabicEl.textContent = dua.arabic.substring(0, 100) + '...';
+        } else {
+            arabicEl.textContent = dua.arabic;
+        }
     }
 
     if (translationEl) {
-        // Truncate translation if too long
-        const translation = dua.translation.length > 120
-            ? '"' + dua.translation.substring(0, 120) + '..."'
-            : '"' + dua.translation + '"';
-        translationEl.textContent = translation;
+        // Truncate translation if too long (approx 2 lines)
+        if (dua.translation.length > 150) {
+            translationEl.textContent = '"' + dua.translation.substring(0, 150) + '... tap to read full dua"';
+        } else {
+            translationEl.textContent = '"' + dua.translation + '"';
+        }
     }
 
     if (sourceEl) {
         sourceEl.textContent = dua.source || 'Hadith';
+    }
+
+    // Hide read more link since text is now inline
+    if (readMoreEl) {
+        readMoreEl.classList.add('hidden');
     }
 }
 
