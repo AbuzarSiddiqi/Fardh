@@ -7023,9 +7023,9 @@ body.mini-player-active .main-content {
     background: transparent;
     border: none;
     box-shadow: none;
-    border-radius: 25%;
+    border-radius: 11px;
     overflow: hidden;
-    /* This clips the logo to create curved corners */
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 .share-card-brand-icon .material-symbols-outlined {
@@ -7054,9 +7054,9 @@ body.mini-player-active .main-content {
 .share-card-logo {
     width: 100%;
     height: 100%;
-    border-radius: 25%;
-    /* More curved iOS app icon style */
+    border-radius: 11px;
     object-fit: cover;
+    display: block;
 }
 
 .share-card-brand-tagline {
