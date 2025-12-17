@@ -158,6 +158,12 @@ function switchTab(tabId) {
     // Track navigation with specific event name for each tab
     trackEvent(`tab-${tabId}`);
 
+    // Prevent position tracking during tab switch scroll
+    if (typeof isScrollingToSavedPosition !== 'undefined') {
+        isScrollingToSavedPosition = true;
+        setTimeout(() => { isScrollingToSavedPosition = false; }, 500);
+    }
+
     // Update nav links
     elements.navLinks.forEach(link => {
         link.classList.toggle('active', link.dataset.tab === tabId);
@@ -520,6 +526,12 @@ function showSurahView() {
 }
 
 function showSurahList() {
+    // Prevent position tracking during navigation scroll
+    if (typeof isScrollingToSavedPosition !== 'undefined') {
+        isScrollingToSavedPosition = true;
+        setTimeout(() => { isScrollingToSavedPosition = false; }, 500);
+    }
+
     elements.surahView?.classList.add('hidden');
     elements.surahListView?.classList.remove('hidden');
     state.currentSurah = null;
@@ -3769,10 +3781,11 @@ let ayahTrackingDebounce = null;
 let currentFocusedAyah = null;
 let focusUpdateDebounce = null;
 
-// Find the ayah closest to center of viewport
+// Find the ayah closest to reading position (upper third of viewport)
 function updateFocusedAyah() {
     const ayahCards = document.querySelectorAll('.ayah-card');
-    const viewportCenter = window.innerHeight / 2;
+    // Focus point at 35% from top - where eyes naturally rest when reading
+    const focusPoint = window.innerHeight * 0.35;
 
     let closestCard = null;
     let closestDistance = Infinity;
@@ -3780,7 +3793,7 @@ function updateFocusedAyah() {
     ayahCards.forEach(card => {
         const rect = card.getBoundingClientRect();
         const cardCenter = rect.top + rect.height / 2;
-        const distance = Math.abs(cardCenter - viewportCenter);
+        const distance = Math.abs(cardCenter - focusPoint);
 
         if (distance < closestDistance) {
             closestDistance = distance;
