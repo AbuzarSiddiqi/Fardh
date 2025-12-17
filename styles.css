@@ -7052,9 +7052,10 @@ body.mini-player-active .main-content {
 .share-card-logo {
     width: 100%;
     height: 100%;
-    border-radius: 22%;
-    /* iOS app icon style curved edges */
+    border-radius: 22.5%;
+    /* iOS app icon squircle style */
     object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .share-card-brand-tagline {
