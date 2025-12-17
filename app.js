@@ -79,6 +79,22 @@ const elements = {
 };
 
 // ============================================
+// ANALYTICS TRACKING
+// ============================================
+
+// Umami analytics tracking helper
+function trackEvent(eventName, eventData = {}) {
+    try {
+        if (typeof window.umami !== 'undefined') {
+            window.umami.track(eventName, eventData);
+        }
+    } catch (error) {
+        // Silently fail if Umami is not available
+        console.debug('Analytics tracking failed:', error);
+    }
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 
@@ -139,6 +155,9 @@ function initNavigation() {
 }
 
 function switchTab(tabId) {
+    // Track navigation
+    trackEvent('tab-navigation', { tab: tabId });
+
     // Update nav links
     elements.navLinks.forEach(link => {
         link.classList.toggle('active', link.dataset.tab === tabId);
@@ -373,6 +392,13 @@ async function loadSurah(surahNumber) {
             arabic: arabicData,
             translation: translationData
         };
+
+        // Track surah reading
+        trackEvent('surah-opened', {
+            surahNumber: surahNumber,
+            surahName: arabicData.englishName,
+            translation: state.selectedEdition !== DEFAULT_EDITION
+        });
 
         renderSurah();
         showSurahView();
@@ -1149,6 +1175,13 @@ async function playReadAudio(surahNumber, startAyah, playWholeSurah) {
                 readAudioState.playlist = data.ayahs.map(a => a.audio).filter(Boolean);
                 readAudioState.currentIndex = 0;
                 readAudioState.startAyahOffset = 1; // Surah starts from ayah 1
+
+                // Track full surah playback
+                trackEvent('audio-play-surah', {
+                    surahNumber: surahNumber,
+                    surahName: surah?.englishName,
+                    reciter: reciterEdition
+                });
             } else {
                 // Single ayah - find the ayah by number
                 const ayahIndex = data.ayahs.findIndex(a => a.numberInSurah === startAyah);
@@ -1159,6 +1192,13 @@ async function playReadAudio(surahNumber, startAyah, playWholeSurah) {
                 readAudioState.playlist = [data.ayahs[ayahIndex].audio];
                 readAudioState.currentIndex = 0;
                 readAudioState.startAyahOffset = startAyah; // Store the actual ayah number
+
+                // Track single ayah playback
+                trackEvent('audio-play-ayah', {
+                    surahNumber: surahNumber,
+                    ayahNumber: startAyah,
+                    reciter: reciterEdition
+                });
             }
 
             readAudioState.surahNumber = surahNumber;
@@ -2279,6 +2319,13 @@ async function loadDuaCategory(category) {
         }
 
         duaState.currentCategory = category;
+
+        // Track dua category view
+        trackEvent('dua-category-opened', {
+            category: category,
+            categoryTitle: categoryInfo.title
+        });
+
         renderDuaList(category);
         showDuaListView();
     } catch (error) {
@@ -3196,6 +3243,11 @@ async function fetchPrayerTimes(lat, lng) {
             prayerState.timings = data.data.timings;
             prayerState.date = data.data.date;
 
+            // Track prayer times view
+            trackEvent('prayer-times-viewed', {
+                location: data.data.meta?.timezone || 'Unknown'
+            });
+
             // Update UI
             updatePrayerTimesUI();
             showPrayerTimesDisplay();
@@ -3752,6 +3804,9 @@ function initQiblaFinder() {
 function openQiblaModal() {
     const modal = document.getElementById('qibla-modal');
     if (modal) {
+        // Track qibla finder usage
+        trackEvent('qibla-finder-opened');
+
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
@@ -5549,6 +5604,12 @@ function loadScript(src) {
 
 // Global share function - can be called from anywhere
 function openShareCardForContent(type, arabic, translation, source) {
+    // Track share card usage
+    trackEvent('share-card-opened', {
+        contentType: type,
+        source: source
+    });
+
     openShareModal({ type, arabic, translation, source });
 }
 
