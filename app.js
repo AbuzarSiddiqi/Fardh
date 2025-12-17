@@ -3664,13 +3664,34 @@ async function continueReading() {
         // Switch to read tab
         switchTab('read');
 
+        // Set flag to prevent position updates during scroll
+        isScrollingToSavedPosition = true;
+
         // Load the surah
         await loadSurah(lastReadState.surahNumber);
 
-        // Wait for DOM update then scroll to ayah
-        setTimeout(() => {
-            scrollToAyah(lastReadState.ayahNumber);
-        }, 300);
+        // Wait for DOM update then scroll to ayah - use longer timeout and retry
+        const scrollWithRetry = (attempts = 0) => {
+            const ayahCard = document.querySelector(`.ayah-card[data-ayah-number="${lastReadState.ayahNumber}"]`);
+            if (ayahCard) {
+                ayahCard.scrollIntoView({ behavior: 'instant', block: 'center' });
+                ayahCard.classList.add('highlight');
+                setTimeout(() => {
+                    ayahCard.classList.remove('highlight');
+                    // Re-enable position tracking after scroll completes
+                    isScrollingToSavedPosition = false;
+                }, 2000);
+            } else if (attempts < 5) {
+                // Retry after 200ms if ayah card not found
+                setTimeout(() => scrollWithRetry(attempts + 1), 200);
+            } else {
+                // Give up, re-enable tracking
+                isScrollingToSavedPosition = false;
+            }
+        };
+
+        // Start scrolling after initial delay
+        setTimeout(() => scrollWithRetry(), 500);
     } else {
         // No reading history, just switch to read tab
         switchTab('read');
@@ -3721,11 +3742,18 @@ renderSurah = function () {
     // Save position when surah is loaded
     if (state.currentSurah && state.currentSurah.arabic) {
         const arabic = state.currentSurah.arabic;
+
+        // Only reset to ayah 1 if this is a different surah than the saved one
+        // This preserves the position when continuing reading
+        const savedAyah = (lastReadState.surahNumber === arabic.number)
+            ? lastReadState.ayahNumber
+            : 1;
+
         saveReadingPosition(
             arabic.number,
             arabic.name,
             arabic.englishName,
-            1, // Start at ayah 1
+            savedAyah,
             arabic.numberOfAyahs
         );
 
@@ -3734,33 +3762,72 @@ renderSurah = function () {
     }
 };
 
+// Flag to prevent position updates during programmatic scrolling
+let isScrollingToSavedPosition = false;
+let ayahTrackingDebounce = null;
+let currentFocusedAyah = null;
+let focusUpdateDebounce = null;
+
+// Find the ayah closest to center of viewport
+function updateFocusedAyah() {
+    const ayahCards = document.querySelectorAll('.ayah-card');
+    const viewportCenter = window.innerHeight / 2;
+
+    let closestCard = null;
+    let closestDistance = Infinity;
+
+    ayahCards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const cardCenter = rect.top + rect.height / 2;
+        const distance = Math.abs(cardCenter - viewportCenter);
+
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestCard = card;
+        }
+    });
+
+    if (closestCard) {
+        const ayahNumber = parseInt(closestCard.dataset.ayahNumber);
+
+        if (currentFocusedAyah !== ayahNumber) {
+            // Remove focused class from all
+            document.querySelectorAll('.ayah-card.focused').forEach(card => {
+                card.classList.remove('focused');
+            });
+            // Add focused class to closest
+            closestCard.classList.add('focused');
+            currentFocusedAyah = ayahNumber;
+
+            // Save position (debounced)
+            if (!isScrollingToSavedPosition && state.currentSurah?.arabic) {
+                clearTimeout(ayahTrackingDebounce);
+                ayahTrackingDebounce = setTimeout(() => {
+                    const arabic = state.currentSurah.arabic;
+                    saveReadingPosition(
+                        arabic.number,
+                        arabic.name,
+                        arabic.englishName,
+                        ayahNumber,
+                        arabic.numberOfAyahs
+                    );
+                }, 500);
+            }
+        }
+    }
+}
+
 // Track which ayah user is viewing
 function setupAyahTracking() {
-    const ayahCards = document.querySelectorAll('.ayah-card');
+    // Use scroll event with minimal debounce for fast focus tracking
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(updateFocusedAyah, 16);
+    }, { passive: true });
 
-    if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
-                    const ayahNumber = parseInt(entry.target.dataset.ayahNumber);
-                    if (ayahNumber && state.currentSurah?.arabic) {
-                        const arabic = state.currentSurah.arabic;
-                        saveReadingPosition(
-                            arabic.number,
-                            arabic.name,
-                            arabic.englishName,
-                            ayahNumber,
-                            arabic.numberOfAyahs
-                        );
-                    }
-                }
-            });
-        }, {
-            threshold: 0.5
-        });
-
-        ayahCards.forEach(card => observer.observe(card));
-    }
+    // Initial focus update
+    setTimeout(updateFocusedAyah, 100);
 }
 
 // Initialize Last Read on page load
@@ -5138,9 +5205,14 @@ function displayDuaOfDay(index) {
     const dua = duaOfDayState.allDuas[index];
     duaOfDayState.currentDua = dua;
 
+    const titleEl = document.getElementById('dua-day-title');
     const arabicEl = document.getElementById('dua-day-arabic');
     const translationEl = document.getElementById('dua-day-translation');
     const sourceEl = document.getElementById('dua-day-source');
+
+    if (titleEl) {
+        titleEl.textContent = dua.title || 'Daily Dua';
+    }
 
     if (arabicEl) {
         // Truncate Arabic if too long
@@ -5157,7 +5229,7 @@ function displayDuaOfDay(index) {
     }
 
     if (sourceEl) {
-        sourceEl.textContent = dua.source || dua.title || 'Daily Dua';
+        sourceEl.textContent = dua.source || 'Hadith';
     }
 }
 
@@ -5285,10 +5357,10 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             if (duaOfDayState.currentDua) {
                 openShareModal({
-                    type: 'Dua of the Day',
+                    type: duaOfDayState.currentDua.title || 'Dua of the Day',
                     arabic: duaOfDayState.currentDua.arabic,
                     translation: duaOfDayState.currentDua.translation,
-                    source: duaOfDayState.currentDua.source || duaOfDayState.currentDua.title || 'Daily Dua'
+                    source: duaOfDayState.currentDua.source || 'Hadith'
                 });
             }
         });
