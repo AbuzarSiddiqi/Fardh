@@ -232,14 +232,48 @@ h3 {
     overflow-x: hidden;
 }
 
-/* Tab Content */
+/* Tab Content - Smooth Native-like Transitions */
 .tab-content {
     display: none;
-    animation: fadeIn var(--transition-base);
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .tab-content.active {
     display: block;
+    opacity: 1;
+    transform: translateX(0);
+    animation: slideInRight 0.3s ease forwards;
+}
+
+.tab-content.exiting {
+    animation: slideOutLeft 0.2s ease forwards;
+}
+
+/* Slide animations for native feel */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutLeft {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
 }
 
 @keyframes fadeIn {
@@ -254,6 +288,20 @@ h3 {
     }
 }
 
+/* Feature views within tabs - slide from right */
+.feature-view {
+    animation: slideInRight 0.25s ease forwards;
+}
+
+.feature-view.hidden {
+    display: none !important;
+}
+
+/* Surah content view transitions */
+#surah-content-view {
+    animation: slideInRight 0.25s ease forwards;
+}
+
 /* Hidden */
 .hidden {
     display: none !important;
@@ -264,10 +312,18 @@ h3 {
     position: fixed;
     bottom: var(--space-md);
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(0);
     width: calc(100% - 2rem);
     max-width: calc(var(--max-width) - 2rem);
     z-index: 1000;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Hidden state when scrolling down */
+.bottom-nav.nav-hidden {
+    transform: translateX(-50%) translateY(120%);
+    opacity: 0;
+    pointer-events: none;
 }
 
 .nav-container {
@@ -1067,6 +1123,17 @@ h3 {
     opacity: 0.8;
 }
 
+/* History icon button in section header */
+.section-action.history-icon-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.section-action.history-icon-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
 .section-action-icon {
     background: none;
     border: none;
@@ -1152,6 +1219,142 @@ h3 {
     background: rgba(255, 255, 255, 0.15);
 }
 
+/* History Button */
+.last-read-history-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.last-read-history-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Reading History Modal */
+.reading-history-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.reading-history-modal.hidden {
+    display: none;
+}
+
+.reading-history-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.reading-history-sheet {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    max-height: 70vh;
+    background: var(--bg-card);
+    border-top-left-radius: var(--radius-xl);
+    border-top-right-radius: var(--radius-xl);
+    border: 1px solid var(--border-light);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUpSheet 0.3s ease;
+    overflow: hidden;
+}
+
+@keyframes slideUpSheet {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.reading-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.reading-history-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.reading-history-list {
+    padding: var(--space-md);
+    overflow-y: auto;
+    max-height: calc(70vh - 70px);
+}
+
+.reading-history-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-bottom: var(--space-sm);
+}
+
+.reading-history-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+}
+
+.reading-history-item-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.reading-history-item-info {
+    flex: 1;
+}
+
+.reading-history-item-info h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.reading-history-item-info p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.reading-history-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-xl);
+}
+
 .last-read-progress {
     margin-top: var(--space-sm);
 }
@@ -1227,6 +1430,17 @@ h3 {
     line-height: 1.6;
     color: var(--text-secondary);
     margin-bottom: var(--space-md);
+}
+
+.see-more-link {
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.see-more-light {
+    color: var(--primary);
+    cursor: pointer;
 }
 
 .dua-day-tags {
@@ -3185,6 +3399,37 @@ audio::-webkit-media-controls-panel {
     color: var(--text-muted);
 }
 
+/* Section completion badges */
+.section-complete-badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    color: var(--primary);
+    background: rgba(20, 184, 75, 0.15);
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.section-progress-badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 100px;
+    margin-top: 4px;
+}
+
+.hadith-section-card.completed {
+    border-color: rgba(20, 184, 75, 0.3);
+}
+
+.hadith-section-card.completed .hadith-book-icon {
+    background: rgba(20, 184, 75, 0.2);
+    color: var(--primary);
+}
+
 .hadith-card {
     padding: var(--space-md);
     border-radius: var(--radius-xl);
@@ -3210,6 +3455,97 @@ audio::-webkit-media-controls-panel {
     font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: var(--space-sm);
+}
+
+/* Hadith Read State */
+.hadith-card.read {
+    border-color: rgba(20, 184, 75, 0.3);
+    background: rgba(20, 184, 75, 0.05);
+}
+
+.hadith-number-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.hadith-read-badge {
+    font-size: 0.6875rem;
+    color: var(--primary);
+    background: rgba(20, 184, 75, 0.15);
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-weight: 600;
+}
+
+.hadith-tap-hint {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    margin-top: var(--space-xs);
+    text-align: center;
+}
+
+.hadith-card.read .hadith-tap-hint {
+    display: none;
+}
+
+/* Hadith highlight pulse animation */
+.hadith-card.highlight-pulse {
+    animation: highlightPulse 2s ease;
+}
+
+@keyframes highlightPulse {
+
+    0%,
+    100% {
+        box-shadow: none;
+    }
+
+    50% {
+        box-shadow: 0 0 0 4px rgba(20, 184, 75, 0.3);
+    }
+}
+
+/* Hadith Last Read Widget */
+.hadith-last-read-widget {
+    margin: 0 var(--space-md) var(--space-md);
+    cursor: pointer;
+}
+
+.hadith-last-read-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: linear-gradient(135deg, rgba(20, 184, 75, 0.15), rgba(20, 184, 75, 0.05));
+    border: 1px solid rgba(20, 184, 75, 0.3);
+    border-radius: var(--radius-xl);
+}
+
+.hadith-last-read-icon {
+    font-size: 1.5rem;
+}
+
+.hadith-last-read-info {
+    flex: 1;
+}
+
+.hadith-last-read-info h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.hadith-last-read-info p {
+    font-size: 0.75rem;
+    color: var(--primary);
+}
+
+.hadith-last-read-arrow {
+    color: var(--primary);
+    font-size: 18px;
 }
 
 /* Prophets List */

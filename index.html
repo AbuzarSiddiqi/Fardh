@@ -298,7 +298,10 @@
                 <div class="section">
                     <div class="section-header">
                         <h2 class="section-title">Last Read</h2>
-                        <button id="continue-reading-btn" class="section-action">Continue</button>
+                        <button id="reading-history-btn" class="section-action history-icon-btn" title="Reading History">
+                            <span class="material-symbols-outlined">history</span>
+                            History
+                        </button>
                     </div>
                     <div id="last-read-card" class="last-read-card">
                         <div class="last-read-bg-icon">
@@ -829,6 +832,19 @@
                         <h2 class="feature-title">Hadith Collections</h2>
                         <div style="width: 40px;"></div>
                     </div>
+                    
+                    <!-- Last Read Widget -->
+                    <div id="hadith-last-read-widget" class="hadith-last-read-widget hidden">
+                        <div class="hadith-last-read-content">
+                            <span class="hadith-last-read-icon">📖</span>
+                            <div class="hadith-last-read-info">
+                                <h4>Continue Reading</h4>
+                                <p id="hadith-last-read-text">Bukhari - Hadith #123</p>
+                            </div>
+                            <span class="material-symbols-outlined hadith-last-read-arrow">arrow_forward_ios</span>
+                        </div>
+                    </div>
+                    
                     <div id="hadith-books-list" class="hadith-books-list">
                         <!-- Hadith books will be loaded here -->
                     </div>
@@ -1455,6 +1471,23 @@
                 <div class="dua-detail-source">
                     <span class="dua-tag" id="dua-detail-source"></span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reading History Modal -->
+    <div id="reading-history-modal" class="reading-history-modal hidden">
+        <div class="reading-history-overlay"></div>
+        <div class="reading-history-sheet">
+            <div class="reading-history-header">
+                <h3>📖 Reading History</h3>
+                <button id="close-history-modal" class="icon-btn">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="reading-history-list" class="reading-history-list">
+                <!-- History items will be dynamically added here -->
+                <p class="reading-history-empty">No reading history yet</p>
             </div>
         </div>
     </div>

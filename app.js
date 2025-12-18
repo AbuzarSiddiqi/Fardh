@@ -108,9 +108,49 @@ async function initApp() {
     initAudioControls();
     initQuickLanguageSelector();
     checkOnlineStatus();
+    initAutoHideNav();
 
     // Load initial data
     await loadInitialData();
+}
+
+// Auto-hide bottom nav on scroll
+function initAutoHideNav() {
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (!bottomNav) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    const scrollThreshold = 10; // Minimum scroll to trigger hide/show
+
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const currentScrollY = window.scrollY;
+                const scrollDiff = currentScrollY - lastScrollY;
+
+                // Only trigger on significant scroll
+                if (Math.abs(scrollDiff) > scrollThreshold) {
+                    if (scrollDiff > 0 && currentScrollY > 100) {
+                        // Scrolling down - hide nav
+                        bottomNav.classList.add('nav-hidden');
+                    } else {
+                        // Scrolling up - show nav
+                        bottomNav.classList.remove('nav-hidden');
+                    }
+                    lastScrollY = currentScrollY;
+                }
+
+                // Always show nav at top of page
+                if (currentScrollY < 50) {
+                    bottomNav.classList.remove('nav-hidden');
+                }
+
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
 }
 
 function cacheElements() {
@@ -1389,6 +1429,90 @@ const moreState = {
     currentHadithSection: null
 };
 
+// Hadith reading progress state
+const hadithReadState = {
+    readHadiths: JSON.parse(localStorage.getItem('readHadiths') || '{}'),
+    lastRead: JSON.parse(localStorage.getItem('hadithLastRead') || 'null')
+};
+
+// Check if a hadith is marked as read
+function isHadithRead(bookId, hadithNumber) {
+    const key = `${bookId}-${hadithNumber}`;
+    return hadithReadState.readHadiths[key] === true;
+}
+
+// Toggle hadith read status
+function toggleHadithRead(bookId, hadithNumber, bookName, sectionNum, sectionName) {
+    const key = `${bookId}-${hadithNumber}`;
+
+    if (hadithReadState.readHadiths[key]) {
+        // Unmark as read
+        delete hadithReadState.readHadiths[key];
+    } else {
+        // Mark as read
+        hadithReadState.readHadiths[key] = true;
+
+        // Update last read
+        hadithReadState.lastRead = {
+            bookId,
+            bookName,
+            sectionNum,
+            sectionName,
+            hadithNumber,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('hadithLastRead', JSON.stringify(hadithReadState.lastRead));
+    }
+
+    localStorage.setItem('readHadiths', JSON.stringify(hadithReadState.readHadiths));
+    return hadithReadState.readHadiths[key] === true;
+}
+
+// Continue reading hadith from last position
+function continueHadithReading() {
+    const lastRead = hadithReadState.lastRead;
+    if (!lastRead) return;
+
+    // Get correct filename from HADITH_BOOKS or construct it
+    const bookInfo = HADITH_BOOKS.find(b => b.id === lastRead.bookId);
+    const filename = bookInfo ? bookInfo.file : `book_${lastRead.bookId}.json`;
+
+    loadHadithBook(lastRead.bookId, filename).then(() => {
+        loadHadithSection(lastRead.bookId, lastRead.sectionNum);
+
+        // Scroll to specific hadith after rendering
+        setTimeout(() => {
+            const hadithCard = document.querySelector(`[data-hadith-number="${lastRead.hadithNumber}"]`);
+            if (hadithCard) {
+                hadithCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                hadithCard.classList.add('highlight-pulse');
+                setTimeout(() => hadithCard.classList.remove('highlight-pulse'), 2000);
+            }
+        }, 500);
+    }).catch(err => {
+        console.error('[Hadith] Failed to continue reading:', err);
+        showError('Could not load hadith book');
+    });
+}
+
+// Update hadith last read widget
+function updateHadithLastReadWidget() {
+    const widget = document.getElementById('hadith-last-read-widget');
+    const textEl = document.getElementById('hadith-last-read-text');
+
+    if (!widget) return;
+
+    const lastRead = hadithReadState.lastRead;
+    if (lastRead) {
+        widget.classList.remove('hidden');
+        if (textEl) {
+            textEl.textContent = `${lastRead.bookName} - Hadith #${lastRead.hadithNumber}`;
+        }
+    } else {
+        widget.classList.add('hidden');
+    }
+}
+
 // Initialize More tab features
 function initMoreTab() {
     // Feature card click handlers
@@ -1418,6 +1542,11 @@ function initMoreTab() {
 
     document.querySelector('.back-to-prophets')?.addEventListener('click', () => {
         showFeatureView('prophets-view');
+    });
+
+    // Hadith Last Read Widget click handler
+    document.getElementById('hadith-last-read-widget')?.addEventListener('click', () => {
+        continueHadithReading();
     });
 }
 
@@ -1449,6 +1578,7 @@ async function openFeature(feature) {
                 break;
             case 'hadith':
                 renderHadithBooks();
+                updateHadithLastReadWidget();
                 showFeatureView('hadith-view');
                 break;
             case 'prophets':
@@ -1615,19 +1745,48 @@ function renderHadithSections(bookId) {
     if (titleEl) titleEl.textContent = book.metadata?.name || 'Hadith';
 
     const sections = book.metadata?.sections || {};
+    const sectionDetails = book.metadata?.section_details || {};
+    const hadiths = book.hadiths || [];
 
-    container.innerHTML = Object.entries(sections).map(([num, name]) => `
-        <div class="hadith-section-card" data-section="${num}">
+    container.innerHTML = Object.entries(sections).map(([num, name]) => {
+        // Calculate section completion
+        const details = sectionDetails[num];
+        let completionInfo = '';
+        let isComplete = false;
+
+        if (details) {
+            const start = details.hadithnumber_first;
+            const end = details.hadithnumber_last;
+            const totalInSection = end - start + 1;
+            let readCount = 0;
+
+            for (let i = start; i <= end; i++) {
+                if (isHadithRead(bookId, i)) readCount++;
+            }
+
+            if (readCount > 0) {
+                isComplete = readCount >= totalInSection;
+                if (isComplete) {
+                    completionInfo = `<span class="section-complete-badge">✓ Complete</span>`;
+                } else {
+                    completionInfo = `<span class="section-progress-badge">${readCount}/${totalInSection} read</span>`;
+                }
+            }
+        }
+
+        return `
+        <div class="hadith-section-card ${isComplete ? 'completed' : ''}" data-section="${num}">
             <div class="hadith-book-icon">
-                <span class="material-symbols-outlined">bookmark</span>
+                <span class="material-symbols-outlined">${isComplete ? 'check_circle' : 'bookmark'}</span>
             </div>
             <div class="hadith-book-info">
                 <h3>Section ${num}</h3>
                 <p>${name}</p>
+                ${completionInfo}
             </div>
             <span class="material-symbols-outlined">chevron_right</span>
         </div>
-    `).join('');
+    `}).join('');
 
     container.querySelectorAll('.hadith-section-card').forEach(card => {
         card.addEventListener('click', () => loadHadithSection(bookId, card.dataset.section));
@@ -1642,7 +1801,12 @@ function loadHadithSection(bookId, sectionNum) {
     if (!container || !book) return;
 
     const sectionName = book.metadata?.sections?.[sectionNum] || `Section ${sectionNum}`;
+    const bookName = book.metadata?.name || bookId;
     if (titleEl) titleEl.textContent = sectionName;
+
+    // Store current section info
+    moreState.currentHadithBook = bookId;
+    moreState.currentHadithSection = sectionNum;
 
     // Get section details for hadith range
     const sectionDetails = book.metadata?.section_details?.[sectionNum];
@@ -1663,10 +1827,20 @@ function loadHadithSection(bookId, sectionNum) {
     container.innerHTML = displayHadiths.map(hadith => {
         const hadithId = `hadith-${bookId}-${hadith.hadithnumber}`;
         const hadithIsBookmarked = typeof isBookmarked === 'function' && isBookmarked('hadith', hadithId);
+        const hadithIsRead = isHadithRead(bookId, hadith.hadithnumber);
+
         return `
-        <div class="hadith-card">
+        <div class="hadith-card ${hadithIsRead ? 'read' : ''}" 
+            data-book-id="${bookId}"
+            data-book-name="${encodeURIComponent(bookName)}"
+            data-section-num="${sectionNum}"
+            data-section-name="${encodeURIComponent(sectionName)}"
+            data-hadith-number="${hadith.hadithnumber}">
             <div class="hadith-card-header">
-                <p class="hadith-number">Hadith #${hadith.hadithnumber}</p>
+                <div class="hadith-number-wrap">
+                    <p class="hadith-number">Hadith #${hadith.hadithnumber}</p>
+                    ${hadithIsRead ? '<span class="hadith-read-badge">✓ Read</span>' : ''}
+                </div>
                 <div class="hadith-card-actions">
                     <button class="hadith-bookmark-btn ${hadithIsBookmarked ? 'bookmarked' : ''}"
                         data-hadith-id="${hadithId}"
@@ -1686,6 +1860,7 @@ function loadHadithSection(bookId, sectionNum) {
             </div>
             <p class="hadith-text">${hadith.text}</p>
             <p class="hadith-reference">Book ${hadith.reference?.book}, Hadith ${hadith.reference?.hadith}</p>
+            <p class="hadith-tap-hint">Double-tap to mark as read</p>
         </div>
     `}).join('');
 
@@ -1693,7 +1868,56 @@ function loadHadithSection(bookId, sectionNum) {
         container.innerHTML += `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Showing first 50 of ${filteredHadiths.length} hadiths</p>`;
     }
 
+    // Add double-tap event listeners
+    setupHadithDoubleTap();
+
     showFeatureView('hadith-section-view');
+}
+
+// Setup double-tap to mark hadith as read
+function setupHadithDoubleTap() {
+    const hadithCards = document.querySelectorAll('.hadith-card');
+
+    hadithCards.forEach(card => {
+        let lastTap = 0;
+
+        card.addEventListener('click', (e) => {
+            // Ignore if clicked on a button
+            if (e.target.closest('button')) return;
+
+            const now = Date.now();
+            const timeDiff = now - lastTap;
+
+            if (timeDiff < 300 && timeDiff > 0) {
+                // Double tap detected
+                const bookId = card.dataset.bookId;
+                const bookName = decodeURIComponent(card.dataset.bookName);
+                const sectionNum = parseInt(card.dataset.sectionNum);
+                const sectionName = decodeURIComponent(card.dataset.sectionName);
+                const hadithNumber = parseInt(card.dataset.hadithNumber);
+
+                const isNowRead = toggleHadithRead(bookId, hadithNumber, bookName, sectionNum, sectionName);
+
+                // Update UI
+                if (isNowRead) {
+                    card.classList.add('read');
+                    // Add badge if not exists
+                    const numberWrap = card.querySelector('.hadith-number-wrap');
+                    if (numberWrap && !numberWrap.querySelector('.hadith-read-badge')) {
+                        numberWrap.insertAdjacentHTML('beforeend', '<span class="hadith-read-badge">✓ Read</span>');
+                    }
+                    showSuccess('Hadith marked as read ✓');
+                } else {
+                    card.classList.remove('read');
+                    const badge = card.querySelector('.hadith-read-badge');
+                    if (badge) badge.remove();
+                    showSuccess('Hadith unmarked');
+                }
+            }
+
+            lastTap = now;
+        });
+    });
 }
 
 // ============================================
@@ -3593,6 +3817,127 @@ function initLastRead() {
             playLastReadAudio();
         });
     }
+
+    // Reading history button
+    const historyBtn = document.getElementById('reading-history-btn');
+    if (historyBtn) {
+        historyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openReadingHistoryModal();
+        });
+    }
+
+    // Close history modal
+    const closeHistoryBtn = document.getElementById('close-history-modal');
+    if (closeHistoryBtn) {
+        closeHistoryBtn.addEventListener('click', closeReadingHistoryModal);
+    }
+
+    // Close on overlay click
+    const historyOverlay = document.querySelector('.reading-history-overlay');
+    if (historyOverlay) {
+        historyOverlay.addEventListener('click', closeReadingHistoryModal);
+    }
+}
+
+// Open reading history modal
+function openReadingHistoryModal() {
+    const modal = document.getElementById('reading-history-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        renderReadingHistoryModal();
+    }
+}
+
+// Close reading history modal
+function closeReadingHistoryModal() {
+    const modal = document.getElementById('reading-history-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Render reading history items in modal
+function renderReadingHistoryModal() {
+    const container = document.getElementById('reading-history-list');
+    if (!container) return;
+
+    const history = getReadingHistory();
+
+    if (history.length === 0) {
+        container.innerHTML = '<p class="reading-history-empty">No reading history yet</p>';
+        return;
+    }
+
+    container.innerHTML = history.map((item, index) => {
+        const surahName = item.surahEnglishName || item.surahName || `Surah ${item.surahNumber}`;
+        const timeAgo = getTimeAgo(item.timestamp);
+        const progress = item.totalAyahs ? Math.round((item.ayahNumber / item.totalAyahs) * 100) : 0;
+
+        return `
+            <div class="reading-history-item" data-history-index="${index}">
+                <div class="reading-history-item-icon">
+                    <span class="material-symbols-outlined">menu_book</span>
+                </div>
+                <div class="reading-history-item-info">
+                    <h4>${surahName}</h4>
+                    <p>Ayah ${item.ayahNumber} • ${progress}% • ${timeAgo}</p>
+                </div>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </div>
+        `;
+    }).join('');
+
+    // Add click handlers
+    container.querySelectorAll('.reading-history-item').forEach(itemEl => {
+        itemEl.addEventListener('click', () => {
+            const index = parseInt(itemEl.dataset.historyIndex);
+            jumpToHistoryPosition(index);
+        });
+    });
+}
+
+// Jump to a specific history position
+function jumpToHistoryPosition(index) {
+    const history = getReadingHistory();
+    if (!history[index]) return;
+
+    const item = history[index];
+
+    // Close modal
+    closeReadingHistoryModal();
+
+    // Navigate to surah and scroll to ayah
+    switchTab('read');
+
+    setTimeout(() => {
+        selectSurah(item.surahNumber);
+
+        // Scroll to specific ayah after rendering
+        setTimeout(() => {
+            const ayahEl = document.querySelector(`[data-ayah="${item.ayahNumber}"]`);
+            if (ayahEl) {
+                ayahEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                ayahEl.classList.add('highlight-pulse');
+                setTimeout(() => ayahEl.classList.remove('highlight-pulse'), 2000);
+            }
+        }, 800);
+    }, 200);
+}
+
+// Get time ago string
+function getTimeAgo(timestamp) {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days === 1) return 'Yesterday';
+    return `${days}d ago`;
 }
 
 // Save reading position when user views an ayah
@@ -3603,16 +3948,58 @@ function saveReadingPosition(surahNumber, surahName, surahEnglishName, ayahNumbe
     lastReadState.ayahNumber = ayahNumber;
     lastReadState.totalAyahs = totalAyahs;
 
-    localStorage.setItem('lastRead', JSON.stringify({
+    const currentPosition = {
         surahNumber,
         surahName,
         surahEnglishName,
         ayahNumber,
         totalAyahs,
         timestamp: Date.now()
-    }));
+    };
+
+    localStorage.setItem('lastRead', JSON.stringify(currentPosition));
+
+    // Also save to reading history (max 4 unique positions)
+    saveToReadingHistory(currentPosition);
 
     updateLastReadDisplay();
+}
+
+// Save position to reading history array
+function saveToReadingHistory(position) {
+    let history = [];
+    try {
+        const saved = localStorage.getItem('readingHistory');
+        if (saved) {
+            history = JSON.parse(saved);
+        }
+    } catch (e) {
+        history = [];
+    }
+
+    // Remove duplicate surah entries (keep only latest position per surah)
+    history = history.filter(h => h.surahNumber !== position.surahNumber);
+
+    // Add new position at the beginning
+    history.unshift(position);
+
+    // Keep only last 4 entries
+    history = history.slice(0, 4);
+
+    localStorage.setItem('readingHistory', JSON.stringify(history));
+}
+
+// Get reading history array
+function getReadingHistory() {
+    try {
+        const saved = localStorage.getItem('readingHistory');
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (e) {
+        return [];
+    }
+    return [];
 }
 
 // Load saved reading position
@@ -5161,9 +5548,8 @@ const duaOfDayState = {
 // Load all duas for the widget from multiple sources
 async function loadDuasForWidget() {
     try {
-        // Load from multiple dua sources for variety
+        // Load from dua sources (excluding daily-dua since those are static)
         const sources = [
-            './islamic_data/dua-dhikr/daily-dua/en.json',
             './islamic_data/dua-dhikr/morning-dhikr/en.json',
             './islamic_data/dua-dhikr/evening-dhikr/en.json',
             './islamic_data/dua-dhikr/selected-dua/en.json'
@@ -5176,12 +5562,18 @@ async function loadDuasForWidget() {
                 const response = await fetch(source);
                 const data = await response.json();
 
-                // Flatten all items from all categories
-                data.forEach(category => {
-                    if (category.items && Array.isArray(category.items)) {
-                        allDuas = allDuas.concat(category.items);
-                    }
-                });
+                // Handle both flat arrays and nested category.items structure
+                if (Array.isArray(data)) {
+                    data.forEach(item => {
+                        // If item has 'items' array, it's a category
+                        if (item.items && Array.isArray(item.items)) {
+                            allDuas = allDuas.concat(item.items);
+                        } else if (item.arabic && item.translation) {
+                            // It's a dua directly
+                            allDuas.push(item);
+                        }
+                    });
+                }
             } catch (e) {
                 console.warn(`Could not load ${source}:`, e);
             }
@@ -5231,32 +5623,39 @@ function displayDuaOfDay(index) {
     const sourceEl = document.getElementById('dua-day-source');
     const readMoreEl = document.getElementById('dua-day-read-more');
 
-    // Check if dua is long
-    const isLongDua = dua.arabic.length > 80 || dua.translation.length > 120;
+    // Check if dua is long (translation > 60 chars = roughly one line)
+    const isLongDua = dua.translation.length > 60;
 
     if (titleEl) {
         titleEl.textContent = dua.title || 'Daily Dua';
     }
 
     if (arabicEl) {
-        // Truncate Arabic if too long
-        const arabic = dua.arabic.length > 80 ? dua.arabic.substring(0, 80) + '...' : dua.arabic;
+        // Truncate Arabic if too long (one line)
+        const arabic = dua.arabic.length > 60 ? dua.arabic.substring(0, 60) + '...' : dua.arabic;
         arabicEl.textContent = arabic;
     }
 
     if (translationEl) {
-        // Truncate translation if too long
-        const translation = dua.translation.length > 120
-            ? '"' + dua.translation.substring(0, 120) + '..."'
-            : '"' + dua.translation + '"';
-        translationEl.textContent = translation;
+        // Truncate translation to one line with "see more" for long duas
+        if (isLongDua) {
+            const truncated = dua.translation.substring(0, 60);
+            translationEl.innerHTML = `"${truncated}..." <span class="see-more-link">see more</span>`;
+        } else {
+            translationEl.textContent = '"' + dua.translation + '"';
+        }
     }
 
     if (sourceEl) {
-        sourceEl.textContent = dua.source || 'Hadith';
+        const source = dua.source || 'Hadith';
+        if (source.length > 30) {
+            sourceEl.textContent = source.substring(0, 30) + '...';
+        } else {
+            sourceEl.textContent = source;
+        }
     }
 
-    // Show/hide read more link for long duas
+    // Show/hide read more link for long duas (keep for backward compat)
     if (readMoreEl) {
         if (isLongDua) {
             readMoreEl.classList.remove('hidden');
