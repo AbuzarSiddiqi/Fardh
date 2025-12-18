@@ -5401,6 +5401,301 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
+// DAILY NOTIFICATION SYSTEM
+// ============================================
+
+// Notification state
+const notificationState = {
+    enabled: localStorage.getItem('notificationsEnabled') === 'true',
+    lastNotificationDate: localStorage.getItem('lastNotificationDate') || null,
+    notificationTime: localStorage.getItem('notificationTime') || '09:00'
+};
+
+// Calm, encouraging notification templates
+const NOTIFICATION_TEMPLATES = {
+    continueReading: [
+        { title: "📖 Continue Your Journey", body: "Pick up where you left off in your Quran reading" },
+        { title: "📚 Your Reading Awaits", body: "A few verses a day keeps the heart at peace" },
+        { title: "🌙 Peaceful Moments", body: "Continue your spiritual journey where you left off" },
+        { title: "✨ Keep Growing", body: "Every verse brings you closer to understanding" },
+        { title: "💚 Gentle Reminder", body: "Your Quran reading is waiting for you" }
+    ],
+    dailyDua: [
+        { title: "🤲 Daily Dua", body: "Start your day with a beautiful supplication" },
+        { title: "🌸 Morning Blessings", body: "A moment of dua can brighten your whole day" },
+        { title: "💫 Connect Through Dua", body: "Take a moment to speak to your Lord" },
+        { title: "🕊️ Peace in Prayer", body: "Discover a beautiful dua today" },
+        { title: "🌿 Nurture Your Soul", body: "A short dua for your spiritual wellbeing" }
+    ],
+    hadith: [
+        { title: "✨ Wisdom of the Prophet ﷺ", body: "Discover a beautiful hadith today" },
+        { title: "📿 Prophetic Guidance", body: "Learn something new from the Sunnah" },
+        { title: "🌟 Daily Hadith", body: "A pearl of wisdom awaits you" },
+        { title: "💎 Timeless Teachings", body: "Explore the words of our beloved Prophet ﷺ" },
+        { title: "🕌 Sunnah Reminder", body: "Enrich your day with prophetic wisdom" }
+    ],
+    prayer: [
+        { title: "🕌 Moment of Peace", body: "Take a moment to connect with Allah" },
+        { title: "🌅 Time for Reflection", body: "Your soul deserves a peaceful pause" },
+        { title: "🤍 Inner Tranquility", body: "Find serenity in remembrance of Allah" },
+        { title: "💚 Spiritual Refresh", body: "A moment of dhikr for your heart" },
+        { title: "🌙 Peaceful Pause", body: "Let your heart find rest in remembrance" }
+    ],
+    inspiration: [
+        { title: "💚 Verse of the Day", body: "A beautiful ayah to reflect upon" },
+        { title: "🌟 Quranic Light", body: "Illuminate your day with divine wisdom" },
+        { title: "📖 Daily Inspiration", body: "Let the Quran guide your day" },
+        { title: "✨ Words of Light", body: "A verse to carry in your heart today" },
+        { title: "🌿 Soul Nourishment", body: "Feed your spirit with the Quran" }
+    ]
+};
+
+// Get random notification from templates
+function getRandomNotification() {
+    const categories = Object.keys(NOTIFICATION_TEMPLATES);
+    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+    const templates = NOTIFICATION_TEMPLATES[randomCategory];
+    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+
+    return {
+        ...randomTemplate,
+        category: randomCategory
+    };
+}
+
+// Check if already notified today
+function hasNotifiedToday() {
+    const lastDate = notificationState.lastNotificationDate;
+    if (!lastDate) return false;
+
+    const today = new Date().toDateString();
+    const lastNotifDate = new Date(lastDate).toDateString();
+
+    return today === lastNotifDate;
+}
+
+// Mark notification as sent today
+function markNotificationSent() {
+    const now = new Date().toISOString();
+    notificationState.lastNotificationDate = now;
+    localStorage.setItem('lastNotificationDate', now);
+}
+
+// Request notification permission
+async function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        console.log('[Notifications] Not supported in this browser');
+        return false;
+    }
+
+    if (Notification.permission === 'granted') {
+        notificationState.enabled = true;
+        localStorage.setItem('notificationsEnabled', 'true');
+        return true;
+    }
+
+    if (Notification.permission === 'denied') {
+        console.log('[Notifications] Permission denied');
+        return false;
+    }
+
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            notificationState.enabled = true;
+            localStorage.setItem('notificationsEnabled', 'true');
+            showSuccess('Daily reminders enabled! 💚');
+            return true;
+        }
+    } catch (error) {
+        console.error('[Notifications] Permission request failed:', error);
+    }
+
+    return false;
+}
+
+// Show a notification
+function showDailyNotification() {
+    if (!notificationState.enabled) return;
+    if (Notification.permission !== 'granted') return;
+    if (hasNotifiedToday()) {
+        console.log('[Notifications] Already notified today');
+        return;
+    }
+
+    const notification = getRandomNotification();
+
+    try {
+        const notif = new Notification(notification.title, {
+            body: notification.body,
+            icon: './icons/icon-192x192.png',
+            badge: './icons/icon-72x72.png',
+            tag: 'fardh-daily',
+            renotify: false,
+            requireInteraction: false,
+            silent: false
+        });
+
+        notif.onclick = () => {
+            window.focus();
+            notif.close();
+
+            // Navigate based on category
+            switch (notification.category) {
+                case 'continueReading':
+                    switchTab('read');
+                    break;
+                case 'dailyDua':
+                    switchTab('dua');
+                    break;
+                case 'hadith':
+                    switchTab('home');
+                    break;
+                case 'prayer':
+                    switchTab('home');
+                    break;
+                case 'inspiration':
+                    switchTab('read');
+                    break;
+                default:
+                    switchTab('home');
+            }
+        };
+
+        markNotificationSent();
+        console.log('[Notifications] Daily notification sent:', notification.title);
+
+    } catch (error) {
+        console.error('[Notifications] Failed to show notification:', error);
+    }
+}
+
+// Check if it's time to send notification
+function checkNotificationTime() {
+    if (!notificationState.enabled) return;
+    if (hasNotifiedToday()) return;
+
+    const now = new Date();
+    const [targetHour, targetMinute] = notificationState.notificationTime.split(':').map(Number);
+
+    // Check if current time is past notification time
+    if (now.getHours() > targetHour ||
+        (now.getHours() === targetHour && now.getMinutes() >= targetMinute)) {
+        showDailyNotification();
+    }
+}
+
+// Toggle notifications on/off (NOW ALSO SENDS TEST NOTIFICATION)
+function toggleNotifications() {
+    // First, request permission if not granted
+    if (Notification.permission !== 'granted') {
+        requestNotificationPermission().then(granted => {
+            if (granted) {
+                updateNotificationUI();
+                // Send test notification immediately
+                sendTestNotification();
+            }
+        });
+        return;
+    }
+
+    // If permission granted, send test notification immediately
+    sendTestNotification();
+}
+
+// Send a test notification (for testing purposes)
+function sendTestNotification() {
+    const notification = getRandomNotification();
+
+    try {
+        const notif = new Notification(notification.title, {
+            body: notification.body,
+            icon: './icons/icon-192x192.png',
+            badge: './icons/icon-72x72.png',
+            tag: 'fardh-test-' + Date.now(),
+            requireInteraction: false
+        });
+
+        notif.onclick = () => {
+            window.focus();
+            notif.close();
+        };
+
+        // Mark as enabled
+        notificationState.enabled = true;
+        localStorage.setItem('notificationsEnabled', 'true');
+        updateNotificationUI();
+
+        console.log('[Notifications] Test notification sent:', notification.title);
+
+    } catch (error) {
+        console.error('[Notifications] Failed to show notification:', error);
+        showError('Notification failed. Check browser permissions.');
+    }
+}
+
+// Update notification button UI
+function updateNotificationUI() {
+    const btn = document.getElementById('notification-toggle');
+    const icon = document.getElementById('notification-icon');
+    const text = document.getElementById('notification-text');
+
+    if (btn && icon && text) {
+        if (notificationState.enabled && Notification.permission === 'granted') {
+            btn.classList.add('active');
+            icon.textContent = 'notifications_active';
+            text.textContent = 'Reminders On';
+        } else {
+            btn.classList.remove('active');
+            icon.textContent = 'notifications_off';
+            text.textContent = 'Enable Reminders';
+        }
+    }
+}
+
+// Test function for debugging (can be called from console)
+function testDailyNotification() {
+    if (Notification.permission !== 'granted') {
+        console.log('[Test] Please enable notifications first');
+        requestNotificationPermission();
+        return;
+    }
+
+    // Clear today's flag temporarily
+    const savedDate = notificationState.lastNotificationDate;
+    notificationState.lastNotificationDate = null;
+
+    showDailyNotification();
+
+    // Restore the date (for testing purposes, comment this out to keep the notification counted)
+    // notificationState.lastNotificationDate = savedDate;
+
+    console.log('[Test] Notification triggered');
+}
+
+// Initialize notifications on app load
+document.addEventListener('DOMContentLoaded', () => {
+    // Update UI based on current state
+    updateNotificationUI();
+
+    // Check if we should send today's notification
+    setTimeout(() => {
+        checkNotificationTime();
+    }, 2000); // Small delay to let app fully load
+
+    // Set up periodic check (every 15 minutes while app is open)
+    setInterval(() => {
+        checkNotificationTime();
+    }, 15 * 60 * 1000);
+
+    // Notification toggle button
+    const notifBtn = document.getElementById('notification-toggle');
+    if (notifBtn) {
+        notifBtn.addEventListener('click', toggleNotifications);
+    }
+});
+
+// ============================================
 // SHARE CARD MODAL
 // ============================================
 
