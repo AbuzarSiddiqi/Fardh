@@ -5552,6 +5552,15 @@ function openShareModal(data) {
         dot.classList.toggle('active', i === 0);
     });
 
+    // Force reload the logo image to ensure it's loaded for capture
+    const logoImg = document.querySelector('.share-card-logo');
+    if (logoImg) {
+        // Re-set the src to force a fresh load (with cache buster for reliability)
+        const originalSrc = logoImg.src;
+        logoImg.src = '';
+        logoImg.src = originalSrc;
+    }
+
     modal?.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
