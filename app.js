@@ -5412,16 +5412,37 @@ const shareCardState = {
     logoPreloaded: false
 };
 
-// Preload the share card logo to ensure it's available for capture
-const shareCardLogoPreload = new Image();
-shareCardLogoPreload.src = 'AppImages/Nobgsharecard.png';
-shareCardLogoPreload.onload = () => {
-    shareCardState.logoPreloaded = true;
-    console.log('[Share Card] Logo preloaded successfully');
-};
-shareCardLogoPreload.onerror = () => {
-    console.warn('[Share Card] Failed to preload logo');
-};
+// Preload the share card logo and convert to base64 for reliable capture
+let shareCardLogoDataUrl = null;
+
+(function preloadLogoAsBase64() {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            shareCardLogoDataUrl = canvas.toDataURL('image/png');
+            shareCardState.logoPreloaded = true;
+            console.log('[Share Card] Logo converted to base64 successfully');
+
+            // Update any existing logo in the DOM
+            const logoImg = document.querySelector('.share-card-logo');
+            if (logoImg && shareCardLogoDataUrl) {
+                logoImg.src = shareCardLogoDataUrl;
+            }
+        } catch (e) {
+            console.warn('[Share Card] Failed to convert logo to base64:', e);
+        }
+    };
+    img.onerror = () => {
+        console.warn('[Share Card] Failed to preload logo');
+    };
+    img.src = 'AppImages/Nobgsharecard.png';
+})();
 
 // Helper function to wait for all images in an element to be loaded
 function waitForImagesToLoad(element, timeout = 3000) {
@@ -5555,16 +5576,13 @@ function openShareModal(data) {
     modal?.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // Force reload the logo image AFTER modal is visible to ensure proper loading
+    // Set the logo to base64 data URL for reliable capture by dom-to-image
     const logoImg = document.querySelector('.share-card-logo');
-    if (logoImg) {
-        // Re-set the src to force a fresh load
-        const originalSrc = logoImg.getAttribute('src') || 'AppImages/Nobgsharecard.png';
-        logoImg.src = '';
-        // Small delay before setting src to ensure DOM update
-        setTimeout(() => {
-            logoImg.src = originalSrc;
-        }, 50);
+    if (logoImg && shareCardLogoDataUrl) {
+        logoImg.src = shareCardLogoDataUrl;
+    } else if (logoImg) {
+        // Fallback: force reload the image
+        logoImg.src = 'AppImages/Nobgsharecard.png';
     }
 }
 
