@@ -5797,17 +5797,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update UI based on current state
     updateNotificationUI();
 
-    // AUTO-PROMPT: Ask for notification permission on first app open
+    // AUTO-PROMPT: Ask for notification permission on first app open using native browser dialog
     if (!notificationState.permissionAsked && 'Notification' in window) {
-        // Wait a bit for app to fully load before prompting
         setTimeout(() => {
             if (Notification.permission === 'default') {
-                // Show a gentle prompt
-                showNotificationPrompt();
+                // Use native browser notification dialog directly
+                requestNotificationPermission();
             }
             notificationState.permissionAsked = true;
             localStorage.setItem('notificationPermissionAsked', 'true');
-        }, 3000);
+        }, 1500);
     }
 
     // Check if we should send today's notification
@@ -5820,11 +5819,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkNotificationTime();
     }, 15 * 60 * 1000);
 
-    // Notification toggle button - now sends test notification
-    const notifBtn = document.getElementById('notification-toggle');
-    if (notifBtn) {
-        notifBtn.addEventListener('click', toggleNotifications);
-    }
+
 
     // Listen for Service Worker messages (notification clicks)
     if ('serviceWorker' in navigator) {
@@ -5846,55 +5841,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
-
-// Show a gentle notification permission prompt
-function showNotificationPrompt() {
-    // Create a soft modal/banner to ask for permission
-    const prompt = document.createElement('div');
-    prompt.id = 'notification-prompt';
-    prompt.innerHTML = `
-        <div class="notification-prompt-content">
-            <span class="notification-prompt-icon">🔔</span>
-            <div class="notification-prompt-text">
-                <h4>Daily Reminders</h4>
-                <p>Get gentle reminders for Quran, Dua & Hadith</p>
-            </div>
-            <div class="notification-prompt-actions">
-                <button id="notif-prompt-enable" class="btn btn-primary btn-sm">Enable</button>
-                <button id="notif-prompt-later" class="btn btn-sm">Later</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(prompt);
-
-    // Animate in
-    setTimeout(() => prompt.classList.add('show'), 100);
-
-    // Handle buttons
-    document.getElementById('notif-prompt-enable')?.addEventListener('click', () => {
-        requestNotificationPermission().then(granted => {
-            if (granted) {
-                updateNotificationUI();
-                showSuccess('Daily reminders enabled! 💚');
-            }
-        });
-        prompt.classList.remove('show');
-        setTimeout(() => prompt.remove(), 300);
-    });
-
-    document.getElementById('notif-prompt-later')?.addEventListener('click', () => {
-        prompt.classList.remove('show');
-        setTimeout(() => prompt.remove(), 300);
-    });
-
-    // Auto-dismiss after 10 seconds
-    setTimeout(() => {
-        if (prompt.parentNode) {
-            prompt.classList.remove('show');
-            setTimeout(() => prompt.remove(), 300);
-        }
-    }, 10000);
-}
 
 // ============================================
 // SHARE CARD MODAL
