@@ -5440,8 +5440,8 @@ function waitForImagesToLoad(element, timeout = 3000) {
             loadedCount++;
             if (loadedCount >= totalImages) {
                 if (timeoutId) clearTimeout(timeoutId);
-                // Add a small delay to ensure rendering is complete
-                setTimeout(resolve, 100);
+                // Add a longer delay to ensure rendering is complete
+                setTimeout(resolve, 500);
             }
         };
 
@@ -5552,17 +5552,20 @@ function openShareModal(data) {
         dot.classList.toggle('active', i === 0);
     });
 
-    // Force reload the logo image to ensure it's loaded for capture
-    const logoImg = document.querySelector('.share-card-logo');
-    if (logoImg) {
-        // Re-set the src to force a fresh load (with cache buster for reliability)
-        const originalSrc = logoImg.src;
-        logoImg.src = '';
-        logoImg.src = originalSrc;
-    }
-
     modal?.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+
+    // Force reload the logo image AFTER modal is visible to ensure proper loading
+    const logoImg = document.querySelector('.share-card-logo');
+    if (logoImg) {
+        // Re-set the src to force a fresh load
+        const originalSrc = logoImg.getAttribute('src') || 'AppImages/Nobgsharecard.png';
+        logoImg.src = '';
+        // Small delay before setting src to ensure DOM update
+        setTimeout(() => {
+            logoImg.src = originalSrc;
+        }, 50);
+    }
 }
 
 // Close share modal with animation
