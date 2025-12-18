@@ -5540,26 +5540,8 @@ function showDailyNotification() {
             window.focus();
             notif.close();
 
-            // Navigate based on category
-            switch (notification.category) {
-                case 'continueReading':
-                    switchTab('read');
-                    break;
-                case 'dailyDua':
-                    switchTab('dua');
-                    break;
-                case 'hadith':
-                    switchTab('home');
-                    break;
-                case 'prayer':
-                    switchTab('home');
-                    break;
-                case 'inspiration':
-                    switchTab('read');
-                    break;
-                default:
-                    switchTab('home');
-            }
+            // Smart navigation based on notification category
+            navigateByCategory(notification.category);
         };
 
         markNotificationSent();
@@ -5613,12 +5595,16 @@ function sendTestNotification() {
             icon: './icons/icon-192x192.png',
             badge: './icons/icon-72x72.png',
             tag: 'fardh-test-' + Date.now(),
-            requireInteraction: false
+            requireInteraction: false,
+            data: { category: notification.category }
         });
 
         notif.onclick = () => {
             window.focus();
             notif.close();
+
+            // Smart navigation based on notification category
+            navigateByCategory(notification.category);
         };
 
         // Mark as enabled
@@ -5626,11 +5612,66 @@ function sendTestNotification() {
         localStorage.setItem('notificationsEnabled', 'true');
         updateNotificationUI();
 
-        console.log('[Notifications] Test notification sent:', notification.title);
+        console.log('[Notifications] Test notification sent:', notification.title, '- Category:', notification.category);
 
     } catch (error) {
         console.error('[Notifications] Failed to show notification:', error);
         showError('Notification failed. Check browser permissions.');
+    }
+}
+
+// Navigate to specific content based on notification category
+function navigateByCategory(category) {
+    switch (category) {
+        case 'continueReading':
+            // Navigate to last read position
+            if (lastReadState.surahNumber) {
+                switchTab('read');
+                setTimeout(() => {
+                    continueReading();
+                }, 300);
+            } else {
+                switchTab('read');
+            }
+            break;
+
+        case 'dailyDua':
+            // Navigate to dua tab and show random dua
+            switchTab('dua');
+            setTimeout(() => {
+                if (duaOfDayState.currentDua) {
+                    showDuaDetail(duaOfDayState.currentDua);
+                }
+            }, 300);
+            break;
+
+        case 'hadith':
+            // Navigate to hadith section in More tab
+            switchTab('more');
+            setTimeout(() => {
+                const hadithBtn = document.querySelector('[data-feature="hadith"]');
+                if (hadithBtn) hadithBtn.click();
+            }, 300);
+            break;
+
+        case 'prayer':
+            // Navigate to home with prayer times visible
+            switchTab('home');
+            setTimeout(() => {
+                const prayerSection = document.getElementById('prayer-times-section');
+                if (prayerSection) {
+                    prayerSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+            break;
+
+        case 'inspiration':
+            // Navigate to read tab to browse Quran
+            switchTab('read');
+            break;
+
+        default:
+            switchTab('home');
     }
 }
 
