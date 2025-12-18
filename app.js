@@ -5557,8 +5557,8 @@ function showDailyNotification() {
         navigator.serviceWorker.ready.then(registration => {
             registration.showNotification(notification.title, {
                 body: notification.body,
-                icon: './icons/icon-192x192.png',
-                badge: './icons/icon-72x72.png',
+                icon: './AppImages/android/android-launchericon-192-192.png',
+                badge: './AppImages/android/android-launchericon-72-72.png',
                 tag: 'fardh-daily',
                 requireInteraction: false,
                 data: { category: notification.category }
@@ -5585,8 +5585,8 @@ function showMainThreadNotificationForDaily(notification) {
     try {
         const notif = new Notification(notification.title, {
             body: notification.body,
-            icon: './icons/icon-192x192.png',
-            badge: './icons/icon-72x72.png',
+            icon: './AppImages/android/android-launchericon-192-192.png',
+            badge: './AppImages/android/android-launchericon-72-72.png',
             tag: 'fardh-daily'
         });
         notif.onclick = () => {
@@ -5646,8 +5646,8 @@ function sendTestNotification() {
         navigator.serviceWorker.ready.then(registration => {
             registration.showNotification(notification.title, {
                 body: notification.body,
-                icon: './icons/icon-192x192.png',
-                badge: './icons/icon-72x72.png',
+                icon: './AppImages/android/android-launchericon-192-192.png',
+                badge: './AppImages/android/android-launchericon-72-72.png',
                 tag: 'fardh-test-' + Date.now(),
                 requireInteraction: false,
                 data: { category: notification.category }
@@ -5677,8 +5677,8 @@ function showMainThreadNotification(notification) {
     try {
         const notif = new Notification(notification.title, {
             body: notification.body,
-            icon: './icons/icon-192x192.png',
-            badge: './icons/icon-72x72.png',
+            icon: './AppImages/android/android-launchericon-192-192.png',
+            badge: './AppImages/android/android-launchericon-72-72.png',
             tag: 'fardh-test-' + Date.now()
         });
 
