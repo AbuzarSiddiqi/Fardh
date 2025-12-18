@@ -14,7 +14,7 @@
  */
 
 // ⚠️ UPDATE THIS VERSION NUMBER WHEN YOU MAKE CHANGES!
-const APP_VERSION = '3.11.2';
+const APP_VERSION = '3.12.0';
 const CACHE_NAME = `quran-pwa-${APP_VERSION}`;
 const STATIC_CACHE = `quran-static-${APP_VERSION}`;
 const API_CACHE = 'quran-api-v1';
@@ -240,4 +240,32 @@ self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
+});
+
+// Handle notification click - open app and navigate to relevant section
+self.addEventListener('notificationclick', (event) => {
+    console.log('[Service Worker] Notification clicked');
+
+    event.notification.close();
+
+    // Get the category from notification data
+    const category = event.notification.data?.category || 'home';
+
+    // Open or focus the app window
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then((clientList) => {
+                // If app is already open, focus it
+                for (const client of clientList) {
+                    if (client.url.includes('fardh.netlify.app') || client.url.includes('localhost')) {
+                        client.postMessage({ type: 'NOTIFICATION_CLICK', category: category });
+                        return client.focus();
+                    }
+                }
+                // Otherwise open a new window
+                if (clients.openWindow) {
+                    return clients.openWindow('./?notification=' + category);
+                }
+            })
+    );
 });

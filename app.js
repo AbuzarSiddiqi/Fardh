@@ -5408,8 +5408,14 @@ document.addEventListener('DOMContentLoaded', () => {
 const notificationState = {
     enabled: localStorage.getItem('notificationsEnabled') === 'true',
     lastNotificationDate: localStorage.getItem('lastNotificationDate') || null,
-    notificationTime: localStorage.getItem('notificationTime') || '09:00'
+    notificationTime: localStorage.getItem('notificationTime') || '09:00',
+    dayCounter: parseInt(localStorage.getItem('notificationDayCounter') || '0'),
+    permissionAsked: localStorage.getItem('notificationPermissionAsked') === 'true',
+    customReminders: JSON.parse(localStorage.getItem('customReminders') || '[]')
 };
+
+// Rotating categories: Day 1 = Quran, Day 2 = Dua, Day 3 = Hadith
+const ROTATING_CATEGORIES = ['continueReading', 'dailyDua', 'hadith'];
 
 // Calm, encouraging notification templates
 const NOTIFICATION_TEMPLATES = {
@@ -5450,7 +5456,7 @@ const NOTIFICATION_TEMPLATES = {
     ]
 };
 
-// Get random notification from templates
+// Get a random notification from any category (for test/custom)
 function getRandomNotification() {
     const categories = Object.keys(NOTIFICATION_TEMPLATES);
     const randomCategory = categories[Math.floor(Math.random() * categories.length)];
@@ -5460,6 +5466,19 @@ function getRandomNotification() {
     return {
         ...randomTemplate,
         category: randomCategory
+    };
+}
+
+// Get daily rotating notification (Quran → Dua → Hadith)
+function getDailyRotatingNotification() {
+    const categoryIndex = notificationState.dayCounter % ROTATING_CATEGORIES.length;
+    const category = ROTATING_CATEGORIES[categoryIndex];
+    const templates = NOTIFICATION_TEMPLATES[category];
+    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+
+    return {
+        ...randomTemplate,
+        category: category
     };
 }
 
@@ -5474,11 +5493,15 @@ function hasNotifiedToday() {
     return today === lastNotifDate;
 }
 
-// Mark notification as sent today
+// Mark notification as sent today and increment day counter
 function markNotificationSent() {
     const now = new Date().toISOString();
     notificationState.lastNotificationDate = now;
     localStorage.setItem('lastNotificationDate', now);
+
+    // Increment day counter for rotating categories
+    notificationState.dayCounter++;
+    localStorage.setItem('notificationDayCounter', notificationState.dayCounter.toString());
 }
 
 // Request notification permission
@@ -5523,32 +5546,58 @@ function showDailyNotification() {
         return;
     }
 
-    const notification = getRandomNotification();
+    // Use rotating categories for daily notifications
+    const notification = getDailyRotatingNotification();
 
+    // Store category for navigation
+    localStorage.setItem('pendingNotificationCategory', notification.category);
+
+    // Use Service Worker for Android compatibility
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(notification.title, {
+                body: notification.body,
+                icon: './icons/icon-192x192.png',
+                badge: './icons/icon-72x72.png',
+                tag: 'fardh-daily',
+                requireInteraction: false,
+                data: { category: notification.category }
+            }).then(() => {
+                markNotificationSent();
+                console.log('[Notifications] Daily rotating notification sent via SW:', notification.category);
+            }).catch(err => {
+                console.error('[Notifications] SW daily notification failed:', err);
+                // Fallback to main thread notification if SW fails
+                showMainThreadNotificationForDaily(notification);
+            });
+        }).catch(err => {
+            console.error('[Notifications] SW ready failed for daily notification:', err);
+            showMainThreadNotificationForDaily(notification);
+        });
+    } else {
+        // Fallback for desktop or browsers without service worker
+        showMainThreadNotificationForDaily(notification);
+    }
+}
+
+// Fallback notification for browsers without SW support for daily notifications
+function showMainThreadNotificationForDaily(notification) {
     try {
         const notif = new Notification(notification.title, {
             body: notification.body,
             icon: './icons/icon-192x192.png',
             badge: './icons/icon-72x72.png',
-            tag: 'fardh-daily',
-            renotify: false,
-            requireInteraction: false,
-            silent: false
+            tag: 'fardh-daily'
         });
-
         notif.onclick = () => {
             window.focus();
             notif.close();
-
-            // Smart navigation based on notification category
             navigateByCategory(notification.category);
         };
-
         markNotificationSent();
-        console.log('[Notifications] Daily notification sent:', notification.title);
-
+        console.log('[Notifications] Daily rotating notification sent via main thread:', notification.category);
     } catch (error) {
-        console.error('[Notifications] Failed to show notification:', error);
+        console.error('[Notifications] Failed to show daily notification via main thread:', error);
     }
 }
 
@@ -5589,34 +5638,63 @@ function toggleNotifications() {
 function sendTestNotification() {
     const notification = getRandomNotification();
 
+    // Store the category for navigation when notification is clicked
+    localStorage.setItem('pendingNotificationCategory', notification.category);
+
+    // Use Service Worker for Android compatibility
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(notification.title, {
+                body: notification.body,
+                icon: './icons/icon-192x192.png',
+                badge: './icons/icon-72x72.png',
+                tag: 'fardh-test-' + Date.now(),
+                requireInteraction: false,
+                data: { category: notification.category }
+            }).then(() => {
+                // Mark as enabled
+                notificationState.enabled = true;
+                localStorage.setItem('notificationsEnabled', 'true');
+                updateNotificationUI();
+                console.log('[Notifications] Notification sent via SW:', notification.title);
+            }).catch(err => {
+                console.error('[Notifications] SW notification failed:', err);
+                // Fallback to main thread notification
+                showMainThreadNotification(notification);
+            });
+        }).catch(err => {
+            console.error('[Notifications] SW ready failed:', err);
+            showMainThreadNotification(notification);
+        });
+    } else {
+        // Fallback for browsers without service worker
+        showMainThreadNotification(notification);
+    }
+}
+
+// Fallback notification for browsers without SW support
+function showMainThreadNotification(notification) {
     try {
         const notif = new Notification(notification.title, {
             body: notification.body,
             icon: './icons/icon-192x192.png',
             badge: './icons/icon-72x72.png',
-            tag: 'fardh-test-' + Date.now(),
-            requireInteraction: false,
-            data: { category: notification.category }
+            tag: 'fardh-test-' + Date.now()
         });
 
         notif.onclick = () => {
             window.focus();
             notif.close();
-
-            // Smart navigation based on notification category
             navigateByCategory(notification.category);
         };
 
-        // Mark as enabled
         notificationState.enabled = true;
         localStorage.setItem('notificationsEnabled', 'true');
         updateNotificationUI();
-
-        console.log('[Notifications] Test notification sent:', notification.title, '- Category:', notification.category);
-
+        console.log('[Notifications] Main thread notification sent:', notification.title);
     } catch (error) {
-        console.error('[Notifications] Failed to show notification:', error);
-        showError('Notification failed. Check browser permissions.');
+        console.error('[Notifications] All notification methods failed:', error);
+        showError('Notifications not supported on this device.');
     }
 }
 
@@ -5719,22 +5797,104 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update UI based on current state
     updateNotificationUI();
 
+    // AUTO-PROMPT: Ask for notification permission on first app open
+    if (!notificationState.permissionAsked && 'Notification' in window) {
+        // Wait a bit for app to fully load before prompting
+        setTimeout(() => {
+            if (Notification.permission === 'default') {
+                // Show a gentle prompt
+                showNotificationPrompt();
+            }
+            notificationState.permissionAsked = true;
+            localStorage.setItem('notificationPermissionAsked', 'true');
+        }, 3000);
+    }
+
     // Check if we should send today's notification
     setTimeout(() => {
         checkNotificationTime();
-    }, 2000); // Small delay to let app fully load
+    }, 2000);
 
     // Set up periodic check (every 15 minutes while app is open)
     setInterval(() => {
         checkNotificationTime();
     }, 15 * 60 * 1000);
 
-    // Notification toggle button
+    // Notification toggle button - now sends test notification
     const notifBtn = document.getElementById('notification-toggle');
     if (notifBtn) {
         notifBtn.addEventListener('click', toggleNotifications);
     }
+
+    // Listen for Service Worker messages (notification clicks)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
+                console.log('[Notifications] SW sent click event, category:', event.data.category);
+                navigateByCategory(event.data.category);
+            }
+        });
+
+        // Check if opened from notification via URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const notifCategory = urlParams.get('notification');
+        if (notifCategory) {
+            setTimeout(() => {
+                navigateByCategory(notifCategory);
+                window.history.replaceState({}, '', window.location.pathname);
+            }, 500);
+        }
+    }
 });
+
+// Show a gentle notification permission prompt
+function showNotificationPrompt() {
+    // Create a soft modal/banner to ask for permission
+    const prompt = document.createElement('div');
+    prompt.id = 'notification-prompt';
+    prompt.innerHTML = `
+        <div class="notification-prompt-content">
+            <span class="notification-prompt-icon">🔔</span>
+            <div class="notification-prompt-text">
+                <h4>Daily Reminders</h4>
+                <p>Get gentle reminders for Quran, Dua & Hadith</p>
+            </div>
+            <div class="notification-prompt-actions">
+                <button id="notif-prompt-enable" class="btn btn-primary btn-sm">Enable</button>
+                <button id="notif-prompt-later" class="btn btn-sm">Later</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(prompt);
+
+    // Animate in
+    setTimeout(() => prompt.classList.add('show'), 100);
+
+    // Handle buttons
+    document.getElementById('notif-prompt-enable')?.addEventListener('click', () => {
+        requestNotificationPermission().then(granted => {
+            if (granted) {
+                updateNotificationUI();
+                showSuccess('Daily reminders enabled! 💚');
+            }
+        });
+        prompt.classList.remove('show');
+        setTimeout(() => prompt.remove(), 300);
+    });
+
+    document.getElementById('notif-prompt-later')?.addEventListener('click', () => {
+        prompt.classList.remove('show');
+        setTimeout(() => prompt.remove(), 300);
+    });
+
+    // Auto-dismiss after 10 seconds
+    setTimeout(() => {
+        if (prompt.parentNode) {
+            prompt.classList.remove('show');
+            setTimeout(() => prompt.remove(), 300);
+        }
+    }, 10000);
+}
 
 // ============================================
 // SHARE CARD MODAL
