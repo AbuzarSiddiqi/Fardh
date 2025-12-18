@@ -5408,8 +5408,59 @@ const shareCardState = {
     currentData: null,
     currentDesign: 0,
     totalDesigns: 8,
-    isAnimating: false
+    isAnimating: false,
+    logoPreloaded: false
 };
+
+// Preload the share card logo to ensure it's available for capture
+const shareCardLogoPreload = new Image();
+shareCardLogoPreload.src = 'AppImages/Nobgsharecard.png';
+shareCardLogoPreload.onload = () => {
+    shareCardState.logoPreloaded = true;
+    console.log('[Share Card] Logo preloaded successfully');
+};
+shareCardLogoPreload.onerror = () => {
+    console.warn('[Share Card] Failed to preload logo');
+};
+
+// Helper function to wait for all images in an element to be loaded
+function waitForImagesToLoad(element, timeout = 3000) {
+    return new Promise((resolve) => {
+        const images = element.querySelectorAll('img');
+        if (images.length === 0) {
+            resolve();
+            return;
+        }
+
+        let loadedCount = 0;
+        const totalImages = images.length;
+        let timeoutId = null;
+
+        const checkComplete = () => {
+            loadedCount++;
+            if (loadedCount >= totalImages) {
+                if (timeoutId) clearTimeout(timeoutId);
+                // Add a small delay to ensure rendering is complete
+                setTimeout(resolve, 100);
+            }
+        };
+
+        images.forEach(img => {
+            if (img.complete && img.naturalHeight > 0) {
+                checkComplete();
+            } else {
+                img.onload = checkComplete;
+                img.onerror = checkComplete;
+            }
+        });
+
+        // Timeout fallback
+        timeoutId = setTimeout(() => {
+            console.warn('[Share Card] Image loading timeout, proceeding anyway');
+            resolve();
+        }, timeout);
+    });
+}
 
 // Design names for reference
 const SHARE_CARD_DESIGNS = [
@@ -5550,6 +5601,9 @@ async function shareToStories() {
 
         showSuccess('Preparing for Stories...');
 
+        // Wait for all images (especially logo) to be fully loaded
+        await waitForImagesToLoad(card);
+
         // Get card dimensions for high quality output
         const rect = card.getBoundingClientRect();
         const scale = 3; // 3x scale for high quality
@@ -5636,6 +5690,9 @@ async function saveShareCardAsImage() {
         }
 
         showSuccess('Generating image...');
+
+        // Wait for all images (especially logo) to be fully loaded
+        await waitForImagesToLoad(card);
 
         // Get card dimensions for high quality output
         const rect = card.getBoundingClientRect();
