@@ -1414,6 +1414,9 @@ function highlightCurrentAyah() {
 let deferredPrompt = null;
 
 function initPWA() {
+    // Track if update is pending
+    let updatePending = false;
+
     // Register service worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./service-worker.js')
@@ -1423,10 +1426,10 @@ function initPWA() {
                 // Check for updates immediately and periodically
                 registration.update();
 
-                // Check for updates every 60 seconds
+                // Check for updates every 5 minutes (less aggressive)
                 setInterval(() => {
                     registration.update();
-                }, 60000);
+                }, 300000);
 
                 // Listen for waiting service worker (new version available)
                 registration.addEventListener('updatefound', () => {
@@ -1435,9 +1438,10 @@ function initPWA() {
 
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            // New version available, reload to activate
-                            console.log('[PWA] New version available, reloading...');
-                            window.location.reload();
+                            // New version available - show update toast instead of auto-reload
+                            console.log('[PWA] New version available');
+                            updatePending = true;
+                            showUpdateToast();
                         }
                     });
                 });
@@ -1450,16 +1454,55 @@ function initPWA() {
         navigator.serviceWorker.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'SW_UPDATED') {
                 console.log('[PWA] Service worker updated to version:', event.data.version);
-                // Auto-reload to get the new version
-                window.location.reload();
+                updatePending = true;
+                showUpdateToast();
             }
         });
+    }
 
-        // Handle controller change (when new SW takes over)
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('[PWA] Controller changed, reloading for new version...');
+    // Show update toast notification
+    function showUpdateToast() {
+        // Remove existing toast if any
+        const existingToast = document.getElementById('update-toast');
+        if (existingToast) existingToast.remove();
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.id = 'update-toast';
+        toast.className = 'update-toast';
+        toast.innerHTML = `
+            <span class="material-symbols-outlined">system_update</span>
+            <span>Update available</span>
+            <button id="update-now-btn">Update</button>
+        `;
+        document.body.appendChild(toast);
+
+        // Show with animation
+        setTimeout(() => toast.classList.add('show'), 100);
+
+        // Handle update button click
+        document.getElementById('update-now-btn').addEventListener('click', () => {
             window.location.reload();
         });
+
+        // Auto-hide after 10 seconds but keep update pending
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 10000);
+    }
+
+    // Update when user goes back to home (safe time to refresh)
+    const originalSwitchTab = window.switchTab;
+    if (typeof switchTab === 'function') {
+        window.switchTab = function (tabId) {
+            if (updatePending && tabId === 'home') {
+                // Safe to reload when going to home
+                window.location.reload();
+                return;
+            }
+            originalSwitchTab(tabId);
+        };
     }
 
     // Handle install prompt
