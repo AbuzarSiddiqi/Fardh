@@ -101,6 +101,9 @@ function trackEvent(eventName, eventData = {}) {
 document.addEventListener('DOMContentLoaded', initApp);
 
 async function initApp() {
+    // Initialize splash screen handling
+    initSplashScreen();
+
     cacheElements();
     initNavigation();
     initEventListeners();
@@ -113,6 +116,43 @@ async function initApp() {
     // Load initial data
     await loadInitialData();
 }
+
+// ============================================
+// SPLASH SCREEN
+// ============================================
+
+function initSplashScreen() {
+    const splashScreen = document.getElementById('splash-screen');
+    if (!splashScreen) return;
+
+    // Minimum display time for splash (fast but visible)
+    const minDisplayTime = 1500;
+    const startTime = Date.now();
+
+    // Function to hide splash with diamond expansion
+    const hideSplash = () => {
+        const elapsed = Date.now() - startTime;
+        const remainingTime = Math.max(0, minDisplayTime - elapsed);
+
+        setTimeout(() => {
+            splashScreen.classList.add('fade-out');
+
+            // Remove from DOM after diamond expansion animation
+            setTimeout(() => {
+                splashScreen.classList.add('hidden');
+            }, 600);
+        }, remainingTime);
+    };
+
+    // Hide splash when page is fully loaded
+    if (document.readyState === 'complete') {
+        hideSplash();
+    } else {
+        window.addEventListener('load', hideSplash);
+    }
+}
+
+
 
 // Auto-hide bottom nav on scroll
 function initAutoHideNav() {

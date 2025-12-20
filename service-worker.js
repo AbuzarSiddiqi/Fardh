@@ -14,7 +14,7 @@
  */
 
 // ⚠️ UPDATE THIS VERSION NUMBER WHEN YOU MAKE CHANGES!
-const APP_VERSION = '3.17.0';
+const APP_VERSION = '3.20.0';
 const CACHE_NAME = `quran-pwa-${APP_VERSION}`;
 const STATIC_CACHE = `quran-static-${APP_VERSION}`;
 const API_CACHE = 'quran-api-v1';
@@ -26,6 +26,7 @@ const STATIC_ASSETS = [
     './styles.css',
     './app.js',
     './manifest.webmanifest',
+    './AppImages/logo_nobg.svg',
     './icons/icon-72x72.png',
     './icons/icon-96x96.png',
     './icons/icon-128x128.png',

@@ -68,6 +68,137 @@
     --nav-height: 96px;
 }
 
+/* ===========================================
+   SPLASH SCREEN - Logo Diamond Nukhta Expansion
+   =========================================== */
+
+.splash-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: linear-gradient(135deg, #0a1612 0%, #102218 50%, #0d1a14 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.splash-screen.fade-out .splash-nukhta {
+    animation: nukhtaExpand 0.5s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+}
+
+.splash-screen.fade-out .splash-logo,
+.splash-screen.fade-out .splash-title {
+    animation: fadeOutQuick 0.25s ease-out forwards;
+}
+
+.splash-screen.hidden {
+    display: none;
+}
+
+/* Main content */
+.splash-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    z-index: 1;
+}
+
+/* Logo wrapper */
+.splash-logo-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.splash-logo {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    animation: logoEnter 0.4s ease-out forwards;
+    filter: drop-shadow(0 0 30px rgba(17, 212, 98, 0.4));
+}
+
+/* Diamond nukhta - positioned over the top diamond part of logo */
+.splash-nukhta {
+    position: absolute;
+    /* Position at top of logo where diamond nukhta is */
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: 45px;
+    /* Match the green gradient colors from the logo */
+    background: linear-gradient(135deg, #68BF8B 0%, #60B484 40%, #58A57B 100%);
+    border-radius: 8px;
+    /* Rotate to make diamond shape */
+    transform: translateX(-50%) rotate(45deg);
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes logoEnter {
+    0% {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes nukhtaExpand {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) rotate(45deg) scale(1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) rotate(45deg) scale(80);
+    }
+}
+
+@keyframes fadeOutQuick {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Title */
+.splash-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, var(--primary) 60%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.15em;
+    animation: titleEnter 0.4s 0.1s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes titleEnter {
+    0% {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Base Reset */
 *,
 *::before,
