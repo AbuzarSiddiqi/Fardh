@@ -4843,7 +4843,11 @@ const swipeState = {
     threshold: 80, // Minimum swipe distance
     restraint: 100, // Maximum vertical deviation
     allowedTime: 500, // Maximum time for swipe
-    startTime: 0
+    startTime: 0,
+    // Android-specific protection
+    isAndroid: /Android/i.test(navigator.userAgent),
+    edgeExclusion: 50, // Ignore swipes starting within 50px of screen edge
+    maxAngle: 25 // Maximum angle from horizontal (degrees)
 };
 
 // Tab order for swipe navigation (matches bottom nav order)
@@ -5012,6 +5016,20 @@ function handleTouchStart(e) {
     swipeState.startX = touch.pageX;
     swipeState.startY = touch.pageY;
     swipeState.startTime = Date.now();
+
+    // Android edge exclusion - ignore swipes that start near screen edges
+    const screenWidth = window.innerWidth;
+    swipeState.ignoreSwipe = false;
+
+    if (swipeState.isAndroid) {
+        // Check if touch started too close to left or right edge
+        if (swipeState.startX < swipeState.edgeExclusion ||
+            swipeState.startX > screenWidth - swipeState.edgeExclusion) {
+            swipeState.ignoreSwipe = true;
+            return;
+        }
+    }
+
     // Cache internal view info at start to avoid DOM queries on every move
     swipeState.cachedInternalView = getInternalViewInfo();
     swipeState.cachedTab = getCurrentTab();
@@ -5020,6 +5038,9 @@ function handleTouchStart(e) {
 
 // Handle touch move - show indicator while swiping
 function handleTouchMove(e) {
+    // Skip if this swipe should be ignored (Android edge exclusion)
+    if (swipeState.ignoreSwipe) return;
+
     const touch = e.changedTouches[0];
     const distX = touch.pageX - swipeState.startX;
     const distY = touch.pageY - swipeState.startY;
@@ -5079,9 +5100,21 @@ function handleTouchEnd(e) {
 
 // Process swipe gesture
 function handleSwipe() {
+    // Skip if this swipe should be ignored (Android edge exclusion)
+    if (swipeState.ignoreSwipe) return;
+
     const elapsedTime = Date.now() - swipeState.startTime;
     const distX = swipeState.endX - swipeState.startX;
     const distY = swipeState.endY - swipeState.startY;
+
+    // Android: Check swipe angle - must be nearly horizontal
+    if (swipeState.isAndroid) {
+        const angle = Math.atan2(Math.abs(distY), Math.abs(distX)) * (180 / Math.PI);
+        if (angle > swipeState.maxAngle) {
+            // Swipe too diagonal, ignore it
+            return;
+        }
+    }
 
     // Check if it's a valid horizontal swipe
     if (elapsedTime <= swipeState.allowedTime) {
