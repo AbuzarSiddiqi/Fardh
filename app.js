@@ -1419,10 +1419,47 @@ function initPWA() {
         navigator.serviceWorker.register('./service-worker.js')
             .then(registration => {
                 console.log('Service Worker registered:', registration.scope);
+
+                // Check for updates immediately and periodically
+                registration.update();
+
+                // Check for updates every 60 seconds
+                setInterval(() => {
+                    registration.update();
+                }, 60000);
+
+                // Listen for waiting service worker (new version available)
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    console.log('[PWA] New service worker installing...');
+
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New version available, reload to activate
+                            console.log('[PWA] New version available, reloading...');
+                            window.location.reload();
+                        }
+                    });
+                });
             })
             .catch(error => {
                 console.error('Service Worker registration failed:', error);
             });
+
+        // Listen for messages from service worker
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'SW_UPDATED') {
+                console.log('[PWA] Service worker updated to version:', event.data.version);
+                // Auto-reload to get the new version
+                window.location.reload();
+            }
+        });
+
+        // Handle controller change (when new SW takes over)
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('[PWA] Controller changed, reloading for new version...');
+            window.location.reload();
+        });
     }
 
     // Handle install prompt
