@@ -5012,6 +5012,10 @@ function handleTouchStart(e) {
     swipeState.startX = touch.pageX;
     swipeState.startY = touch.pageY;
     swipeState.startTime = Date.now();
+    // Cache internal view info at start to avoid DOM queries on every move
+    swipeState.cachedInternalView = getInternalViewInfo();
+    swipeState.cachedTab = getCurrentTab();
+    swipeState.cachedTabIndex = TAB_ORDER.indexOf(swipeState.cachedTab);
 }
 
 // Handle touch move - show indicator while swiping
@@ -5022,7 +5026,7 @@ function handleTouchMove(e) {
 
     // Only show indicator for horizontal swipes
     if (Math.abs(distX) > 30 && Math.abs(distY) < Math.abs(distX)) {
-        // Check for open modals
+        // Check for open modals (these can change during swipe)
         const qiblaModal = document.getElementById('qibla-modal');
         const fullPlayerModal = document.getElementById('full-player-modal');
         const reciterModal = document.getElementById('reciter-modal');
@@ -5031,9 +5035,9 @@ function handleTouchMove(e) {
         if (fullPlayerModal && !fullPlayerModal.classList.contains('hidden')) return;
         if (reciterModal && !reciterModal.classList.contains('hidden')) return;
 
-        const internalViewInfo = getInternalViewInfo();
-        const currentTab = getCurrentTab();
-        const currentIndex = TAB_ORDER.indexOf(currentTab);
+        // Use cached values instead of calling expensive functions
+        const internalViewInfo = swipeState.cachedInternalView;
+        const currentIndex = swipeState.cachedTabIndex;
 
         // Calculate intensity based on swipe progress (0 to 1)
         const intensity = Math.min(Math.abs(distX) / swipeState.threshold, 1);
