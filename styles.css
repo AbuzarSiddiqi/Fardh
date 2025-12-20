@@ -417,14 +417,15 @@ h3 {
     display: none;
     opacity: 0;
     transform: translateX(20px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    will-change: opacity, transform;
 }
 
 .tab-content.active {
     display: block;
     opacity: 1;
-    transform: translateX(0);
-    animation: slideInRight 0.3s ease forwards;
+    transform: translateX(0) translateZ(0);
+    animation: slideInRight 0.25s ease forwards;
 }
 
 .tab-content.exiting {
@@ -7258,7 +7259,8 @@ body.mini-player-active .main-content {
     z-index: 1500;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.15s ease;
+    will-change: opacity;
 }
 
 .swipe-indicator.visible {
@@ -7270,7 +7272,7 @@ body.mini-player-active .main-content {
     right: 0;
 }
 
-/* Gradient glow effect */
+/* Simplified gradient glow effect - no infinite animation */
 .swipe-indicator::before {
     content: '';
     position: absolute;
@@ -7279,24 +7281,22 @@ body.mini-player-active .main-content {
     left: 0;
     width: 100%;
     background: linear-gradient(to right,
-            rgba(16, 185, 129, 0.6) 0%,
-            rgba(16, 185, 129, 0.3) 30%,
-            rgba(16, 185, 129, 0.1) 60%,
+            rgba(16, 185, 129, 0.5) 0%,
+            rgba(16, 185, 129, 0.2) 40%,
             transparent 100%);
-    animation: pulseGlow 0.8s ease-in-out infinite;
+    will-change: opacity;
 }
 
 .swipe-indicator.right::before {
     left: auto;
     right: 0;
     background: linear-gradient(to left,
-            rgba(16, 185, 129, 0.6) 0%,
-            rgba(16, 185, 129, 0.3) 30%,
-            rgba(16, 185, 129, 0.1) 60%,
+            rgba(16, 185, 129, 0.5) 0%,
+            rgba(16, 185, 129, 0.2) 40%,
             transparent 100%);
 }
 
-/* Light streak effect */
+/* Simplified light streak - reduced box-shadows */
 .swipe-indicator::after {
     content: '';
     position: absolute;
@@ -7306,30 +7306,17 @@ body.mini-player-active .main-content {
     width: 3px;
     background: linear-gradient(to bottom,
             transparent 0%,
-            rgba(16, 185, 129, 0.4) 20%,
+            rgba(16, 185, 129, 0.5) 30%,
             rgba(255, 255, 255, 0.9) 50%,
-            rgba(16, 185, 129, 0.4) 80%,
+            rgba(16, 185, 129, 0.5) 70%,
             transparent 100%);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.8),
-        0 0 40px rgba(16, 185, 129, 0.5),
-        0 0 60px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+    will-change: opacity;
 }
 
 .swipe-indicator.right::after {
     left: auto;
     right: 0;
-}
-
-@keyframes pulseGlow {
-
-    0%,
-    100% {
-        opacity: 0.8;
-    }
-
-    50% {
-        opacity: 1;
-    }
 }
 
 /* Icon and label container */
