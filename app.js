@@ -6326,7 +6326,8 @@ const shareCardState = {
     currentDesign: 0,
     totalDesigns: 8,
     isAnimating: false,
-    logoPreloaded: false
+    logoPreloaded: false,
+    warmupComplete: null // Promise that resolves when warm-up capture is done
 };
 
 // EMBEDDED LOGO BASE64 - No network request needed, available immediately
@@ -6347,7 +6348,7 @@ function preloadShareCardLogo() {
         // Logo is already embedded as base64, just set state and return
         shareCardState.logoPreloaded = true;
         console.log('[Share Card] Using embedded base64 logo - always available');
-        
+
         // Update any existing logo in the DOM
         const logoDiv = document.querySelector('.share-card-logo');
         if (logoDiv && shareCardLogoDataUrl) {
@@ -6542,33 +6543,40 @@ function openShareModal(data) {
     }
 
     // WARM-UP: Do a silent capture to warm up dom-to-image's rendering pipeline
-    // This ensures the first real download/share will have the logo
-    // Delay 300ms to allow modal to fully render
-    setTimeout(async () => {
-        const card = document.querySelector('.share-card-preview');
-        if (!card) return;
-
-        // Wait for logo to be fully ready first
-        await ensureLogoReady();
-
-        if (typeof domtoimage !== 'undefined') {
-            try {
-                console.log('[Share Card] Starting warm-up capture...');
-                // Get actual dimensions for proper warm-up
-                const rect = card.getBoundingClientRect();
-                // Do a FULL capture (not small) to properly warm up all images
-                await domtoimage.toBlob(card, {
-                    quality: 0.5,
-                    bgcolor: '#0d1f12',
-                    width: rect.width,
-                    height: rect.height
-                });
-                console.log('[Share Card] Warm-up capture complete - logo should now appear on download');
-            } catch (e) {
-                console.warn('[Share Card] Warm-up capture failed:', e.message);
+    // This ensures the first real download/share will have the logo (the "fake share" approach)
+    // Store as a promise so share/download can wait for it
+    shareCardState.warmupComplete = new Promise((resolve) => {
+        // Delay 300ms to allow modal to fully render
+        setTimeout(async () => {
+            const card = document.querySelector('.share-card-preview');
+            if (!card) {
+                resolve();
+                return;
             }
-        }
-    }, 300);
+
+            // Wait for logo to be fully ready first
+            await ensureLogoReady();
+
+            if (typeof domtoimage !== 'undefined') {
+                try {
+                    console.log('[Share Card] Starting warm-up capture (fake share)...');
+                    // Get actual dimensions for proper warm-up
+                    const rect = card.getBoundingClientRect();
+                    // Do a FULL capture (not small) to properly warm up all images
+                    await domtoimage.toBlob(card, {
+                        quality: 0.5,
+                        bgcolor: '#0d1f12',
+                        width: rect.width,
+                        height: rect.height
+                    });
+                    console.log('[Share Card] Warm-up capture complete - logo should now appear on real download');
+                } catch (e) {
+                    console.warn('[Share Card] Warm-up capture failed:', e.message);
+                }
+            }
+            resolve();
+        }, 300);
+    });
 }
 
 // Close share modal with animation
@@ -6609,6 +6617,11 @@ async function shareToStories() {
     if (!card) return;
 
     try {
+        // Wait for warm-up capture to complete (the "fake share" that ensures logo appears)
+        if (shareCardState.warmupComplete) {
+            await shareCardState.warmupComplete;
+        }
+
         // Load dom-to-image-more if not loaded
         if (typeof domtoimage === 'undefined') {
             await loadScript('https://cdn.jsdelivr.net/npm/dom-to-image-more@3.3.0/dist/dom-to-image-more.min.js');
@@ -6705,6 +6718,11 @@ async function saveShareCardAsImage() {
     if (!card) return;
 
     try {
+        // Wait for warm-up capture to complete (the "fake share" that ensures logo appears)
+        if (shareCardState.warmupComplete) {
+            await shareCardState.warmupComplete;
+        }
+
         // Load dom-to-image-more if not loaded
         if (typeof domtoimage === 'undefined') {
             await loadScript('https://cdn.jsdelivr.net/npm/dom-to-image-more@3.3.0/dist/dom-to-image-more.min.js');
