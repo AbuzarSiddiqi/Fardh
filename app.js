@@ -6595,28 +6595,32 @@ function openShareModal(data) {
 
     // WARM-UP: Do a silent capture to warm up dom-to-image's rendering pipeline
     // This ensures the first real download/share will have the logo
+    // Delay 300ms to allow modal to fully render
     setTimeout(async () => {
         const card = document.querySelector('.share-card-preview');
-        if (card && typeof domtoimage !== 'undefined') {
+        if (!card) return;
+
+        // Wait for logo to be fully ready first
+        await ensureLogoReady();
+
+        if (typeof domtoimage !== 'undefined') {
             try {
                 console.log('[Share Card] Starting warm-up capture...');
-                await ensureLogoReady();
-                // Do a small/fast capture just to warm up the pipeline
+                // Get actual dimensions for proper warm-up
+                const rect = card.getBoundingClientRect();
+                // Do a FULL capture (not small) to properly warm up all images
                 await domtoimage.toBlob(card, {
-                    quality: 0.1,
+                    quality: 0.5,
                     bgcolor: '#0d1f12',
-                    width: 100,
-                    height: 150
+                    width: rect.width,
+                    height: rect.height
                 });
-                console.log('[Share Card] Warm-up capture complete');
+                console.log('[Share Card] Warm-up capture complete - logo should now appear on download');
             } catch (e) {
-                console.log('[Share Card] Warm-up capture skipped:', e.message);
+                console.warn('[Share Card] Warm-up capture failed:', e.message);
             }
-        } else if (card) {
-            // dom-to-image not loaded yet, just make sure logo is ready
-            await ensureLogoReady();
         }
-    }, 100);
+    }, 300);
 }
 
 // Close share modal with animation
