@@ -6390,49 +6390,46 @@ async function ensureLogoReady() {
     await preloadShareCardLogo();
 
     const logoImg = document.querySelector('.share-card-logo');
-    if (!logoImg || !shareCardLogoDataUrl) return false;
+    if (!logoImg || !shareCardLogoDataUrl) {
+        console.warn('[Share Card] Logo element or data URL not ready');
+        return false;
+    }
 
     // Set the base64 source
     logoImg.src = shareCardLogoDataUrl;
 
+    // Force the browser to process the change
+    logoImg.removeAttribute('loading');
+
     // Wait for the image to be fully decoded/loaded
     return new Promise((resolve) => {
-        // If image is already complete and has dimensions, we're good
-        if (logoImg.complete && logoImg.naturalWidth > 0) {
-            // Use decode() API if available for better reliability
-            if (typeof logoImg.decode === 'function') {
-                logoImg.decode()
-                    .then(() => {
-                        // Wait for a paint cycle
-                        requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                                resolve(true);
-                            });
-                        });
-                    })
-                    .catch(() => {
-                        // Fallback with timeout
-                        setTimeout(() => resolve(true), 300);
-                    });
-            } else {
-                // No decode API, wait for paint
+        const complete = () => {
+            // Multiple rAF calls to ensure paint
+            requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        resolve(true);
+                        setTimeout(() => resolve(true), 100);
                     });
                 });
-            }
+            });
+        };
+
+        // Use decode() API if available for better reliability
+        if (typeof logoImg.decode === 'function') {
+            logoImg.decode()
+                .then(complete)
+                .catch(() => {
+                    // Fallback with longer timeout
+                    setTimeout(() => resolve(true), 500);
+                });
+        } else if (logoImg.complete && logoImg.naturalWidth > 0) {
+            complete();
         } else {
             // Image not loaded yet, wait for it
             const onLoad = () => {
                 logoImg.removeEventListener('load', onLoad);
                 logoImg.removeEventListener('error', onError);
-                // Wait for paint after load
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        resolve(true);
-                    });
-                });
+                complete();
             };
             const onError = () => {
                 logoImg.removeEventListener('load', onLoad);
@@ -6442,7 +6439,7 @@ async function ensureLogoReady() {
             logoImg.addEventListener('load', onLoad);
             logoImg.addEventListener('error', onError);
 
-            // Timeout fallback (500ms should be more than enough for base64)
+            // Timeout fallback (500ms should be enough)
             setTimeout(() => resolve(true), 500);
         }
     });
@@ -6580,13 +6577,20 @@ function openShareModal(data) {
     modal?.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // Set the logo to base64 data URL for reliable capture by dom-to-image
+    // CRITICAL: Set the logo to base64 data URL IMMEDIATELY when modal opens
+    // This gives maximum time for the image to be embedded before download
     const logoImg = document.querySelector('.share-card-logo');
     if (logoImg && shareCardLogoDataUrl) {
         logoImg.src = shareCardLogoDataUrl;
+        console.log('[Share Card] Logo set to base64 on modal open');
     } else if (logoImg) {
-        // Fallback: force reload the image
-        logoImg.src = 'AppImages/Nobgsharecard.png';
+        // Fallback: try to preload now
+        preloadShareCardLogo().then((dataUrl) => {
+            if (dataUrl && logoImg) {
+                logoImg.src = dataUrl;
+                console.log('[Share Card] Logo set to base64 after preload');
+            }
+        });
     }
 }
 
@@ -6674,7 +6678,7 @@ async function shareToStories() {
             bgcolor: '#0d1f12',
             width: rect.width * scale,
             height: rect.height * scale,
-            cacheBust: true,
+
             style: {
                 'transform': `scale(${scale})`,
                 'transform-origin': 'top left',
@@ -6770,7 +6774,7 @@ async function saveShareCardAsImage() {
             bgcolor: '#0d1f12',
             width: rect.width * scale,
             height: rect.height * scale,
-            cacheBust: true,
+
             style: {
                 'transform': `scale(${scale})`,
                 'transform-origin': 'top left',
