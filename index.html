@@ -47,6 +47,17 @@
     
     <!-- Umami Analytics -->
     <script defer src="https://cloud.umami.is/script.js" data-website-id="38d6b590-e969-4f1a-9e8c-a7c542eec578"></script>
+    
+    <!-- OneSignal Push Notifications -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "fa82f20b-68bc-4774-91af-3863a13be29a",
+            });
+        });
+    </script>
 </head>
 <body>
     <!-- Splash Screen -->
