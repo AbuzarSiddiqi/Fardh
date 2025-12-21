@@ -5960,12 +5960,26 @@ document.addEventListener('DOMContentLoaded', () => {
 // ONESIGNAL REMINDER SYSTEM
 // ============================================
 
+// Check if we're on localhost (OneSignal doesn't work on HTTP)
+function isLocalhost() {
+    return window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.protocol === 'http:';
+}
+
 // Check if OneSignal is available and update UI
 function updateReminderUI() {
     const icon = document.getElementById('reminder-icon');
     const status = document.getElementById('reminder-status');
 
     if (!icon || !status) return;
+
+    // On localhost, show different message
+    if (isLocalhost()) {
+        icon.textContent = 'notifications';
+        status.textContent = 'Available on deployed app';
+        return;
+    }
 
     // Check if OneSignal is loaded
     if (typeof OneSignal !== 'undefined') {
@@ -5989,9 +6003,15 @@ function updateReminderUI() {
 
 // Toggle OneSignal notifications
 async function toggleReminderNotifications() {
+    // On localhost, show helpful message
+    if (isLocalhost()) {
+        showSuccess('Push notifications work on the deployed app (HTTPS required)');
+        return;
+    }
+
     // Check if OneSignal is available
     if (typeof OneSignal === 'undefined') {
-        showError('Notifications not available. Please refresh the app.');
+        showError('Notifications loading... Please try again.');
         return;
     }
 
@@ -6047,8 +6067,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Listen for OneSignal subscription changes
-    if (typeof OneSignal !== 'undefined') {
+    // Listen for OneSignal subscription changes (only on HTTPS)
+    if (!isLocalhost() && typeof OneSignalDeferred !== 'undefined') {
         OneSignalDeferred.push(function (OneSignal) {
             OneSignal.User.PushSubscription.addEventListener('change', () => {
                 updateReminderUI();
