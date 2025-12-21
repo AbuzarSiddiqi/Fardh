@@ -115,6 +115,45 @@ async function initApp() {
 
     // Load initial data
     await loadInitialData();
+
+    // Handle deep links from notifications (e.g., #quran, #dua, #hadith)
+    handleDeepLink();
+}
+
+// Handle hash-based deep linking from push notifications
+function handleDeepLink() {
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+        console.log('[Deep Link] Navigating to:', hash);
+
+        // Map hash to tab/action
+        const tabMap = {
+            'quran': 'quran',
+            'dua': 'dua',
+            'hadith': 'more',  // Hadith is in More section
+            'home': 'home',
+            'more': 'more'
+        };
+
+        const targetTab = tabMap[hash.toLowerCase()];
+        if (targetTab && typeof switchTab === 'function') {
+            // Small delay to ensure app is ready
+            setTimeout(() => {
+                switchTab(targetTab);
+
+                // If hadith, scroll to hadith section after switching to more
+                if (hash.toLowerCase() === 'hadith') {
+                    setTimeout(() => {
+                        const hadithBtn = document.querySelector('[data-feature="hadith"]');
+                        if (hadithBtn) hadithBtn.click();
+                    }, 300);
+                }
+            }, 500);
+        }
+
+        // Clear the hash after navigation
+        history.replaceState(null, null, window.location.pathname);
+    }
 }
 
 // ============================================

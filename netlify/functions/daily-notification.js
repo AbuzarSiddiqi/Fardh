@@ -130,15 +130,24 @@ function getRandomContent(category) {
     return content;
 }
 
-// Send notification via OneSignal
-async function sendNotification(title, body) {
+// Send notification via OneSignal with category-specific deep link
+async function sendNotification(title, body, category) {
+    // Deep link URLs for each category
+    const categoryUrls = {
+        quran: 'https://fardh.netlify.app/#quran',
+        dua: 'https://fardh.netlify.app/#dua',
+        hadith: 'https://fardh.netlify.app/#hadith'
+    };
+
+    const targetUrl = categoryUrls[category] || 'https://fardh.netlify.app';
+
     return new Promise((resolve, reject) => {
         const data = JSON.stringify({
             app_id: ONESIGNAL_APP_ID,
             included_segments: ['All'],
             headings: { en: title },
             contents: { en: body },
-            url: 'https://fardh.netlify.app'
+            url: targetUrl
         });
 
         const options = {
@@ -192,8 +201,8 @@ exports.handler = async (event, context) => {
         const content = getRandomContent(category);
         console.log('Selected content:', content);
 
-        // Send notification
-        const result = await sendNotification(content.title, content.body);
+        // Send notification with deep link to relevant section
+        const result = await sendNotification(content.title, content.body, category);
 
         return {
             statusCode: 200,
