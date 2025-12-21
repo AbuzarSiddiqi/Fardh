@@ -6592,6 +6592,31 @@ function openShareModal(data) {
             }
         });
     }
+
+    // WARM-UP: Do a silent capture to warm up dom-to-image's rendering pipeline
+    // This ensures the first real download/share will have the logo
+    setTimeout(async () => {
+        const card = document.querySelector('.share-card-preview');
+        if (card && typeof domtoimage !== 'undefined') {
+            try {
+                console.log('[Share Card] Starting warm-up capture...');
+                await ensureLogoReady();
+                // Do a small/fast capture just to warm up the pipeline
+                await domtoimage.toBlob(card, {
+                    quality: 0.1,
+                    bgcolor: '#0d1f12',
+                    width: 100,
+                    height: 150
+                });
+                console.log('[Share Card] Warm-up capture complete');
+            } catch (e) {
+                console.log('[Share Card] Warm-up capture skipped:', e.message);
+            }
+        } else if (card) {
+            // dom-to-image not loaded yet, just make sure logo is ready
+            await ensureLogoReady();
+        }
+    }, 100);
 }
 
 // Close share modal with animation
