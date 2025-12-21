@@ -6042,7 +6042,8 @@ async function toggleReminderNotifications() {
         // Try OneSignal slidedown first if available
         if (typeof OneSignal !== 'undefined') {
             try {
-                await OneSignal.Slidedown.promptPush();
+                // Force show the prompt even if user clicked "Later" before
+                await OneSignal.Slidedown.promptPush({ force: true });
                 setTimeout(updateReminderUI, 1500);
                 return;
             } catch (e) {
