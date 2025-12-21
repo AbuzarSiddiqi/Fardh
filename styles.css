@@ -130,8 +130,17 @@
     transform: translateX(-50%);
     width: 45px;
     height: 45px;
-    /* Match the green gradient colors from the logo */
-    background: linear-gradient(135deg, #68BF8B 0%, #60B484 40%, #58A57B 100%);
+    /* High contrast radial gradient matching diamond image - bright mint highlight to dark forest */
+    background:
+        radial-gradient(ellipse 80% 60% at 35% 25%,
+            #A8E6C3 0%,
+            #7DD4A8 20%,
+            transparent 50%),
+        linear-gradient(160deg,
+            #6BC492 0%,
+            #4BA87A 30%,
+            #3A8F65 60%,
+            #265A42 100%);
     border-radius: 8px;
     /* Rotate to make diamond shape */
     transform: translateX(-50%) rotate(45deg);
