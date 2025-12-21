@@ -1453,9 +1453,19 @@ function initPWA() {
         // Listen for messages from service worker
         navigator.serviceWorker.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'SW_UPDATED') {
-                console.log('[PWA] Service worker updated to version:', event.data.version);
-                updatePending = true;
-                showUpdateToast();
+                const newVersion = event.data.version;
+                const lastKnownVersion = localStorage.getItem('lastSwVersion');
+
+                console.log('[PWA] Service worker updated to version:', newVersion, '(last known:', lastKnownVersion, ')');
+
+                // Only show update toast if version actually changed
+                if (lastKnownVersion && lastKnownVersion !== newVersion) {
+                    updatePending = true;
+                    showUpdateToast();
+                }
+
+                // Store the current version
+                localStorage.setItem('lastSwVersion', newVersion);
             }
         });
     }
