@@ -1431,8 +1431,26 @@ function initPWA() {
                     registration.update();
                 }, 300000);
 
-                // Note: Removed updatefound listener - it was causing constant update toasts
-                // Update detection is now handled by SW_UPDATED message with version comparison
+                // Listen for new service worker being installed
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    console.log('[PWA] New service worker installing...');
+
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New version available - check if we should show toast
+                            console.log('[PWA] New version installed and waiting');
+                            updatePending = true;
+
+                            // Small delay to prevent showing during initial load
+                            setTimeout(() => {
+                                if (updatePending) {
+                                    showUpdateToast();
+                                }
+                            }, 1000);
+                        }
+                    });
+                });
             })
             .catch(error => {
                 console.error('Service Worker registration failed:', error);
