@@ -135,7 +135,7 @@ async function sendNotification(title, body) {
     return new Promise((resolve, reject) => {
         const data = JSON.stringify({
             app_id: ONESIGNAL_APP_ID,
-            included_segments: ['Subscribed Users'],
+            included_segments: ['All'],
             headings: { en: title },
             contents: { en: body },
             url: 'https://fardh.netlify.app'
