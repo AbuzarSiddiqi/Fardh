@@ -5957,444 +5957,103 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
-// DAILY NOTIFICATION SYSTEM
+// ONESIGNAL REMINDER SYSTEM
 // ============================================
 
-// Notification state
-const notificationState = {
-    enabled: localStorage.getItem('notificationsEnabled') === 'true',
-    lastNotificationDate: localStorage.getItem('lastNotificationDate') || null,
-    notificationTime: localStorage.getItem('notificationTime') || '09:00',
-    dayCounter: parseInt(localStorage.getItem('notificationDayCounter') || '0'),
-    permissionAsked: localStorage.getItem('notificationPermissionAsked') === 'true',
-    customReminders: JSON.parse(localStorage.getItem('customReminders') || '[]')
-};
+// Check if OneSignal is available and update UI
+function updateReminderUI() {
+    const icon = document.getElementById('reminder-icon');
+    const status = document.getElementById('reminder-status');
 
-// Rotating categories: Day 1 = Quran, Day 2 = Dua, Day 3 = Hadith
-const ROTATING_CATEGORIES = ['continueReading', 'dailyDua', 'hadith'];
+    if (!icon || !status) return;
 
-// Calm, encouraging notification templates
-const NOTIFICATION_TEMPLATES = {
-    continueReading: [
-        { title: "📖 Continue Your Journey", body: "Pick up where you left off in your Quran reading" },
-        { title: "📚 Your Reading Awaits", body: "A few verses a day keeps the heart at peace" },
-        { title: "🌙 Peaceful Moments", body: "Continue your spiritual journey where you left off" },
-        { title: "✨ Keep Growing", body: "Every verse brings you closer to understanding" },
-        { title: "💚 Gentle Reminder", body: "Your Quran reading is waiting for you" }
-    ],
-    dailyDua: [
-        { title: "🤲 Daily Dua", body: "Start your day with a beautiful supplication" },
-        { title: "🌸 Morning Blessings", body: "A moment of dua can brighten your whole day" },
-        { title: "💫 Connect Through Dua", body: "Take a moment to speak to your Lord" },
-        { title: "🕊️ Peace in Prayer", body: "Discover a beautiful dua today" },
-        { title: "🌿 Nurture Your Soul", body: "A short dua for your spiritual wellbeing" }
-    ],
-    hadith: [
-        { title: "✨ Wisdom of the Prophet ﷺ", body: "Discover a beautiful hadith today" },
-        { title: "📿 Prophetic Guidance", body: "Learn something new from the Sunnah" },
-        { title: "🌟 Daily Hadith", body: "A pearl of wisdom awaits you" },
-        { title: "💎 Timeless Teachings", body: "Explore the words of our beloved Prophet ﷺ" },
-        { title: "🕌 Sunnah Reminder", body: "Enrich your day with prophetic wisdom" }
-    ],
-    prayer: [
-        { title: "🕌 Moment of Peace", body: "Take a moment to connect with Allah" },
-        { title: "🌅 Time for Reflection", body: "Your soul deserves a peaceful pause" },
-        { title: "🤍 Inner Tranquility", body: "Find serenity in remembrance of Allah" },
-        { title: "💚 Spiritual Refresh", body: "A moment of dhikr for your heart" },
-        { title: "🌙 Peaceful Pause", body: "Let your heart find rest in remembrance" }
-    ],
-    inspiration: [
-        { title: "💚 Verse of the Day", body: "A beautiful ayah to reflect upon" },
-        { title: "🌟 Quranic Light", body: "Illuminate your day with divine wisdom" },
-        { title: "📖 Daily Inspiration", body: "Let the Quran guide your day" },
-        { title: "✨ Words of Light", body: "A verse to carry in your heart today" },
-        { title: "🌿 Soul Nourishment", body: "Feed your spirit with the Quran" }
-    ]
-};
-
-// Get a random notification from any category (for test/custom)
-function getRandomNotification() {
-    const categories = Object.keys(NOTIFICATION_TEMPLATES);
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-    const templates = NOTIFICATION_TEMPLATES[randomCategory];
-    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
-
-    return {
-        ...randomTemplate,
-        category: randomCategory
-    };
-}
-
-// Get daily rotating notification (Quran → Dua → Hadith)
-function getDailyRotatingNotification() {
-    const categoryIndex = notificationState.dayCounter % ROTATING_CATEGORIES.length;
-    const category = ROTATING_CATEGORIES[categoryIndex];
-    const templates = NOTIFICATION_TEMPLATES[category];
-    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
-
-    return {
-        ...randomTemplate,
-        category: category
-    };
-}
-
-// Check if already notified today
-function hasNotifiedToday() {
-    const lastDate = notificationState.lastNotificationDate;
-    if (!lastDate) return false;
-
-    const today = new Date().toDateString();
-    const lastNotifDate = new Date(lastDate).toDateString();
-
-    return today === lastNotifDate;
-}
-
-// Mark notification as sent today and increment day counter
-function markNotificationSent() {
-    const now = new Date().toISOString();
-    notificationState.lastNotificationDate = now;
-    localStorage.setItem('lastNotificationDate', now);
-
-    // Increment day counter for rotating categories
-    notificationState.dayCounter++;
-    localStorage.setItem('notificationDayCounter', notificationState.dayCounter.toString());
-}
-
-// Request notification permission
-async function requestNotificationPermission() {
-    if (!('Notification' in window)) {
-        console.log('[Notifications] Not supported in this browser');
-        return false;
-    }
-
-    if (Notification.permission === 'granted') {
-        notificationState.enabled = true;
-        localStorage.setItem('notificationsEnabled', 'true');
-        return true;
-    }
-
-    if (Notification.permission === 'denied') {
-        console.log('[Notifications] Permission denied');
-        return false;
-    }
-
-    try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            notificationState.enabled = true;
-            localStorage.setItem('notificationsEnabled', 'true');
-            showSuccess('Daily reminders enabled! 💚');
-            return true;
-        }
-    } catch (error) {
-        console.error('[Notifications] Permission request failed:', error);
-    }
-
-    return false;
-}
-
-// Show a notification
-function showDailyNotification() {
-    if (!notificationState.enabled) return;
-    if (Notification.permission !== 'granted') return;
-    if (hasNotifiedToday()) {
-        console.log('[Notifications] Already notified today');
-        return;
-    }
-
-    // Use rotating categories for daily notifications
-    const notification = getDailyRotatingNotification();
-
-    // Store category for navigation
-    localStorage.setItem('pendingNotificationCategory', notification.category);
-
-    // Use Service Worker for Android compatibility
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.ready.then(registration => {
-            registration.showNotification(notification.title, {
-                body: notification.body,
-                icon: './AppImages/android/android-launchericon-192-192.png',
-                badge: './AppImages/android/android-launchericon-72-72.png',
-                tag: 'fardh-daily',
-                requireInteraction: false,
-                data: { category: notification.category }
-            }).then(() => {
-                markNotificationSent();
-                console.log('[Notifications] Daily rotating notification sent via SW:', notification.category);
-            }).catch(err => {
-                console.error('[Notifications] SW daily notification failed:', err);
-                // Fallback to main thread notification if SW fails
-                showMainThreadNotificationForDaily(notification);
-            });
-        }).catch(err => {
-            console.error('[Notifications] SW ready failed for daily notification:', err);
-            showMainThreadNotificationForDaily(notification);
-        });
-    } else {
-        // Fallback for desktop or browsers without service worker
-        showMainThreadNotificationForDaily(notification);
-    }
-}
-
-// Fallback notification for browsers without SW support for daily notifications
-function showMainThreadNotificationForDaily(notification) {
-    try {
-        const notif = new Notification(notification.title, {
-            body: notification.body,
-            icon: './AppImages/android/android-launchericon-192-192.png',
-            badge: './AppImages/android/android-launchericon-72-72.png',
-            tag: 'fardh-daily'
-        });
-        notif.onclick = () => {
-            window.focus();
-            notif.close();
-            navigateByCategory(notification.category);
-        };
-        markNotificationSent();
-        console.log('[Notifications] Daily rotating notification sent via main thread:', notification.category);
-    } catch (error) {
-        console.error('[Notifications] Failed to show daily notification via main thread:', error);
-    }
-}
-
-// Check if it's time to send notification
-function checkNotificationTime() {
-    if (!notificationState.enabled) return;
-    if (hasNotifiedToday()) return;
-
-    const now = new Date();
-    const [targetHour, targetMinute] = notificationState.notificationTime.split(':').map(Number);
-
-    // Check if current time is past notification time
-    if (now.getHours() > targetHour ||
-        (now.getHours() === targetHour && now.getMinutes() >= targetMinute)) {
-        showDailyNotification();
-    }
-}
-
-// Toggle notifications on/off (NOW ALSO SENDS TEST NOTIFICATION)
-function toggleNotifications() {
-    // First, request permission if not granted
-    if (Notification.permission !== 'granted') {
-        requestNotificationPermission().then(granted => {
-            if (granted) {
-                updateNotificationUI();
-                // Send test notification immediately
-                sendTestNotification();
-            }
-        });
-        return;
-    }
-
-    // If permission granted, send test notification immediately
-    sendTestNotification();
-}
-
-// Send a test notification (for testing purposes)
-function sendTestNotification() {
-    const notification = getRandomNotification();
-
-    // Store the category for navigation when notification is clicked
-    localStorage.setItem('pendingNotificationCategory', notification.category);
-
-    // Use Service Worker for Android compatibility
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.ready.then(registration => {
-            registration.showNotification(notification.title, {
-                body: notification.body,
-                icon: './AppImages/android/android-launchericon-192-192.png',
-                badge: './AppImages/android/android-launchericon-72-72.png',
-                tag: 'fardh-test-' + Date.now(),
-                requireInteraction: false,
-                data: { category: notification.category }
-            }).then(() => {
-                // Mark as enabled
-                notificationState.enabled = true;
-                localStorage.setItem('notificationsEnabled', 'true');
-                updateNotificationUI();
-                console.log('[Notifications] Notification sent via SW:', notification.title);
-            }).catch(err => {
-                console.error('[Notifications] SW notification failed:', err);
-                // Fallback to main thread notification
-                showMainThreadNotification(notification);
-            });
-        }).catch(err => {
-            console.error('[Notifications] SW ready failed:', err);
-            showMainThreadNotification(notification);
-        });
-    } else {
-        // Fallback for browsers without service worker
-        showMainThreadNotification(notification);
-    }
-}
-
-// Fallback notification for browsers without SW support
-function showMainThreadNotification(notification) {
-    try {
-        const notif = new Notification(notification.title, {
-            body: notification.body,
-            icon: './AppImages/android/android-launchericon-192-192.png',
-            badge: './AppImages/android/android-launchericon-72-72.png',
-            tag: 'fardh-test-' + Date.now()
-        });
-
-        notif.onclick = () => {
-            window.focus();
-            notif.close();
-            navigateByCategory(notification.category);
-        };
-
-        notificationState.enabled = true;
-        localStorage.setItem('notificationsEnabled', 'true');
-        updateNotificationUI();
-        console.log('[Notifications] Main thread notification sent:', notification.title);
-    } catch (error) {
-        console.error('[Notifications] All notification methods failed:', error);
-        showError('Notifications not supported on this device.');
-    }
-}
-
-// Navigate to specific content based on notification category
-function navigateByCategory(category) {
-    switch (category) {
-        case 'continueReading':
-            // Navigate to last read position
-            if (lastReadState.surahNumber) {
-                switchTab('read');
-                setTimeout(() => {
-                    continueReading();
-                }, 300);
+    // Check if OneSignal is loaded
+    if (typeof OneSignal !== 'undefined') {
+        OneSignal.User.PushSubscription.optedIn.then(isSubscribed => {
+            if (isSubscribed) {
+                icon.textContent = 'notifications_active';
+                status.textContent = 'Notifications enabled';
             } else {
-                switchTab('read');
+                icon.textContent = 'notifications_off';
+                status.textContent = 'Tap to enable notifications';
             }
-            break;
-
-        case 'dailyDua':
-            // Navigate to dua tab and show random dua
-            switchTab('dua');
-            setTimeout(() => {
-                if (duaOfDayState.currentDua) {
-                    showDuaDetail(duaOfDayState.currentDua);
-                }
-            }, 300);
-            break;
-
-        case 'hadith':
-            // Navigate to hadith section in More tab
-            switchTab('more');
-            setTimeout(() => {
-                const hadithBtn = document.querySelector('[data-feature="hadith"]');
-                if (hadithBtn) hadithBtn.click();
-            }, 300);
-            break;
-
-        case 'prayer':
-            // Navigate to home with prayer times visible
-            switchTab('home');
-            setTimeout(() => {
-                const prayerSection = document.getElementById('prayer-times-section');
-                if (prayerSection) {
-                    prayerSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 300);
-            break;
-
-        case 'inspiration':
-            // Navigate to read tab to browse Quran
-            switchTab('read');
-            break;
-
-        default:
-            switchTab('home');
+        }).catch(() => {
+            icon.textContent = 'notifications';
+            status.textContent = 'Tap to manage notifications';
+        });
+    } else {
+        icon.textContent = 'notifications';
+        status.textContent = 'Tap to manage notifications';
     }
 }
 
-// Update notification button UI
-function updateNotificationUI() {
-    const btn = document.getElementById('notification-toggle');
-    const icon = document.getElementById('notification-icon');
-    const text = document.getElementById('notification-text');
-
-    if (btn && icon && text) {
-        if (notificationState.enabled && Notification.permission === 'granted') {
-            btn.classList.add('active');
-            icon.textContent = 'notifications_active';
-            text.textContent = 'Reminders On';
-        } else {
-            btn.classList.remove('active');
-            icon.textContent = 'notifications_off';
-            text.textContent = 'Enable Reminders';
-        }
-    }
-}
-
-// Test function for debugging (can be called from console)
-function testDailyNotification() {
-    if (Notification.permission !== 'granted') {
-        console.log('[Test] Please enable notifications first');
-        requestNotificationPermission();
+// Toggle OneSignal notifications
+async function toggleReminderNotifications() {
+    // Check if OneSignal is available
+    if (typeof OneSignal === 'undefined') {
+        showError('Notifications not available. Please refresh the app.');
         return;
     }
 
-    // Clear today's flag temporarily
-    const savedDate = notificationState.lastNotificationDate;
-    notificationState.lastNotificationDate = null;
+    try {
+        const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
 
-    showDailyNotification();
+        if (isSubscribed) {
+            // User is subscribed, ask if they want to opt out
+            if (confirm('Disable daily reminders?')) {
+                await OneSignal.User.PushSubscription.optOut();
+                showSuccess('Reminders disabled');
+                updateReminderUI();
+            }
+        } else {
+            // User is not subscribed, prompt them
+            await OneSignal.Slidedown.promptPush();
 
-    // Restore the date (for testing purposes, comment this out to keep the notification counted)
-    // notificationState.lastNotificationDate = savedDate;
-
-    console.log('[Test] Notification triggered');
+            // Check subscription after prompt
+            setTimeout(() => {
+                OneSignal.User.PushSubscription.optedIn.then(nowSubscribed => {
+                    if (nowSubscribed) {
+                        showSuccess('Daily reminders enabled! 💚');
+                    }
+                    updateReminderUI();
+                });
+            }, 1000);
+        }
+    } catch (error) {
+        console.error('[Reminder] Error toggling notifications:', error);
+        // Try native permission request as fallback
+        if ('Notification' in window && Notification.permission === 'default') {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                showSuccess('Notifications enabled!');
+            }
+        }
+        updateReminderUI();
+    }
 }
 
-// Initialize notifications on app load
+// Initialize Reminder system
 document.addEventListener('DOMContentLoaded', () => {
-    // Update UI based on current state
-    updateNotificationUI();
+    // Update UI after a delay to let OneSignal initialize
+    setTimeout(updateReminderUI, 2000);
 
-    // AUTO-PROMPT: Ask for notification permission on first app open using native browser dialog
-    if (!notificationState.permissionAsked && 'Notification' in window) {
-        setTimeout(() => {
-            if (Notification.permission === 'default') {
-                // Use native browser notification dialog directly
-                requestNotificationPermission();
-            }
-            notificationState.permissionAsked = true;
-            localStorage.setItem('notificationPermissionAsked', 'true');
-        }, 1500);
+    // Handle reminder button click
+    const reminderBtn = document.getElementById('reminder-settings-btn');
+    if (reminderBtn) {
+        reminderBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleReminderNotifications();
+        });
     }
 
-    // Check if we should send today's notification
-    setTimeout(() => {
-        checkNotificationTime();
-    }, 2000);
-
-    // Set up periodic check (every 15 minutes while app is open)
-    setInterval(() => {
-        checkNotificationTime();
-    }, 15 * 60 * 1000);
-
-
-
-    // Listen for Service Worker messages (notification clicks)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
-                console.log('[Notifications] SW sent click event, category:', event.data.category);
-                navigateByCategory(event.data.category);
-            }
+    // Listen for OneSignal subscription changes
+    if (typeof OneSignal !== 'undefined') {
+        OneSignalDeferred.push(function (OneSignal) {
+            OneSignal.User.PushSubscription.addEventListener('change', () => {
+                updateReminderUI();
+            });
         });
-
-        // Check if opened from notification via URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const notifCategory = urlParams.get('notification');
-        if (notifCategory) {
-            setTimeout(() => {
-                navigateByCategory(notifCategory);
-                window.history.replaceState({}, '', window.location.pathname);
-            }, 500);
-        }
     }
 });
 
