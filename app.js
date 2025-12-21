@@ -6143,19 +6143,19 @@ async function toggleReminderNotifications() {
 document.addEventListener('DOMContentLoaded', () => {
     // Update UI after a short delay
     setTimeout(updateReminderUI, 1000);
+    setTimeout(updateReminderToggle, 1500);
 
-    // Handle reminder button click
+    // Handle reminder button click - open modal
     const reminderBtn = document.getElementById('reminder-settings-btn');
     if (reminderBtn) {
         console.log('[Reminder] Button found, attaching listener');
         reminderBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            toggleReminderNotifications();
+            openReminderModal();
         });
     } else {
         console.log('[Reminder] Button not found on initial load, will retry');
-        // Retry after a delay in case DOM isn't fully loaded
         setTimeout(() => {
             const btn = document.getElementById('reminder-settings-btn');
             if (btn) {
@@ -6163,12 +6163,97 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    toggleReminderNotifications();
+                    openReminderModal();
                 });
             }
         }, 2000);
     }
+
+    // Handle modal close
+    const closeModalBtn = document.getElementById('close-reminder-modal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeReminderModal);
+    }
+
+    const reminderOverlay = document.querySelector('.reminder-overlay');
+    if (reminderOverlay) {
+        reminderOverlay.addEventListener('click', closeReminderModal);
+    }
+
+    // Handle daily reminder toggle
+    const dailyToggle = document.getElementById('daily-reminder-toggle');
+    if (dailyToggle) {
+        dailyToggle.addEventListener('change', handleDailyReminderToggle);
+    }
 });
+
+// Open reminder modal
+function openReminderModal() {
+    const modal = document.getElementById('reminder-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        updateReminderToggle();
+    }
+}
+
+// Close reminder modal
+function closeReminderModal() {
+    const modal = document.getElementById('reminder-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Update toggle state based on current subscription
+async function updateReminderToggle() {
+    const toggle = document.getElementById('daily-reminder-toggle');
+    if (!toggle) return;
+
+    // Check if notifications are enabled
+    if ('Notification' in window && Notification.permission === 'granted') {
+        // Check OneSignal subscription if available
+        if (typeof OneSignal !== 'undefined') {
+            try {
+                const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+                toggle.checked = isSubscribed;
+            } catch (e) {
+                toggle.checked = true; // Assume enabled if can't check
+            }
+        } else {
+            toggle.checked = true;
+        }
+    } else {
+        toggle.checked = false;
+    }
+}
+
+// Handle daily reminder toggle change
+async function handleDailyReminderToggle(e) {
+    const isEnabled = e.target.checked;
+    console.log('[Reminder] Toggle changed:', isEnabled);
+
+    if (isEnabled) {
+        // Enable notifications
+        await toggleReminderNotifications();
+        // Re-check the toggle state after enabling
+        setTimeout(updateReminderToggle, 1500);
+    } else {
+        // Disable notifications
+        if (typeof OneSignal !== 'undefined') {
+            try {
+                await OneSignal.User.PushSubscription.optOut();
+                showSuccess('Daily reminders disabled');
+                updateReminderUI();
+            } catch (err) {
+                console.log('[Reminder] OneSignal optOut failed:', err);
+                showError('Could not disable reminders');
+                e.target.checked = true; // Revert toggle
+            }
+        } else {
+            showSuccess('Reminders disabled');
+        }
+    }
+}
 
 // ============================================
 // SHARE CARD MODAL

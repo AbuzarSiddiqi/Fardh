@@ -1526,6 +1526,40 @@
         </div>
     </div>
 
+    <!-- Reminder Settings Modal -->
+    <div id="reminder-modal" class="reminder-modal hidden">
+        <div class="reminder-overlay"></div>
+        <div class="reminder-sheet">
+            <div class="reminder-header">
+                <button id="close-reminder-modal" class="icon-btn">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h3>Reminder Settings</h3>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="reminder-content">
+                <div class="reminder-option">
+                    <div class="reminder-option-info">
+                        <span class="material-symbols-outlined reminder-option-icon">notifications_active</span>
+                        <div>
+                            <h4>Daily Reminder</h4>
+                            <p>Receive daily Quran, Dua & Hadith at 8 AM</p>
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="daily-reminder-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <!-- Placeholder for more options -->
+                <div class="reminder-section-divider">
+                    <span>More options coming soon</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="app.js"></script>
 </body>
