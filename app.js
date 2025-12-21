@@ -6384,6 +6384,70 @@ function preloadShareCardLogo() {
 // Start preloading immediately
 preloadShareCardLogo();
 
+// Helper to ensure logo is fully loaded and rendered in DOM
+async function ensureLogoReady() {
+    // First, wait for preload to complete
+    await preloadShareCardLogo();
+
+    const logoImg = document.querySelector('.share-card-logo');
+    if (!logoImg || !shareCardLogoDataUrl) return false;
+
+    // Set the base64 source
+    logoImg.src = shareCardLogoDataUrl;
+
+    // Wait for the image to be fully decoded/loaded
+    return new Promise((resolve) => {
+        // If image is already complete and has dimensions, we're good
+        if (logoImg.complete && logoImg.naturalWidth > 0) {
+            // Use decode() API if available for better reliability
+            if (typeof logoImg.decode === 'function') {
+                logoImg.decode()
+                    .then(() => {
+                        // Wait for a paint cycle
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                resolve(true);
+                            });
+                        });
+                    })
+                    .catch(() => {
+                        // Fallback with timeout
+                        setTimeout(() => resolve(true), 300);
+                    });
+            } else {
+                // No decode API, wait for paint
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        resolve(true);
+                    });
+                });
+            }
+        } else {
+            // Image not loaded yet, wait for it
+            const onLoad = () => {
+                logoImg.removeEventListener('load', onLoad);
+                logoImg.removeEventListener('error', onError);
+                // Wait for paint after load
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        resolve(true);
+                    });
+                });
+            };
+            const onError = () => {
+                logoImg.removeEventListener('load', onLoad);
+                logoImg.removeEventListener('error', onError);
+                resolve(false);
+            };
+            logoImg.addEventListener('load', onLoad);
+            logoImg.addEventListener('error', onError);
+
+            // Timeout fallback (500ms should be more than enough for base64)
+            setTimeout(() => resolve(true), 500);
+        }
+    });
+}
+
 // Helper function to wait for all images in an element to be loaded
 function waitForImagesToLoad(element, timeout = 3000) {
     return new Promise((resolve) => {
@@ -6571,16 +6635,11 @@ async function shareToStories() {
 
         showSuccess('Preparing for Stories...');
 
-        // CRITICAL: Wait for logo to be preloaded first
-        await preloadShareCardLogo();
+        // CRITICAL: Ensure logo is fully loaded and rendered before capture
+        await ensureLogoReady();
 
-        // Set the logo to base64 before capture
-        const logoImg = document.querySelector('.share-card-logo');
-        if (logoImg && shareCardLogoDataUrl) {
-            logoImg.src = shareCardLogoDataUrl;
-            // Give a moment for the DOM to update
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        // Additional safety delay for slower devices
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         // Wait for all images (especially logo) to be fully loaded
         await waitForImagesToLoad(card);
@@ -6672,16 +6731,11 @@ async function saveShareCardAsImage() {
 
         showSuccess('Generating image...');
 
-        // CRITICAL: Wait for logo to be preloaded first
-        await preloadShareCardLogo();
+        // CRITICAL: Ensure logo is fully loaded and rendered before capture
+        await ensureLogoReady();
 
-        // Set the logo to base64 before capture
-        const logoImg = document.querySelector('.share-card-logo');
-        if (logoImg && shareCardLogoDataUrl) {
-            logoImg.src = shareCardLogoDataUrl;
-            // Give a moment for the DOM to update
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        // Additional safety delay for slower devices
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         // Wait for all images (especially logo) to be fully loaded
         await waitForImagesToLoad(card);
