@@ -6363,7 +6363,7 @@ function preloadShareCardLogo() {
                 // Update any existing logo in the DOM
                 const logoImg = document.querySelector('.share-card-logo');
                 if (logoImg && shareCardLogoDataUrl) {
-                    logoImg.src = shareCardLogoDataUrl;
+                    logoImg.style.backgroundImage = `url(${shareCardLogoDataUrl})`;
                 }
                 resolve(shareCardLogoDataUrl);
             } catch (e) {
@@ -6389,59 +6389,29 @@ async function ensureLogoReady() {
     // First, wait for preload to complete
     await preloadShareCardLogo();
 
-    const logoImg = document.querySelector('.share-card-logo');
-    if (!logoImg || !shareCardLogoDataUrl) {
+    const logoDiv = document.querySelector('.share-card-logo');
+    if (!logoDiv || !shareCardLogoDataUrl) {
         console.warn('[Share Card] Logo element or data URL not ready');
         return false;
     }
 
-    // Set the base64 source
-    logoImg.src = shareCardLogoDataUrl;
+    // Set the base64 as CSS background-image
+    logoDiv.style.backgroundImage = `url(${shareCardLogoDataUrl})`;
 
-    // Force the browser to process the change
-    logoImg.removeAttribute('loading');
-
-    // Wait for the image to be fully decoded/loaded
+    // For CSS background-images, we just need to wait for paint cycles
+    // since the base64 data is already inline (no network request)
     return new Promise((resolve) => {
-        const complete = () => {
-            // Multiple rAF calls to ensure paint
+        // Triple requestAnimationFrame + timeout to ensure rendering is complete
+        requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        setTimeout(() => resolve(true), 100);
-                    });
+                    setTimeout(() => {
+                        console.log('[Share Card] Logo background set and ready');
+                        resolve(true);
+                    }, 50);
                 });
             });
-        };
-
-        // Use decode() API if available for better reliability
-        if (typeof logoImg.decode === 'function') {
-            logoImg.decode()
-                .then(complete)
-                .catch(() => {
-                    // Fallback with longer timeout
-                    setTimeout(() => resolve(true), 500);
-                });
-        } else if (logoImg.complete && logoImg.naturalWidth > 0) {
-            complete();
-        } else {
-            // Image not loaded yet, wait for it
-            const onLoad = () => {
-                logoImg.removeEventListener('load', onLoad);
-                logoImg.removeEventListener('error', onError);
-                complete();
-            };
-            const onError = () => {
-                logoImg.removeEventListener('load', onLoad);
-                logoImg.removeEventListener('error', onError);
-                resolve(false);
-            };
-            logoImg.addEventListener('load', onLoad);
-            logoImg.addEventListener('error', onError);
-
-            // Timeout fallback (500ms should be enough)
-            setTimeout(() => resolve(true), 500);
-        }
+        });
     });
 }
 
@@ -6581,13 +6551,13 @@ function openShareModal(data) {
     // This gives maximum time for the image to be embedded before download
     const logoImg = document.querySelector('.share-card-logo');
     if (logoImg && shareCardLogoDataUrl) {
-        logoImg.src = shareCardLogoDataUrl;
+        logoImg.style.backgroundImage = `url(${shareCardLogoDataUrl})`;
         console.log('[Share Card] Logo set to base64 on modal open');
     } else if (logoImg) {
         // Fallback: try to preload now
         preloadShareCardLogo().then((dataUrl) => {
             if (dataUrl && logoImg) {
-                logoImg.src = dataUrl;
+                logoImg.style.backgroundImage = `url(${dataUrl})`;
                 console.log('[Share Card] Logo set to base64 after preload');
             }
         });
