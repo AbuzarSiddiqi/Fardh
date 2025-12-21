@@ -7895,9 +7895,7 @@ body.mini-player-active .main-content {
     height: 100%;
     border-radius: 11px;
     display: block;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+    object-fit: contain;
 }
 
 .share-card-brand-tagline {
