@@ -6028,8 +6028,8 @@ function isLocalhost() {
         window.location.protocol === 'http:';
 }
 
-// Check if OneSignal is available and update UI
-function updateReminderUI() {
+// Check if OneSignal is available and update UI based on tag
+async function updateReminderUI() {
     const icon = document.getElementById('reminder-icon');
     const status = document.getElementById('reminder-status');
 
@@ -6042,7 +6042,26 @@ function updateReminderUI() {
         return;
     }
 
-    // Check native notification permission as fallback
+    // Check OneSignal tag for actual reminder status
+    if (typeof OneSignal !== 'undefined') {
+        try {
+            const tags = await OneSignal.User.getTags();
+            const isEnabled = tags && tags.daily_reminder === 'true';
+
+            if (isEnabled) {
+                icon.textContent = 'notifications_active';
+                status.textContent = 'Daily reminders enabled';
+            } else {
+                icon.textContent = 'notifications';
+                status.textContent = 'Tap to enable reminders';
+            }
+            return;
+        } catch (e) {
+            console.log('[Reminder] Could not get tags for UI:', e);
+        }
+    }
+
+    // Fallback to native notification permission
     if ('Notification' in window) {
         if (Notification.permission === 'granted') {
             icon.textContent = 'notifications_active';
@@ -6204,26 +6223,27 @@ function closeReminderModal() {
     }
 }
 
-// Update toggle state based on current subscription
+// Update toggle state based on current subscription and tag
 async function updateReminderToggle() {
     const toggle = document.getElementById('daily-reminder-toggle');
     if (!toggle) return;
 
-    // Check if notifications are enabled
-    if ('Notification' in window && Notification.permission === 'granted') {
-        // Check OneSignal subscription if available
-        if (typeof OneSignal !== 'undefined') {
-            try {
-                const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
-                toggle.checked = isSubscribed;
-            } catch (e) {
-                toggle.checked = true; // Assume enabled if can't check
-            }
-        } else {
-            toggle.checked = true;
+    // Check if OneSignal is available and check the tag
+    if (typeof OneSignal !== 'undefined') {
+        try {
+            // Get the daily_reminder tag value
+            const tags = await OneSignal.User.getTags();
+            const dailyReminderEnabled = tags && tags.daily_reminder === 'true';
+            toggle.checked = dailyReminderEnabled;
+            console.log('[Reminder] Tag check - daily_reminder:', tags?.daily_reminder, '-> toggle:', dailyReminderEnabled);
+        } catch (e) {
+            console.log('[Reminder] Could not get tags:', e);
+            // Fallback to checking notification permission
+            toggle.checked = 'Notification' in window && Notification.permission === 'granted';
         }
     } else {
-        toggle.checked = false;
+        // No OneSignal - check native permission
+        toggle.checked = 'Notification' in window && Notification.permission === 'granted';
     }
 }
 
