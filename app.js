@@ -1431,20 +1431,8 @@ function initPWA() {
                     registration.update();
                 }, 300000);
 
-                // Listen for waiting service worker (new version available)
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    console.log('[PWA] New service worker installing...');
-
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            // New version available - show update toast instead of auto-reload
-                            console.log('[PWA] New version available');
-                            updatePending = true;
-                            showUpdateToast();
-                        }
-                    });
-                });
+                // Note: Removed updatefound listener - it was causing constant update toasts
+                // Update detection is now handled by SW_UPDATED message with version comparison
             })
             .catch(error => {
                 console.error('Service Worker registration failed:', error);
@@ -5991,99 +5979,130 @@ function updateReminderUI() {
         return;
     }
 
-    // Check if OneSignal is loaded
-    if (typeof OneSignal !== 'undefined') {
-        OneSignal.User.PushSubscription.optedIn.then(isSubscribed => {
-            if (isSubscribed) {
-                icon.textContent = 'notifications_active';
-                status.textContent = 'Notifications enabled';
-            } else {
-                icon.textContent = 'notifications_off';
-                status.textContent = 'Tap to enable notifications';
-            }
-        }).catch(() => {
+    // Check native notification permission as fallback
+    if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+            icon.textContent = 'notifications_active';
+            status.textContent = 'Notifications enabled';
+        } else if (Notification.permission === 'denied') {
+            icon.textContent = 'notifications_off';
+            status.textContent = 'Notifications blocked';
+        } else {
             icon.textContent = 'notifications';
-            status.textContent = 'Tap to manage notifications';
-        });
-    } else {
-        icon.textContent = 'notifications';
-        status.textContent = 'Tap to manage notifications';
+            status.textContent = 'Tap to enable notifications';
+        }
     }
 }
 
-// Toggle OneSignal notifications
+// Toggle notifications - use native browser API with OneSignal as enhancement
 async function toggleReminderNotifications() {
+    console.log('[Reminder] Button clicked');
+
     // On localhost, show helpful message
     if (isLocalhost()) {
         showSuccess('Push notifications work on the deployed app (HTTPS required)');
         return;
     }
 
-    // Check if OneSignal is available
-    if (typeof OneSignal === 'undefined') {
-        showError('Notifications loading... Please try again.');
+    // Check if notifications are supported
+    if (!('Notification' in window)) {
+        showError('Notifications not supported on this device');
         return;
     }
 
     try {
-        const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
-
-        if (isSubscribed) {
-            // User is subscribed, ask if they want to opt out
-            if (confirm('Disable daily reminders?')) {
-                await OneSignal.User.PushSubscription.optOut();
-                showSuccess('Reminders disabled');
-                updateReminderUI();
-            }
-        } else {
-            // User is not subscribed, prompt them
-            await OneSignal.Slidedown.promptPush();
-
-            // Check subscription after prompt
-            setTimeout(() => {
-                OneSignal.User.PushSubscription.optedIn.then(nowSubscribed => {
-                    if (nowSubscribed) {
-                        showSuccess('Daily reminders enabled! 💚');
+        // Check current permission
+        if (Notification.permission === 'granted') {
+            // Already enabled - try to use OneSignal to toggle off
+            if (typeof OneSignal !== 'undefined') {
+                try {
+                    const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+                    if (isSubscribed && confirm('Disable daily reminders?')) {
+                        await OneSignal.User.PushSubscription.optOut();
+                        showSuccess('Reminders disabled');
+                        updateReminderUI();
+                        return;
                     }
-                    updateReminderUI();
-                });
-            }, 1000);
+                } catch (e) {
+                    console.log('[Reminder] OneSignal optOut failed:', e);
+                }
+            }
+            showSuccess('Notifications are enabled! You\'ll receive daily reminders.');
+            return;
         }
-    } catch (error) {
-        console.error('[Reminder] Error toggling notifications:', error);
-        // Try native permission request as fallback
-        if ('Notification' in window && Notification.permission === 'default') {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-                showSuccess('Notifications enabled!');
+
+        if (Notification.permission === 'denied') {
+            showError('Notifications are blocked. Please enable them in your browser settings.');
+            return;
+        }
+
+        // Permission is 'default' - request it
+        console.log('[Reminder] Requesting notification permission...');
+
+        // Try OneSignal slidedown first if available
+        if (typeof OneSignal !== 'undefined') {
+            try {
+                await OneSignal.Slidedown.promptPush();
+                setTimeout(updateReminderUI, 1500);
+                return;
+            } catch (e) {
+                console.log('[Reminder] OneSignal slidedown failed, using native:', e);
             }
         }
+
+        // Fallback to native browser permission
+        const permission = await Notification.requestPermission();
+        console.log('[Reminder] Permission result:', permission);
+
+        if (permission === 'granted') {
+            showSuccess('Daily reminders enabled! 💚');
+
+            // Send a test notification
+            new Notification('Fardh Reminders Enabled', {
+                body: 'You\'ll receive daily Quran & Dua reminders',
+                icon: './AppImages/android/android-launchericon-192-192.png'
+            });
+        } else if (permission === 'denied') {
+            showError('Notifications were blocked');
+        }
+
+        updateReminderUI();
+
+    } catch (error) {
+        console.error('[Reminder] Error:', error);
+        showError('Could not enable notifications. Please try again.');
         updateReminderUI();
     }
 }
 
 // Initialize Reminder system
 document.addEventListener('DOMContentLoaded', () => {
-    // Update UI after a delay to let OneSignal initialize
-    setTimeout(updateReminderUI, 2000);
+    // Update UI after a short delay
+    setTimeout(updateReminderUI, 1000);
 
     // Handle reminder button click
     const reminderBtn = document.getElementById('reminder-settings-btn');
     if (reminderBtn) {
+        console.log('[Reminder] Button found, attaching listener');
         reminderBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             toggleReminderNotifications();
         });
-    }
-
-    // Listen for OneSignal subscription changes (only on HTTPS)
-    if (!isLocalhost() && typeof OneSignalDeferred !== 'undefined') {
-        OneSignalDeferred.push(function (OneSignal) {
-            OneSignal.User.PushSubscription.addEventListener('change', () => {
-                updateReminderUI();
-            });
-        });
+    } else {
+        console.log('[Reminder] Button not found on initial load, will retry');
+        // Retry after a delay in case DOM isn't fully loaded
+        setTimeout(() => {
+            const btn = document.getElementById('reminder-settings-btn');
+            if (btn) {
+                console.log('[Reminder] Button found on retry');
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleReminderNotifications();
+                });
+            }
+        }, 2000);
     }
 });
 
