@@ -145,10 +145,14 @@ async function sendNotification(title, body, category) {
     return new Promise((resolve, reject) => {
         const data = JSON.stringify({
             app_id: ONESIGNAL_APP_ID,
-            included_segments: ['All'],
+            // Only send to users who are subscribed (opted in)
+            included_segments: ['Subscribed Users'],
+            // Fallback: Also try 'Total Subscriptions' if 'Subscribed Users' doesn't exist
             headings: { en: title },
             contents: { en: body },
-            url: targetUrl
+            url: targetUrl,
+            // Only target users who haven't opted out
+            target_channel: 'push'
         });
 
         const options = {
