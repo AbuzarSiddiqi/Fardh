@@ -6233,11 +6233,14 @@ async function handleDailyReminderToggle(e) {
     console.log('[Reminder] Toggle changed:', isEnabled);
 
     if (isEnabled) {
-        // Enable notifications - opt back in
+        // Enable notifications - opt back in and set tag
         if (typeof OneSignal !== 'undefined') {
             try {
                 // First try to opt back in
                 await OneSignal.User.PushSubscription.optIn();
+                // Set tag to indicate user wants daily reminders
+                await OneSignal.User.addTag('daily_reminder', 'true');
+                console.log('[Reminder] Tag set: daily_reminder = true');
                 showSuccess('Daily reminders enabled! 💚');
                 updateReminderUI();
                 setTimeout(updateReminderToggle, 1000);
@@ -6246,6 +6249,12 @@ async function handleDailyReminderToggle(e) {
                 // If optIn fails, try the slidedown prompt
                 try {
                     await OneSignal.Slidedown.promptPush({ force: true });
+                    // After prompt, set the tag
+                    setTimeout(async () => {
+                        try {
+                            await OneSignal.User.addTag('daily_reminder', 'true');
+                        } catch (e) { }
+                    }, 2000);
                     setTimeout(updateReminderToggle, 1500);
                 } catch (e2) {
                     console.log('[Reminder] Slidedown also failed:', e2);
@@ -6269,14 +6278,16 @@ async function handleDailyReminderToggle(e) {
             }
         }
     } else {
-        // Disable notifications
+        // Disable notifications - set tag to false
         if (typeof OneSignal !== 'undefined') {
             try {
-                await OneSignal.User.PushSubscription.optOut();
+                // Remove or set tag to false to stop receiving
+                await OneSignal.User.addTag('daily_reminder', 'false');
+                console.log('[Reminder] Tag set: daily_reminder = false');
                 showSuccess('Daily reminders disabled');
                 updateReminderUI();
             } catch (err) {
-                console.log('[Reminder] OneSignal optOut failed:', err);
+                console.log('[Reminder] OneSignal tag update failed:', err);
                 showError('Could not disable reminders');
                 e.target.checked = true; // Revert toggle
             }

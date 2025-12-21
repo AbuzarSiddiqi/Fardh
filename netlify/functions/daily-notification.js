@@ -145,8 +145,10 @@ async function sendNotification(title, body, category) {
     return new Promise((resolve, reject) => {
         const data = JSON.stringify({
             app_id: ONESIGNAL_APP_ID,
-            // Use 'All' segment - OneSignal handles opt-out at delivery time
-            included_segments: ['All'],
+            // Only send to users who have daily_reminder tag set to 'true'
+            filters: [
+                { field: 'tag', key: 'daily_reminder', relation: '=', value: 'true' }
+            ],
             headings: { en: title },
             contents: { en: body },
             url: targetUrl
