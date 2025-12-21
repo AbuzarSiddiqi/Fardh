@@ -6233,10 +6233,41 @@ async function handleDailyReminderToggle(e) {
     console.log('[Reminder] Toggle changed:', isEnabled);
 
     if (isEnabled) {
-        // Enable notifications
-        await toggleReminderNotifications();
-        // Re-check the toggle state after enabling
-        setTimeout(updateReminderToggle, 1500);
+        // Enable notifications - opt back in
+        if (typeof OneSignal !== 'undefined') {
+            try {
+                // First try to opt back in
+                await OneSignal.User.PushSubscription.optIn();
+                showSuccess('Daily reminders enabled! 💚');
+                updateReminderUI();
+                setTimeout(updateReminderToggle, 1000);
+            } catch (err) {
+                console.log('[Reminder] OneSignal optIn failed, trying slidedown:', err);
+                // If optIn fails, try the slidedown prompt
+                try {
+                    await OneSignal.Slidedown.promptPush({ force: true });
+                    setTimeout(updateReminderToggle, 1500);
+                } catch (e2) {
+                    console.log('[Reminder] Slidedown also failed:', e2);
+                    // Fallback to native
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        showSuccess('Reminders enabled!');
+                    } else {
+                        e.target.checked = false;
+                        showError('Could not enable reminders');
+                    }
+                }
+            }
+        } else {
+            // No OneSignal - use native
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                showSuccess('Reminders enabled!');
+            } else {
+                e.target.checked = false;
+            }
+        }
     } else {
         // Disable notifications
         if (typeof OneSignal !== 'undefined') {
