@@ -108,7 +108,8 @@ const HADITHS = [
 function getTodayCategory() {
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
     const categories = ['quran', 'dua', 'hadith'];
-    return categories[dayOfYear % 3];
+    // Adjusted by +1 to shift rotation for testing (Dec 21 = hadith, Dec 22 = quran, Dec 23 = dua)
+    return categories[(dayOfYear + 1) % 3];
 }
 
 // Get random content from category
