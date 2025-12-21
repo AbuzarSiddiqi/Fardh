@@ -1416,6 +1416,7 @@ let deferredPrompt = null;
 function initPWA() {
     // Track if update is pending
     let updatePending = false;
+    let pendingVersion = null;
 
     // Register service worker
     if ('serviceWorker' in navigator) {
@@ -1426,7 +1427,7 @@ function initPWA() {
                 // Check for updates immediately and periodically
                 registration.update();
 
-                // Check for updates every 5 minutes (less aggressive)
+                // Check for updates every 5 minutes
                 setInterval(() => {
                     registration.update();
                 }, 300000);
@@ -1438,16 +1439,8 @@ function initPWA() {
 
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            // New version available - check if we should show toast
-                            console.log('[PWA] New version installed and waiting');
-                            updatePending = true;
-
-                            // Small delay to prevent showing during initial load
-                            setTimeout(() => {
-                                if (updatePending) {
-                                    showUpdateToast();
-                                }
-                            }, 1000);
+                            console.log('[PWA] New version installed, waiting for activation');
+                            // Don't show toast here - wait for SW_UPDATED message with version info
                         }
                     });
                 });
@@ -1460,27 +1453,37 @@ function initPWA() {
         navigator.serviceWorker.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'SW_UPDATED') {
                 const newVersion = event.data.version;
+                const lastAcknowledgedVersion = localStorage.getItem('acknowledgedSwVersion');
                 const lastKnownVersion = localStorage.getItem('lastSwVersion');
 
-                console.log('[PWA] Service worker updated to version:', newVersion, '(last known:', lastKnownVersion, ')');
+                console.log('[PWA] SW version:', newVersion, '| acknowledged:', lastAcknowledgedVersion, '| last known:', lastKnownVersion);
 
-                // Only show update toast if version actually changed
-                if (lastKnownVersion && lastKnownVersion !== newVersion) {
-                    updatePending = true;
-                    showUpdateToast();
-                }
-
-                // Store the current version
+                // Save current version as last known
                 localStorage.setItem('lastSwVersion', newVersion);
+
+                // Only show toast if:
+                // 1. This version is different from what user already acknowledged
+                // 2. This is a genuine new version (not initial load)
+                if (lastKnownVersion && newVersion !== lastAcknowledgedVersion) {
+                    updatePending = true;
+                    pendingVersion = newVersion;
+
+                    // Small delay to avoid showing during initial loads
+                    setTimeout(() => {
+                        if (updatePending && newVersion === pendingVersion) {
+                            showUpdateToast(newVersion);
+                        }
+                    }, 1500);
+                }
             }
         });
     }
 
     // Show update toast notification
-    function showUpdateToast() {
-        // Remove existing toast if any
+    function showUpdateToast(version) {
+        // Don't show if already showing
         const existingToast = document.getElementById('update-toast');
-        if (existingToast) existingToast.remove();
+        if (existingToast) return;
 
         // Create toast element
         const toast = document.createElement('div');
@@ -1498,6 +1501,9 @@ function initPWA() {
 
         // Handle update button click
         document.getElementById('update-now-btn').addEventListener('click', () => {
+            // Mark this version as acknowledged so toast doesn't show again
+            localStorage.setItem('acknowledgedSwVersion', version);
+            updatePending = false;
             window.location.reload();
         });
 
