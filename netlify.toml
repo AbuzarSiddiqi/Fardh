@@ -1,0 +1,12 @@
+# Netlify configuration for Fardh App
+
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+
+# Scheduled function for daily notifications
+# Runs at 8:00 AM IST (2:30 AM UTC) every day
+[functions."daily-notification"]
+  schedule = "30 2 * * *"
