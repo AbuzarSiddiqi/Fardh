@@ -6331,35 +6331,58 @@ const shareCardState = {
 
 // Preload the share card logo and convert to base64 for reliable capture
 let shareCardLogoDataUrl = null;
+let logoPreloadPromise = null;
 
-(function preloadLogoAsBase64() {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-        try {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            shareCardLogoDataUrl = canvas.toDataURL('image/png');
-            shareCardState.logoPreloaded = true;
-            console.log('[Share Card] Logo converted to base64 successfully');
+// Create a promise-based preload function that can be awaited
+function preloadShareCardLogo() {
+    // Return existing promise if already in progress or completed
+    if (logoPreloadPromise) {
+        return logoPreloadPromise;
+    }
 
-            // Update any existing logo in the DOM
-            const logoImg = document.querySelector('.share-card-logo');
-            if (logoImg && shareCardLogoDataUrl) {
-                logoImg.src = shareCardLogoDataUrl;
-            }
-        } catch (e) {
-            console.warn('[Share Card] Failed to convert logo to base64:', e);
+    logoPreloadPromise = new Promise((resolve) => {
+        // If already preloaded, resolve immediately
+        if (shareCardLogoDataUrl && shareCardState.logoPreloaded) {
+            resolve(shareCardLogoDataUrl);
+            return;
         }
-    };
-    img.onerror = () => {
-        console.warn('[Share Card] Failed to preload logo');
-    };
-    img.src = 'AppImages/Nobgsharecard.png';
-})();
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                shareCardLogoDataUrl = canvas.toDataURL('image/png');
+                shareCardState.logoPreloaded = true;
+                console.log('[Share Card] Logo converted to base64 successfully');
+
+                // Update any existing logo in the DOM
+                const logoImg = document.querySelector('.share-card-logo');
+                if (logoImg && shareCardLogoDataUrl) {
+                    logoImg.src = shareCardLogoDataUrl;
+                }
+                resolve(shareCardLogoDataUrl);
+            } catch (e) {
+                console.warn('[Share Card] Failed to convert logo to base64:', e);
+                resolve(null);
+            }
+        };
+        img.onerror = () => {
+            console.warn('[Share Card] Failed to preload logo');
+            resolve(null);
+        };
+        img.src = 'AppImages/Nobgsharecard.png';
+    });
+
+    return logoPreloadPromise;
+}
+
+// Start preloading immediately
+preloadShareCardLogo();
 
 // Helper function to wait for all images in an element to be loaded
 function waitForImagesToLoad(element, timeout = 3000) {
@@ -6548,6 +6571,17 @@ async function shareToStories() {
 
         showSuccess('Preparing for Stories...');
 
+        // CRITICAL: Wait for logo to be preloaded first
+        await preloadShareCardLogo();
+
+        // Set the logo to base64 before capture
+        const logoImg = document.querySelector('.share-card-logo');
+        if (logoImg && shareCardLogoDataUrl) {
+            logoImg.src = shareCardLogoDataUrl;
+            // Give a moment for the DOM to update
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
         // Wait for all images (especially logo) to be fully loaded
         await waitForImagesToLoad(card);
 
@@ -6637,6 +6671,17 @@ async function saveShareCardAsImage() {
         }
 
         showSuccess('Generating image...');
+
+        // CRITICAL: Wait for logo to be preloaded first
+        await preloadShareCardLogo();
+
+        // Set the logo to base64 before capture
+        const logoImg = document.querySelector('.share-card-logo');
+        if (logoImg && shareCardLogoDataUrl) {
+            logoImg.src = shareCardLogoDataUrl;
+            // Give a moment for the DOM to update
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
 
         // Wait for all images (especially logo) to be fully loaded
         await waitForImagesToLoad(card);
