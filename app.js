@@ -6557,22 +6557,34 @@ function openShareModal(data) {
             // Wait for logo to be fully ready first
             await ensureLogoReady();
 
-            if (typeof domtoimage !== 'undefined') {
+            // CRITICAL: Load dom-to-image-more FIRST if not loaded
+            // This ensures the warm-up (fake share) actually happens
+            if (typeof domtoimage === 'undefined') {
                 try {
-                    console.log('[Share Card] Starting warm-up capture (fake share)...');
-                    // Get actual dimensions for proper warm-up
-                    const rect = card.getBoundingClientRect();
-                    // Do a FULL capture (not small) to properly warm up all images
-                    await domtoimage.toBlob(card, {
-                        quality: 0.5,
-                        bgcolor: '#0d1f12',
-                        width: rect.width,
-                        height: rect.height
-                    });
-                    console.log('[Share Card] Warm-up capture complete - logo should now appear on real download');
+                    console.log('[Share Card] Loading dom-to-image library for warm-up...');
+                    await loadScript('https://cdn.jsdelivr.net/npm/dom-to-image-more@3.3.0/dist/dom-to-image-more.min.js');
+                    console.log('[Share Card] dom-to-image library loaded');
                 } catch (e) {
-                    console.warn('[Share Card] Warm-up capture failed:', e.message);
+                    console.warn('[Share Card] Failed to load dom-to-image:', e.message);
+                    resolve();
+                    return;
                 }
+            }
+
+            try {
+                console.log('[Share Card] Starting warm-up capture (fake share)...');
+                // Get actual dimensions for proper warm-up
+                const rect = card.getBoundingClientRect();
+                // Do a FULL capture (not small) to properly warm up all images
+                await domtoimage.toBlob(card, {
+                    quality: 0.5,
+                    bgcolor: '#0d1f12',
+                    width: rect.width,
+                    height: rect.height
+                });
+                console.log('[Share Card] Warm-up capture complete - logo should now appear on real download');
+            } catch (e) {
+                console.warn('[Share Card] Warm-up capture failed:', e.message);
             }
             resolve();
         }, 300);
