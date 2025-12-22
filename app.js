@@ -6543,10 +6543,11 @@ function openShareModal(data) {
     }
 
     // WARM-UP: Do a silent capture to warm up dom-to-image's rendering pipeline
+    // WARM-UP: Do a silent capture to warm up dom-to-image's rendering pipeline
     // This ensures the first real download/share will have the logo (the "fake share" approach)
     // Store as a promise so share/download can wait for it
     shareCardState.warmupComplete = new Promise((resolve) => {
-        // Delay 300ms to allow modal to fully render
+        // Delay 500ms (up from 300ms) to allow modal to fully render on slower devices
         setTimeout(async () => {
             const card = document.querySelector('.share-card-preview');
             if (!card) {
@@ -6576,6 +6577,8 @@ function openShareModal(data) {
                 // Get actual dimensions for proper warm-up
                 const rect = card.getBoundingClientRect();
                 // Do a FULL capture (not small) to properly warm up all images
+                // Add a small delay inside the retry looplogic if needed, but here we just try once
+                // The main share function has the robust retry logic now
                 await domtoimage.toBlob(card, {
                     quality: 0.5,
                     bgcolor: '#0d1f12',
@@ -6587,7 +6590,7 @@ function openShareModal(data) {
                 console.warn('[Share Card] Warm-up capture failed:', e.message);
             }
             resolve();
-        }, 300);
+        }, 500);
     });
 }
 
@@ -6642,15 +6645,23 @@ async function shareToStories() {
         showSuccess('Preparing for Stories...');
 
         // CRITICAL: Ensure logo is fully loaded and rendered before capture
+        // We do this AFTER the delay to ensure the browser has had time to process the image source
         await ensureLogoReady();
-
-        // Additional safety delay for slower devices
-        await new Promise(resolve => setTimeout(resolve, 200));
 
         // Wait for all images (especially logo) to be fully loaded
         await waitForImagesToLoad(card);
 
-        // Get card dimensions for high quality output
+        // Mobile-specific rendering delay - give the browser breathing room to paint the large base64 image
+        // Use nested requestAnimationFrame to ensure we are in the next paint cycle
+        await new Promise(resolve => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setTimeout(resolve, 150); // Extra timeout for slower mobile GPUS
+                });
+            });
+        });
+
+        // Get card dimensions for high quality output - measure AFTER all waits/rendering
         const rect = card.getBoundingClientRect();
         const scale = 3; // 3x scale for high quality
 
