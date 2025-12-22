@@ -6352,7 +6352,7 @@ function preloadShareCardLogo() {
         // Update any existing logo in the DOM
         const logoDiv = document.querySelector('.share-card-logo');
         if (logoDiv && shareCardLogoDataUrl) {
-            logoDiv.style.backgroundImage = `url(${shareCardLogoDataUrl})`;
+            logoDiv.src = shareCardLogoDataUrl;
         }
         resolve(shareCardLogoDataUrl);
     });
@@ -6374,23 +6374,23 @@ async function ensureLogoReady() {
         return false;
     }
 
-    // Set the base64 as CSS background-image
-    logoDiv.style.backgroundImage = `url(${shareCardLogoDataUrl})`;
+    // Set the base64 as img src
+    logoDiv.src = shareCardLogoDataUrl;
 
-    // For CSS background-images, we just need to wait for paint cycles
-    // since the base64 data is already inline (no network request)
+    // For images, we need to wait for onload if not complete
+    if (logoDiv.complete) {
+        return true;
+    }
+
     return new Promise((resolve) => {
-        // Triple requestAnimationFrame + timeout to ensure rendering is complete
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setTimeout(() => {
-                        console.log('[Share Card] Logo background set and ready');
-                        resolve(true);
-                    }, 50);
-                });
-            });
-        });
+        logoDiv.onload = () => {
+            console.log('[Share Card] Logo image loaded');
+            resolve(true);
+        };
+        logoDiv.onerror = () => {
+            console.warn('[Share Card] Logo image failed to load');
+            resolve(false);
+        };
     });
 }
 
