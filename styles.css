@@ -7875,6 +7875,8 @@ body.mini-player-active .main-content {
 .share-card-brand-text {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
 }
 
 .share-card-brand-name {
