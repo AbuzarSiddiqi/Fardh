@@ -10691,6 +10691,46 @@ body.mini-player-active .main-content {
     color: white;
 }
 
+/* Qaza Calculator Card - Red theme */
+#open-qaza-btn {
+    background: rgba(30, 20, 20, 0.8);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+#open-qaza-btn .explore-card-icon {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+#open-qaza-btn:hover {
+    background: rgba(40, 25, 25, 0.9);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+#open-qaza-btn:hover .explore-card-icon {
+    background: #ef4444;
+    color: white;
+}
+
+[data-theme="light"] #open-qaza-btn {
+    background: rgba(254, 242, 242, 0.95);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="light"] #open-qaza-btn:hover {
+    background: rgba(254, 226, 226, 1);
+}
+
+[data-theme="light"] #open-qaza-btn .explore-card-icon {
+    background: #FEE2E2;
+    color: #dc2626;
+}
+
+[data-theme="light"] #open-qaza-btn:hover .explore-card-icon {
+    background: #ef4444;
+    color: white;
+}
+
 /* ===========================================
    TASBIH COUNTER MODAL
    =========================================== */
@@ -10978,4 +11018,227 @@ body.mini-player-active .main-content {
         rgba(255, 255, 255, 0.95);
     border-color: rgba(16, 185, 129, 0.2);
     color: #1F2937;
+}
+
+/* ============================================
+   QAZA CALCULATOR MODAL
+   ============================================ */
+
+.qaza-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: var(--bg-darker);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    transform: translateX(100%);
+}
+
+.qaza-modal.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.qaza-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    padding-top: calc(env(safe-area-inset-top, 20px) + var(--space-md));
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-card);
+}
+
+.qaza-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.qaza-close-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.qaza-content {
+    flex: 1;
+    padding: var(--space-lg);
+    overflow-y: auto;
+}
+
+.qaza-description {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: var(--space-lg);
+    text-align: center;
+}
+
+.qaza-prayers-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.qaza-prayer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+}
+
+.qaza-prayer-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.qaza-prayer-icon {
+    font-size: 1.5rem;
+}
+
+.qaza-prayer-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.qaza-prayer-counter {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.qaza-counter-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-light);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.qaza-counter-btn.plus {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+
+.qaza-counter-btn.minus:active {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.qaza-counter-btn.plus:active {
+    transform: scale(0.95);
+}
+
+.qaza-count {
+    min-width: 48px;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+.qaza-total-card {
+    margin-top: var(--space-xl);
+    padding: var(--space-lg);
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.qaza-total-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.qaza-total-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.qaza-total-count {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+.qaza-reset-btn {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-full);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    transition: all 0.2s ease;
+}
+
+.qaza-reset-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* Light mode qaza - Red/Amber theme */
+[data-theme="light"] .qaza-modal {
+    background: linear-gradient(180deg, #FEF2F2 0%, #FEE2E2 100%);
+}
+
+[data-theme="light"] .qaza-header {
+    background:
+        radial-gradient(ellipse 150% 100% at 0% 0%, rgba(239, 68, 68, 0.12) 0%, transparent 50%),
+        rgba(255, 255, 255, 0.98);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="light"] .qaza-prayer-item {
+    background:
+        radial-gradient(ellipse 150% 100% at 0% 0%, rgba(239, 68, 68, 0.08) 0%, transparent 50%),
+        rgba(255, 255, 255, 0.95);
+    border-color: rgba(239, 68, 68, 0.15);
+}
+
+[data-theme="light"] .qaza-total-card {
+    background:
+        radial-gradient(ellipse 150% 100% at 0% 0%, rgba(239, 68, 68, 0.12) 0%, transparent 50%),
+        rgba(255, 255, 255, 0.98);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="light"] .qaza-count {
+    color: #dc2626;
+}
+
+[data-theme="light"] .qaza-total-count {
+    color: #dc2626;
 }

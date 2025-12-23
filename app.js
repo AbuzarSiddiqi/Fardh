@@ -7646,3 +7646,139 @@ function updateTasbihDisplay() {
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initTasbih, 100);
 });
+
+// ============================================
+// QAZA CALCULATOR
+// ============================================
+
+const qazaState = {
+    fajr: parseInt(localStorage.getItem('qazaFajr') || '0'),
+    dhuhr: parseInt(localStorage.getItem('qazaDhuhr') || '0'),
+    asr: parseInt(localStorage.getItem('qazaAsr') || '0'),
+    maghrib: parseInt(localStorage.getItem('qazaMaghrib') || '0'),
+    isha: parseInt(localStorage.getItem('qazaIsha') || '0')
+};
+
+function initQazaCalculator() {
+    const openBtn = document.getElementById('open-qaza-btn');
+    const closeBtn = document.getElementById('close-qaza-modal');
+    const modal = document.getElementById('qaza-modal');
+    const resetBtn = document.getElementById('qaza-reset-btn');
+
+    if (!modal) return;
+
+    // Open modal
+    if (openBtn) {
+        openBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+            updateQazaDisplay();
+        });
+    }
+
+    // Close modal
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+    }
+
+    // Swipe back to close
+    let qazaSwipeStartX = 0;
+    let qazaSwipeDistX = 0;
+
+    modal.addEventListener('touchstart', (e) => {
+        qazaSwipeStartX = e.touches[0].clientX;
+        qazaSwipeDistX = 0;
+    }, { passive: true });
+
+    modal.addEventListener('touchmove', (e) => {
+        qazaSwipeDistX = e.touches[0].clientX - qazaSwipeStartX;
+        if (qazaSwipeDistX > 0) {
+            modal.style.transform = `translateX(${qazaSwipeDistX * 0.5}px)`;
+            modal.style.opacity = 1 - (qazaSwipeDistX / 400);
+        }
+    }, { passive: true });
+
+    modal.addEventListener('touchend', () => {
+        modal.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        if (qazaSwipeDistX > 80) {
+            modal.classList.remove('active');
+        }
+        modal.style.transform = '';
+        modal.style.opacity = '';
+        setTimeout(() => {
+            modal.style.transition = '';
+        }, 300);
+    }, { passive: true });
+
+    // Counter buttons
+    document.querySelectorAll('.qaza-counter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const prayer = btn.dataset.prayer;
+            const action = btn.dataset.action;
+
+            if (action === 'plus') {
+                qazaState[prayer]++;
+            } else if (action === 'minus' && qazaState[prayer] > 0) {
+                qazaState[prayer]--;
+            }
+
+            saveQazaState();
+            updateQazaDisplay();
+
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(10);
+            }
+        });
+    });
+
+    // Reset button
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset all Qaza counts?')) {
+                qazaState.fajr = 0;
+                qazaState.dhuhr = 0;
+                qazaState.asr = 0;
+                qazaState.maghrib = 0;
+                qazaState.isha = 0;
+                saveQazaState();
+                updateQazaDisplay();
+                showSuccess('Qaza counts reset');
+            }
+        });
+    }
+
+    updateQazaDisplay();
+}
+
+function saveQazaState() {
+    localStorage.setItem('qazaFajr', qazaState.fajr.toString());
+    localStorage.setItem('qazaDhuhr', qazaState.dhuhr.toString());
+    localStorage.setItem('qazaAsr', qazaState.asr.toString());
+    localStorage.setItem('qazaMaghrib', qazaState.maghrib.toString());
+    localStorage.setItem('qazaIsha', qazaState.isha.toString());
+}
+
+function updateQazaDisplay() {
+    const fajrEl = document.getElementById('qaza-fajr');
+    const dhuhrEl = document.getElementById('qaza-dhuhr');
+    const asrEl = document.getElementById('qaza-asr');
+    const maghribEl = document.getElementById('qaza-maghrib');
+    const ishaEl = document.getElementById('qaza-isha');
+    const totalEl = document.getElementById('qaza-total');
+
+    if (fajrEl) fajrEl.textContent = qazaState.fajr;
+    if (dhuhrEl) dhuhrEl.textContent = qazaState.dhuhr;
+    if (asrEl) asrEl.textContent = qazaState.asr;
+    if (maghribEl) maghribEl.textContent = qazaState.maghrib;
+    if (ishaEl) ishaEl.textContent = qazaState.isha;
+
+    const total = qazaState.fajr + qazaState.dhuhr + qazaState.asr + qazaState.maghrib + qazaState.isha;
+    if (totalEl) totalEl.textContent = total;
+}
+
+// Initialize Qaza Calculator on load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initQazaCalculator, 100);
+});

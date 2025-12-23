@@ -439,6 +439,18 @@
                             </div>
                             <span class="material-symbols-outlined explore-card-arrow">chevron_right</span>
                         </button>
+                        
+                        <!-- Qaza Calculator Card -->
+                        <button class="explore-card explore-card-small" id="open-qaza-btn">
+                            <div class="explore-card-icon small">
+                                <span class="material-symbols-outlined">calculate</span>
+                            </div>
+                            <div class="explore-card-info">
+                                <h4 class="explore-card-title-small">Qaza</h4>
+                                <p class="explore-card-subtitle-small">Calculator</p>
+                            </div>
+                            <span class="material-symbols-outlined explore-card-arrow">chevron_right</span>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -1663,6 +1675,88 @@
                 <div class="reminder-section-divider">
                     <span>More options coming soon</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Qaza Calculator Modal -->
+    <div id="qaza-modal" class="qaza-modal">
+        <div class="qaza-header">
+            <h3 class="qaza-title">Qaza Calculator</h3>
+            <button id="close-qaza-modal" class="qaza-close-btn">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="qaza-content">
+            <p class="qaza-description">Track your missed prayers (Qaza) and complete them one by one.</p>
+            
+            <div class="qaza-prayers-list">
+                <div class="qaza-prayer-item" data-prayer="fajr">
+                    <div class="qaza-prayer-info">
+                        <span class="qaza-prayer-icon">🌅</span>
+                        <span class="qaza-prayer-name">Fajr</span>
+                    </div>
+                    <div class="qaza-prayer-counter">
+                        <button class="qaza-counter-btn minus" data-prayer="fajr" data-action="minus"><span class="material-symbols-outlined">remove</span></button>
+                        <span class="qaza-count" id="qaza-fajr">0</span>
+                        <button class="qaza-counter-btn plus" data-prayer="fajr" data-action="plus"><span class="material-symbols-outlined">add</span></button>
+                    </div>
+                </div>
+                <div class="qaza-prayer-item" data-prayer="dhuhr">
+                    <div class="qaza-prayer-info">
+                        <span class="qaza-prayer-icon">☀️</span>
+                        <span class="qaza-prayer-name">Dhuhr</span>
+                    </div>
+                    <div class="qaza-prayer-counter">
+                        <button class="qaza-counter-btn minus" data-prayer="dhuhr" data-action="minus"><span class="material-symbols-outlined">remove</span></button>
+                        <span class="qaza-count" id="qaza-dhuhr">0</span>
+                        <button class="qaza-counter-btn plus" data-prayer="dhuhr" data-action="plus"><span class="material-symbols-outlined">add</span></button>
+                    </div>
+                </div>
+                <div class="qaza-prayer-item" data-prayer="asr">
+                    <div class="qaza-prayer-info">
+                        <span class="qaza-prayer-icon">🌤️</span>
+                        <span class="qaza-prayer-name">Asr</span>
+                    </div>
+                    <div class="qaza-prayer-counter">
+                        <button class="qaza-counter-btn minus" data-prayer="asr" data-action="minus"><span class="material-symbols-outlined">remove</span></button>
+                        <span class="qaza-count" id="qaza-asr">0</span>
+                        <button class="qaza-counter-btn plus" data-prayer="asr" data-action="plus"><span class="material-symbols-outlined">add</span></button>
+                    </div>
+                </div>
+                <div class="qaza-prayer-item" data-prayer="maghrib">
+                    <div class="qaza-prayer-info">
+                        <span class="qaza-prayer-icon">🌇</span>
+                        <span class="qaza-prayer-name">Maghrib</span>
+                    </div>
+                    <div class="qaza-prayer-counter">
+                        <button class="qaza-counter-btn minus" data-prayer="maghrib" data-action="minus"><span class="material-symbols-outlined">remove</span></button>
+                        <span class="qaza-count" id="qaza-maghrib">0</span>
+                        <button class="qaza-counter-btn plus" data-prayer="maghrib" data-action="plus"><span class="material-symbols-outlined">add</span></button>
+                    </div>
+                </div>
+                <div class="qaza-prayer-item" data-prayer="isha">
+                    <div class="qaza-prayer-info">
+                        <span class="qaza-prayer-icon">🌙</span>
+                        <span class="qaza-prayer-name">Isha</span>
+                    </div>
+                    <div class="qaza-prayer-counter">
+                        <button class="qaza-counter-btn minus" data-prayer="isha" data-action="minus"><span class="material-symbols-outlined">remove</span></button>
+                        <span class="qaza-count" id="qaza-isha">0</span>
+                        <button class="qaza-counter-btn plus" data-prayer="isha" data-action="plus"><span class="material-symbols-outlined">add</span></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="qaza-total-card">
+                <div class="qaza-total-info">
+                    <span class="qaza-total-label">Total Remaining</span>
+                    <span class="qaza-total-count" id="qaza-total">0</span>
+                </div>
+                <button id="qaza-reset-btn" class="qaza-reset-btn">
+                    <span class="material-symbols-outlined">refresh</span>
+                    Reset All
+                </button>
             </div>
         </div>
     </div>
