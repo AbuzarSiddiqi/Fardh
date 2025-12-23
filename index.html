@@ -242,30 +242,46 @@
 
                     <!-- Prayer Times Display (Compact + Expandable) -->
                     <div id="prayer-times-display" class="hidden">
-                        <!-- Compact View (Click to expand) -->
-                        <div id="prayer-compact-card" class="prayer-compact-card">
-                            <div class="prayer-compact-main">
-                                <!-- Current Prayer -->
-                                <div class="prayer-current-section">
-                                    <p class="prayer-current-label">Current</p>
-                                    <p id="current-prayer-name" class="prayer-current-name">--</p>
-                                    <p id="current-prayer-time" class="prayer-current-time">--:--</p>
+                        <!-- Premium Compact View (Click to expand) -->
+                        <div id="prayer-compact-card" class="prayer-card-premium">
+                            <!-- Decorative glow -->
+                            <div class="prayer-card-glow"></div>
+                            
+                            <!-- Main content -->
+                            <div class="prayer-card-content">
+                                <!-- Left side: Badge + Prayer name + Countdown -->
+                                <div class="prayer-card-left">
+                                    <span class="prayer-card-badge">
+                                        <span class="badge-pulse"></span>
+                                        Next Prayer
+                                    </span>
+                                    <h3 id="next-prayer-name" class="prayer-card-name">--</h3>
+                                    <p class="prayer-card-countdown">
+                                        Starts in <span id="next-prayer-countdown" class="countdown-value">--:--</span>
+                                    </p>
                                 </div>
                                 
-                                <!-- Divider -->
-                                <div class="prayer-divider"></div>
-                                
-                                <!-- Next Prayer -->
-                                <div class="prayer-next-section">
-                                    <p class="prayer-next-label">Next</p>
-                                    <p id="next-prayer-name" class="prayer-next-name">--</p>
-                                    <p id="next-prayer-countdown" class="prayer-next-countdown">--:--</p>
+                                <!-- Right side: Time display -->
+                                <div class="prayer-card-right">
+                                    <div id="next-prayer-time-display" class="prayer-card-time">--:--</div>
+                                    <div class="prayer-card-period">PM</div>
                                 </div>
                             </div>
                             
-                            <!-- Location & Expand indicator -->
-                            <div class="prayer-compact-footer">
-                                <p id="prayer-location-name" class="prayer-compact-location">
+                            <!-- Progress bar section -->
+                            <div class="prayer-card-progress-section">
+                                <div class="prayer-progress-labels">
+                                    <span id="current-prayer-name" class="progress-label-current">--</span>
+                                    <span id="progress-next-prayer" class="progress-label-next">--</span>
+                                </div>
+                                <div class="prayer-progress-bar">
+                                    <div id="prayer-progress-fill" class="prayer-progress-fill"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Footer: Location + Expand -->
+                            <div class="prayer-card-footer">
+                                <p class="prayer-card-location">
                                     <span class="material-symbols-outlined">location_on</span>
                                     <span id="location-city">Loading...</span>
                                 </p>
@@ -782,6 +798,24 @@
                         </button>
                     </div>
 
+                    <!-- Theme Toggle Section -->
+                    <div class="settings-section">
+                        <p class="settings-label">Appearance</p>
+                        <div class="settings-card">
+                            <div class="settings-row theme-toggle-row" style="border-bottom: none; padding-top: 0; padding-bottom: 0;">
+                                <div class="settings-info">
+                                    <h3>Theme</h3>
+                                    <p id="current-theme-label">Dark Mode</p>
+                                </div>
+                                <button id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Toggle theme">
+                                    <span class="material-symbols-outlined theme-icon-dark">dark_mode</span>
+                                    <span class="material-symbols-outlined theme-icon-light">light_mode</span>
+                                    <div class="theme-toggle-slider"></div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Settings Section (Inline) -->
                     <div class="settings-section">
                         <p class="settings-label">Text Edition</p>
@@ -824,7 +858,7 @@
                                 For any issues or feedback:<br>
                                 <a href="mailto:abuzarxsiddiqi@gmail.com" style="color: var(--primary);">abuzarxsiddiqi@gmail.com</a>
                             </p>
-                            <p style="font-size: 0.8125rem; color: var(--text-muted);">Version 3.3.5</p>
+                            <p style="font-size: 0.8125rem; color: var(--text-muted);">Version 3.4.0</p>
                         </div>
                     </div>
                 </div>

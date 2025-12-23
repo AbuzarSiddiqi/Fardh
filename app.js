@@ -31,8 +31,62 @@ const state = {
     selectedEdition: localStorage.getItem('selectedEdition') || DEFAULT_EDITION,
     selectedAudioEdition: localStorage.getItem('selectedAudioEdition') || 'ar.alafasy',
     selectedLanguage: localStorage.getItem('selectedLanguage') || 'ar',
-    isOffline: !navigator.onLine
+    isOffline: !navigator.onLine,
+    theme: localStorage.getItem('theme') || 'dark'
 };
+
+// ============================================
+// THEME MANAGEMENT
+// ============================================
+
+// Initialize theme on app load
+function initTheme() {
+    // Check for saved preference, then system preference
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme) {
+        setTheme(savedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        setTheme('light');
+    } else {
+        setTheme('dark');
+    }
+
+    // Listen for system preference changes
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+            // Only auto-switch if user hasn't set a preference
+            if (!localStorage.getItem('theme')) {
+                setTheme(e.matches ? 'light' : 'dark');
+            }
+        });
+    }
+
+    // Set up toggle button
+    const toggleBtn = document.getElementById('theme-toggle-btn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', toggleTheme);
+    }
+}
+
+// Set the theme
+function setTheme(theme) {
+    state.theme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+
+    // Update label
+    const label = document.getElementById('current-theme-label');
+    if (label) {
+        label.textContent = theme === 'light' ? 'Light Mode' : 'Dark Mode';
+    }
+}
+
+// Toggle between light and dark
+function toggleTheme() {
+    const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+}
 
 // DOM Elements Cache
 const elements = {
@@ -101,6 +155,9 @@ function trackEvent(eventName, eventData = {}) {
 document.addEventListener('DOMContentLoaded', initApp);
 
 async function initApp() {
+    // Initialize theme first (before any rendering)
+    initTheme();
+
     // Initialize splash screen handling
     initSplashScreen();
 
@@ -3966,20 +4023,60 @@ function calculateNextPrayer() {
     prayerState.currentPrayer = currentPrayer;
     prayerState.nextPrayer = { name: nextPrayer, time: nextPrayerTime };
 
-    // Update current prayer display
+    // Update current prayer display (for progress bar labels)
     const currentPrayerNameEl = document.getElementById('current-prayer-name');
-    const currentPrayerTimeEl = document.getElementById('current-prayer-time');
     if (currentPrayerNameEl && currentPrayer) {
         currentPrayerNameEl.textContent = currentPrayer.name;
     }
-    if (currentPrayerTimeEl && currentPrayerTime) {
-        currentPrayerTimeEl.textContent = currentPrayerTime;
-    }
 
-    // Update next prayer display
+    // Update next prayer display (in premium card)
     const nextPrayerNameEl = document.getElementById('next-prayer-name');
     if (nextPrayerNameEl) {
         nextPrayerNameEl.textContent = nextPrayer;
+    }
+
+    // Update progress bar next label
+    const progressNextLabel = document.getElementById('progress-next-prayer');
+    if (progressNextLabel) {
+        progressNextLabel.textContent = nextPrayer;
+    }
+
+    // Update time display on the right side
+    const nextTimeDisplay = document.getElementById('next-prayer-time-display');
+    const periodDisplay = document.querySelector('.prayer-card-period');
+    if (nextTimeDisplay && nextPrayerTime) {
+        const hours = nextPrayerTime.hours;
+        const minutes = nextPrayerTime.minutes;
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const hours12 = hours % 12 || 12;
+        nextTimeDisplay.textContent = `${hours12}:${String(minutes).padStart(2, '0')}`;
+        if (periodDisplay) {
+            periodDisplay.textContent = period;
+        }
+    }
+
+    // Update progress bar
+    if (currentPrayer && nextPrayerTime) {
+        const currentPrayerEnd = currentPrayer.totalMinutes;
+        const nextPrayerStart = nextPrayerTime.hours * 60 + nextPrayerTime.minutes;
+        let totalDuration = nextPrayerStart - currentPrayerEnd;
+
+        // Handle overnight (Isha to Fajr)
+        if (totalDuration < 0) {
+            totalDuration += 24 * 60; // Add 24 hours
+        }
+
+        let elapsed = currentTime - currentPrayerEnd;
+        if (elapsed < 0) {
+            elapsed += 24 * 60;
+        }
+
+        const progress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+
+        const progressFill = document.getElementById('prayer-progress-fill');
+        if (progressFill) {
+            progressFill.style.width = `${progress}%`;
+        }
     }
 
     // Highlight prayer cards in grid

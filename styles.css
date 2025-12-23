@@ -69,6 +69,97 @@
 }
 
 /* ===========================================
+   LIGHT MODE THEME
+   =========================================== */
+
+[data-theme="light"] {
+    /* Background Colors */
+    --bg-dark: #F0FDF4;
+    --bg-darker: #ECFDF5;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --bg-card-hover: rgba(255, 255, 255, 0.95);
+
+    /* Text Colors */
+    --text-primary: #1f2937;
+    --text-secondary: rgba(31, 41, 55, 0.75);
+    --text-muted: rgba(31, 41, 55, 0.55);
+    --text-hint: rgba(31, 41, 55, 0.35);
+
+    /* Border Colors */
+    --border-light: rgba(0, 0, 0, 0.08);
+    --border-gold: rgba(180, 130, 60, 0.25);
+    --border-primary: rgba(16, 185, 129, 0.35);
+
+    /* Shadows - lighter for light mode */
+    --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.25);
+    --shadow-gold: 0 0 12px rgba(180, 130, 60, 0.15);
+
+    /* Primary adjustments for light mode */
+    --primary: #10B981;
+    --primary-dark: #059669;
+    --primary-light: rgba(16, 185, 129, 0.12);
+    --primary-glow: rgba(16, 185, 129, 0.2);
+}
+
+/* Light mode glass panels */
+[data-theme="light"] .glass,
+[data-theme="light"] .glass-card,
+[data-theme="light"] .glass-strong {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Light mode background glows - hide them */
+[data-theme="light"] .bg-glow {
+    opacity: 0;
+}
+
+/* Light mode page header */
+[data-theme="light"] .page-header {
+    background: rgba(240, 253, 244, 0.9);
+    border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Light mode bottom nav */
+[data-theme="light"] .nav-container {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Light mode icon buttons */
+[data-theme="light"] .icon-btn {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Light mode cards */
+[data-theme="light"] .card,
+[data-theme="light"] .feature-card,
+[data-theme="light"] .dua-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Light mode form elements */
+[data-theme="light"] .form-select {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}
+
+/* Smooth theme transition */
+body,
+.page-header,
+.nav-container,
+.card,
+.feature-card,
+.icon-btn {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* ===========================================
    SPLASH SCREEN - Logo Diamond Nukhta Expansion
    =========================================== */
 
@@ -863,90 +954,198 @@ h3 {
     color: var(--text-muted);
 }
 
-/* Compact Prayer Card - Main View */
-.prayer-compact-card {
-    padding: var(--space-md);
-    border-radius: var(--radius-xl);
+/* ===========================================
+   PREMIUM PRAYER CARD - Redesigned
+   =========================================== */
+
+.prayer-card-premium {
+    position: relative;
+    padding: var(--space-lg);
+    border-radius: var(--radius-2xl);
     background: var(--bg-card);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--border-light);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all var(--transition-base);
+    overflow: hidden;
+    box-shadow: var(--shadow-glass);
 }
 
-.prayer-compact-card:hover {
+.prayer-card-premium:hover {
     background: var(--bg-card-hover);
+    transform: translateY(-2px);
 }
 
-.prayer-compact-main {
+/* Decorative glow */
+.prayer-card-glow {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 150px;
+    background: var(--primary-glow);
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Main content layout */
+.prayer-card-content {
     display: flex;
-    align-items: stretch;
-    gap: var(--space-md);
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-lg);
+    position: relative;
+    z-index: 1;
+}
+
+.prayer-card-left {
+    flex: 1;
+}
+
+/* Next Prayer Badge */
+.prayer-card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 4px 10px;
+    background: var(--primary-light);
+    border-radius: var(--radius-full);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--primary);
     margin-bottom: var(--space-sm);
 }
 
-.prayer-current-section,
-.prayer-next-section {
-    flex: 1;
-    text-align: center;
-    padding: var(--space-sm) 0;
+.badge-pulse {
+    width: 6px;
+    height: 6px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
 }
 
-.prayer-current-label,
-.prayer-next-label {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
-    margin-bottom: 2px;
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
 }
 
-.prayer-current-name {
-    font-size: 1.125rem;
+/* Prayer name - Large display */
+.prayer-card-name {
+    font-size: 2.25rem;
     font-weight: 700;
     color: var(--text-primary);
+    line-height: 1.1;
+    margin: 0 0 var(--space-xs) 0;
+    letter-spacing: -0.02em;
 }
 
-.prayer-current-time {
-    font-size: 0.75rem;
+/* Countdown text */
+.prayer-card-countdown {
+    font-size: 0.875rem;
     color: var(--text-muted);
+    margin: 0;
 }
 
-.prayer-next-name {
-    font-size: 1.125rem;
+.countdown-value {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Right side - Time display */
+.prayer-card-right {
+    text-align: right;
+}
+
+.prayer-card-time {
+    font-size: 2rem;
     font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.prayer-card-period {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+}
+
+/* Progress bar section */
+.prayer-card-progress-section {
+    position: relative;
+    z-index: 1;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-light);
+    margin-bottom: var(--space-sm);
+}
+
+.prayer-progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: var(--space-xs);
+}
+
+.progress-label-current {
+    color: var(--text-secondary);
+}
+
+.progress-label-next {
     color: var(--primary);
 }
 
-.prayer-next-countdown {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--gold);
-}
-
-.prayer-divider {
-    width: 1px;
+.prayer-progress-bar {
+    width: 100%;
+    height: 6px;
     background: var(--border-light);
-    margin: var(--space-xs) 0;
+    border-radius: var(--radius-full);
+    overflow: hidden;
 }
 
-.prayer-compact-footer {
+.prayer-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    border-radius: var(--radius-full);
+    box-shadow: 0 0 10px var(--primary-glow);
+    transition: width 1s ease-out;
+}
+
+/* Footer */
+.prayer-card-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: var(--space-sm);
-    border-top: 1px solid var(--border-light);
+    position: relative;
+    z-index: 1;
 }
 
-.prayer-compact-location {
+.prayer-card-location {
     display: flex;
     align-items: center;
     gap: 4px;
     font-size: 0.75rem;
     color: var(--text-muted);
+    margin: 0;
 }
 
-.prayer-compact-location .material-symbols-outlined {
+.prayer-card-location .material-symbols-outlined {
     font-size: 14px;
     color: var(--primary);
 }
@@ -955,6 +1154,16 @@ h3 {
     font-size: 20px;
     color: var(--text-muted);
     transition: transform var(--transition-fast);
+}
+
+/* Light mode adjustments for prayer card */
+[data-theme="light"] .prayer-card-premium {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .prayer-card-glow {
+    opacity: 0.3;
 }
 
 .prayer-expand-icon.rotated {
@@ -9319,4 +9528,84 @@ body.mini-player-active .main-content {
     color: var(--text-hint);
     padding-top: var(--space-xs);
     opacity: 0.7;
+}
+
+/* ===========================================
+   THEME TOGGLE BUTTON
+   =========================================== */
+
+.theme-toggle-btn {
+    position: relative;
+    width: 56px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--bg-card-hover);
+}
+
+.theme-toggle-btn .material-symbols-outlined {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.theme-icon-dark {
+    left: 8px;
+    color: var(--gold);
+    opacity: 1;
+}
+
+.theme-icon-light {
+    right: 8px;
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.theme-toggle-slider {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    background: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light mode toggle state */
+[data-theme="light"] .theme-toggle-btn {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="light"] .theme-toggle-slider {
+    left: calc(100% - 27px);
+    background: #fbbf24;
+}
+
+[data-theme="light"] .theme-icon-dark {
+    opacity: 0.4;
+    color: var(--text-muted);
+}
+
+[data-theme="light"] .theme-icon-light {
+    opacity: 1;
+    color: #fbbf24;
+}
+
+.theme-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
