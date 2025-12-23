@@ -3517,6 +3517,185 @@ const prayerState = {
 const PRAYER_NAMES = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 const PRAYER_IDS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
+// Rakats information for each prayer
+const PRAYER_RAKATS = {
+    fajr: {
+        name: 'Fajr',
+        total: '04',
+        details: '1. 02 Sunnah\n2. 02 Farz'
+    },
+    sunrise: {
+        name: 'Sunrise',
+        total: '--',
+        details: 'Ishraq: 15-20 min after sunrise'
+    },
+    dhuhr: {
+        name: 'Zuhar',
+        total: '12',
+        details: '1. 04 Sunnah\n2. 04 Farz\n3. 02 Sunnah\n4. 02 Nawafil'
+    },
+    asr: {
+        name: 'Asr',
+        total: '08',
+        details: '1. 04 Sunnah\n2. 04 Farz'
+    },
+    maghrib: {
+        name: 'Maghrib',
+        total: '07',
+        details: '1. 03 Farz\n2. 02 Sunnah\n3. 02 Nawafil'
+    },
+    isha: {
+        name: 'Isha',
+        total: '17',
+        details: '1. 04 Sunnah\n2. 04 Farz\n3. 02 Sunnah\n4. 02 Nawafil\n5. 03 Witar\n6. 02 Nawafil'
+    }
+};
+
+// Long press state for showing rakats
+let rakatTooltipTimeout = null;
+
+// Show rakats tooltip on long press
+function showRakatsTooltip(prayerId, cardElement) {
+    const rakatInfo = PRAYER_RAKATS[prayerId];
+    if (!rakatInfo) return;
+
+    // Remove any existing tooltip
+    hideRakatsTooltip();
+
+    // Create tooltip element
+    const tooltip = document.createElement('div');
+    tooltip.id = 'rakat-tooltip';
+    tooltip.className = 'rakat-tooltip';
+
+    // Convert newlines in details to HTML line breaks
+    const formattedDetails = rakatInfo.details.replace(/\n/g, '<br>');
+
+    tooltip.innerHTML = `
+        <div class="rakat-tooltip-header">
+            <span class="material-symbols-outlined">mosque</span>
+            <span>${rakatInfo.name}</span>
+        </div>
+        <div class="rakat-tooltip-content">
+            <div class="rakat-total">${rakatInfo.total} Rakats</div>
+            <div class="rakat-details">${formattedDetails}</div>
+        </div>
+    `;
+
+    // Position tooltip above the card
+    document.body.appendChild(tooltip);
+
+    // Calculate position
+    const cardRect = cardElement.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+
+    let left = cardRect.left + (cardRect.width / 2) - (tooltipRect.width / 2);
+    let top = cardRect.top - tooltipRect.height - 10;
+
+    // Ensure tooltip stays within viewport
+    if (left < 10) left = 10;
+    if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - tooltipRect.width - 10;
+    }
+    if (top < 10) {
+        top = cardRect.bottom + 10; // Show below if not enough space above
+        tooltip.classList.add('below');
+    }
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+
+    // Animate in
+    requestAnimationFrame(() => {
+        tooltip.classList.add('visible');
+    });
+
+    // Add haptic feedback if available
+    if (navigator.vibrate) {
+        navigator.vibrate(30);
+    }
+
+    // Add visual feedback to card
+    cardElement.classList.add('showing-rakats');
+}
+
+// Hide rakats tooltip
+function hideRakatsTooltip() {
+    const tooltip = document.getElementById('rakat-tooltip');
+    if (tooltip) {
+        tooltip.classList.remove('visible');
+        setTimeout(() => tooltip.remove(), 200);
+    }
+
+    // Remove visual feedback from all cards
+    document.querySelectorAll('.prayer-grid-item.showing-rakats').forEach(card => {
+        card.classList.remove('showing-rakats');
+    });
+}
+
+// Initialize long press handlers for prayer cards
+function initPrayerCardLongPress() {
+    const LONG_PRESS_DURATION = 500; // 500ms for long press
+
+    PRAYER_IDS.forEach(prayerId => {
+        const card = document.getElementById(`${prayerId}-card`);
+        if (!card) return;
+
+        let pressTimer = null;
+        let isLongPress = false;
+        let startX = 0;
+        let startY = 0;
+
+        const startPress = (e) => {
+            isLongPress = false;
+            const touch = e.touches ? e.touches[0] : e;
+            startX = touch.clientX;
+            startY = touch.clientY;
+
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
+                showRakatsTooltip(prayerId, card);
+            }, LONG_PRESS_DURATION);
+        };
+
+        const movePress = (e) => {
+            if (pressTimer) {
+                const touch = e.touches ? e.touches[0] : e;
+                const deltaX = Math.abs(touch.clientX - startX);
+                const deltaY = Math.abs(touch.clientY - startY);
+
+                // Cancel if moved more than 10px
+                if (deltaX > 10 || deltaY > 10) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+            }
+        };
+
+        const endPress = (e) => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+            hideRakatsTooltip();
+        };
+
+        // Touch events
+        card.addEventListener('touchstart', startPress, { passive: true });
+        card.addEventListener('touchmove', movePress, { passive: true });
+        card.addEventListener('touchend', endPress);
+        card.addEventListener('touchcancel', endPress);
+
+        // Mouse events for desktop
+        card.addEventListener('mousedown', startPress);
+        card.addEventListener('mousemove', movePress);
+        card.addEventListener('mouseup', endPress);
+        card.addEventListener('mouseleave', endPress);
+    });
+
+    // Hide tooltip on scroll
+    document.addEventListener('scroll', hideRakatsTooltip, { passive: true });
+}
+
 // Convert 24-hour time to 12-hour AM/PM format
 function convertTo12Hour(time24) {
     const [hours, minutes] = time24.split(':').map(Number);
@@ -3957,6 +4136,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (compactCard) {
         compactCard.addEventListener('click', togglePrayerExpanded);
     }
+
+    // Initialize long press for prayer cards (for showing rakats)
+    setTimeout(initPrayerCardLongPress, 200);
 });
 
 // ============================================

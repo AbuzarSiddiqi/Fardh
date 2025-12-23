@@ -9202,3 +9202,121 @@ body.mini-player-active .main-content {
 .lang-option-check .material-symbols-outlined {
     font-size: 20px;
 }
+
+/* ===========================================
+   RAKAT TOOLTIP - Long Press on Prayer Cards
+   =========================================== */
+
+.rakat-tooltip {
+    position: fixed;
+    z-index: 9999;
+    min-width: 200px;
+    max-width: 280px;
+    padding: 0;
+    border-radius: var(--radius-xl);
+    background: rgba(16, 34, 24, 0.95);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-gold);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(226, 179, 116, 0.15);
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.rakat-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.rakat-tooltip.below {
+    transform: translateY(-8px) scale(0.95);
+}
+
+.rakat-tooltip.below.visible {
+    transform: translateY(0) scale(1);
+}
+
+/* Tooltip arrow */
+.rakat-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 16px;
+    height: 16px;
+    background: rgba(16, 34, 24, 0.95);
+    border-right: 1px solid var(--border-gold);
+    border-bottom: 1px solid var(--border-gold);
+}
+
+.rakat-tooltip.below::before {
+    bottom: auto;
+    top: -8px;
+    border-right: none;
+    border-bottom: none;
+    border-left: 1px solid var(--border-gold);
+    border-top: 1px solid var(--border-gold);
+}
+
+.rakat-tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: linear-gradient(135deg, rgba(226, 179, 116, 0.15), rgba(226, 179, 116, 0.05));
+    border-bottom: 1px solid rgba(226, 179, 116, 0.2);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.rakat-tooltip-header .material-symbols-outlined {
+    color: var(--gold);
+    font-size: 18px;
+}
+
+.rakat-tooltip-header span:last-child {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--gold-light);
+}
+
+.rakat-tooltip-content {
+    padding: var(--space-md);
+}
+
+.rakat-total {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.rakat-details {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+/* Prayer card state when showing rakats */
+.prayer-grid-item.showing-rakats {
+    background: rgba(226, 179, 116, 0.15);
+    border-color: var(--border-gold);
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(226, 179, 116, 0.2);
+}
+
+/* Hint text for long press */
+.prayer-times-grid::after {
+    content: 'Hold on a prayer to see rakats';
+    display: block;
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 0.6875rem;
+    color: var(--text-hint);
+    padding-top: var(--space-xs);
+    opacity: 0.7;
+}

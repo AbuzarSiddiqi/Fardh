@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fardh App - Prayer, Quran &amp; Duas</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=Amiri:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#10B981", // Emerald 500
+                        "background-light": "#F0FDF4", // Emerald 50
+                        "background-dark": "#0B1E16", // Deep Dark Green from logo background
+                        "surface-dark": "#132D24", // Slightly lighter for cards
+                        "accent-green": "#34D399", // Emerald 400
+                    },
+                    fontFamily: {
+                        display: ["Outfit", "sans-serif"],
+                        body: ["Outfit", "sans-serif"],
+                        arabic: ["Amiri", "serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        'xl': '1rem',
+                        '2xl': '1.5rem',
+                        '3xl': '2rem',
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(16, 185, 129, 0.3)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>.clip-top-shape {
+            clip-path: polygon(0 0, 100% 0, 80% 100%, 0% 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-panel-light {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-100 min-h-screen antialiased transition-colors duration-300">
+<div class="max-w-md mx-auto min-h-screen relative overflow-hidden bg-background-light dark:bg-background-dark shadow-2xl">
+<div class="absolute top-[-15%] left-[-20%] w-[100%] h-[60%] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none dark:opacity-100 opacity-0 transition-opacity duration-500"></div>
+<div class="absolute bottom-[-10%] right-[-20%] w-[80%] h-[50%] bg-emerald-800/20 rounded-full blur-[100px] pointer-events-none dark:opacity-100 opacity-0 transition-opacity duration-500"></div>
+<div class="flex justify-between items-center px-6 py-4 relative z-20">
+<span class="text-sm font-semibold dark:text-white text-gray-800">12:30</span>
+<div class="flex space-x-2 items-center text-gray-800 dark:text-white">
+<span class="material-icons-round text-sm">signal_cellular_alt</span>
+<span class="material-icons-round text-sm">wifi</span>
+<span class="material-icons-round text-sm">battery_full</span>
+</div>
+</div>
+<header class="px-6 pt-2 pb-2 flex justify-between items-center relative z-20">
+<div>
+<p class="text-emerald-600 dark:text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-1">14 Ramadhan, 1445</p>
+<h1 class="text-2xl font-bold dark:text-white text-gray-900 leading-tight">Fardh</h1>
+</div>
+<button class="w-10 h-10 rounded-full glass-panel-light dark:glass-panel flex items-center justify-center hover:bg-emerald-100 dark:hover:bg-white/10 transition-colors">
+<span class="material-icons-round text-emerald-700 dark:text-emerald-300">notifications_none</span>
+</button>
+</header>
+<div class="flex flex-col items-center justify-center py-8 relative z-10 w-full">
+<div class="relative w-32 h-32 mb-6">
+<div class="absolute top-0 left-0 w-full h-[32%] bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-600 rounded-l-full clip-top-shape shadow-lg z-20"></div>
+<div class="absolute top-[32%] right-0 w-[60%] h-[32%] bg-gradient-to-bl from-emerald-400 to-emerald-600 rounded-r-2xl shadow-lg z-10"></div>
+<div class="absolute top-[32%] right-[20%] w-[40%] h-[32%] bg-gradient-to-r from-black/20 to-transparent pointer-events-none z-20 mix-blend-overlay"></div>
+<div class="absolute bottom-[4%] left-0 w-[42%] h-[32%] bg-gradient-to-tr from-emerald-500 to-emerald-300 rounded-bl-3xl rounded-tr-sm shadow-lg z-10"></div>
+<div class="absolute bottom-[4%] left-[10%] w-[32%] h-[32%] bg-gradient-to-l from-black/20 to-transparent pointer-events-none z-20 mix-blend-overlay"></div>
+</div>
+<p class="text-center text-gray-500 dark:text-gray-400 text-sm max-w-[200px] leading-relaxed">
+<span class="font-arabic text-lg block text-emerald-600 dark:text-emerald-400 mb-1">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</span>
+                Your daily companion for Prayer, Quran &amp; Reflection.
+            </p>
+</div>
+<div class="px-6 mb-6 relative z-20">
+<div class="w-full glass-panel-light dark:glass-panel rounded-3xl p-6 relative overflow-hidden group shadow-xl">
+<div class="absolute top-0 right-0 w-32 h-32 bg-emerald-400/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
+<div class="flex justify-between items-start mb-6 relative">
+<div>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 mb-2">
+<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
+                            Next Prayer
+                        </span>
+<h3 class="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">Maghrib</h3>
+<p class="text-gray-500 dark:text-gray-400 text-sm mt-1 font-medium">Starts in <span class="text-emerald-600 dark:text-emerald-400">1h 24m</span></p>
+</div>
+<div class="text-right">
+<div class="text-3xl font-bold text-gray-900 dark:text-white font-display">6:42</div>
+<div class="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mt-1">PM</div>
+</div>
+</div>
+<div class="relative pt-4 border-t border-gray-200 dark:border-white/10">
+<div class="flex justify-between text-xs text-gray-400 dark:text-gray-500 font-medium mb-2">
+<span>Asr</span>
+<span>Maghrib</span>
+<span>Isha</span>
+</div>
+<div class="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 w-[65%] rounded-full shadow-glow"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="px-6 pb-28 relative z-20">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                Explore
+                <span class="material-icons-round text-emerald-500 ml-1 text-sm">arrow_forward</span>
+</h3>
+<div class="grid grid-cols-2 gap-4">
+<a class="bg-white dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex flex-col justify-between h-36 hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden" href="#">
+<div class="absolute -right-4 -bottom-4 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity">
+<span class="material-icons-round text-8xl text-emerald-500">menu_book</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-300 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
+<span class="material-icons-round">menu_book</span>
+</div>
+<div>
+<h4 class="font-bold text-gray-900 dark:text-white text-lg">Al-Quran</h4>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Continue Reading</p>
+</div>
+</a>
+<a class="bg-white dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex flex-col justify-between h-36 hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden" href="#">
+<div class="absolute -right-4 -bottom-4 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity">
+<span class="material-icons-round text-8xl text-emerald-500">volunteer_activism</span>
+</div>
+<div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-300 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
+<span class="material-icons-round">volunteer_activism</span>
+</div>
+<div>
+<h4 class="font-bold text-gray-900 dark:text-white text-lg">Daily Duas</h4>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Morning Adhkar</p>
+</div>
+</a>
+<a class="bg-white dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group" href="#">
+<div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-300">
+<span class="material-icons-round text-sm">explore</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-gray-900 dark:text-white text-sm">Qibla</h4>
+<p class="text-[10px] text-gray-500 dark:text-gray-400">Direction</p>
+</div>
+<span class="material-icons-round text-gray-300 text-sm">chevron_right</span>
+</a>
+<a class="bg-white dark:bg-surface-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group" href="#">
+<div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-300">
+<span class="material-icons-round text-sm">trip_origin</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-gray-900 dark:text-white text-sm">Tasbih</h4>
+<p class="text-[10px] text-gray-500 dark:text-gray-400">Counter</p>
+</div>
+<span class="material-icons-round text-gray-300 text-sm">chevron_right</span>
+</a>
+</div>
+</div>
+<div class="fixed bottom-0 left-0 w-full max-w-md mx-auto z-50 px-6 pb-6 pt-10 bg-gradient-to-t from-background-light via-background-light dark:from-background-dark dark:via-background-dark to-transparent pointer-events-none">
+<nav class="glass-panel-light dark:glass-panel rounded-2xl flex justify-around items-center px-2 py-3 shadow-2xl pointer-events-auto backdrop-blur-xl border-t border-white/20">
+<button class="p-2 flex flex-col items-center justify-center space-y-1 text-emerald-600 dark:text-emerald-400 relative">
+<span class="material-icons-round text-2xl">home</span>
+<span class="w-1 h-1 bg-emerald-500 rounded-full absolute -bottom-1"></span>
+</button>
+<button class="p-2 flex flex-col items-center justify-center space-y-1 text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+<span class="material-icons-round text-2xl">menu_book</span>
+</button>
+<button class="w-12 h-12 bg-gradient-to-tr from-emerald-600 to-emerald-400 rounded-xl shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white -mt-8 border-4 border-white dark:border-background-dark transform hover:scale-105 transition-transform">
+<span class="material-icons-round">mosque</span>
+</button>
+<button class="p-2 flex flex-col items-center justify-center space-y-1 text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+<span class="material-icons-round text-2xl">event</span>
+</button>
+<button class="p-2 flex flex-col items-center justify-center space-y-1 text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+<span class="material-icons-round text-2xl">settings</span>
+</button>
+</nav>
+</div>
+</div>
+<script>
+        // Check for dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
+</body></html>
