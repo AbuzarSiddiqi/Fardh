@@ -672,6 +672,13 @@
     color: #059669 !important;
 }
 
+/* Back button in share modal - dark */
+[data-theme="light"] .share-modal-header .icon-btn,
+[data-theme="light"] .share-modal-header .back-btn,
+[data-theme="light"] .share-modal-header button {
+    color: #1F2937 !important;
+}
+
 /* Dua items inside expanded card - GREEN tint instead of gray */
 [data-theme="light"] .dua-category-items {
     background: rgba(167, 243, 208, 0.5) !important;
