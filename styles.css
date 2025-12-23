@@ -771,11 +771,11 @@
 }
 
 [data-theme="light"] .splash-title {
-    color: #1F2937 !important;
+    color: #000000 !important;
 }
 
 [data-theme="light"] .splash-subtitle {
-    color: #374151 !important;
+    color: #111111 !important;
 }
 
 /* Smooth theme transition */
