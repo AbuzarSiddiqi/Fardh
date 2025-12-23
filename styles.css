@@ -633,6 +633,33 @@
 }
 
 /* ===========================================
+   DUA SEARCH SUGGESTIONS - Light Mode Fix
+   =========================================== */
+
+[data-theme="light"] .dua-suggestion-item {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1) !important;
+}
+
+[data-theme="light"] .dua-suggestion-item:active {
+    background: rgba(209, 250, 229, 1) !important;
+}
+
+[data-theme="light"] .dua-suggestion-icon {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-theme="light"] .dua-suggestion-title {
+    color: #1F2937 !important;
+}
+
+[data-theme="light"] .dua-suggestion-preview {
+    color: #6B7280 !important;
+}
+
+/* ===========================================
    SHARE MODAL HEADER TEXT - Light Mode Fix
    =========================================== */
 
