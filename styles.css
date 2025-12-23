@@ -450,7 +450,6 @@
 [data-theme="light"] .name-detail-header,
 [data-theme="light"] .feature-header,
 [data-theme="light"] .prophet-story-header,
-[data-theme="light"] .hadith-card-header,
 [data-theme="light"] .lang-selector-header,
 [data-theme="light"] .rakat-tooltip-header,
 [data-theme="light"] .reading-history-header,
@@ -463,6 +462,7 @@
 [data-theme="light"] .section-header,
 [data-theme="light"] .dua-section-header,
 [data-theme="light"] .dua-group-header,
+[data-theme="light"] .hadith-card-header,
 [data-theme="light"] .progress-header,
 [data-theme="light"] .ayah-header {
     background: transparent !important;
