@@ -3915,6 +3915,7 @@ function calculateNextPrayer() {
     let nextPrayer = null;
     let nextPrayerTime = null;
     let nextPrayerMinutes = Infinity;
+    let prevPrayer = null;
 
     // Build array of prayers with their times
     const prayerList = PRAYER_NAMES.map((name, index) => {
@@ -3924,7 +3925,8 @@ function calculateNextPrayer() {
         return { name, hours, minutes, totalMinutes: hours * 60 + minutes, id: PRAYER_IDS[index] };
     }).filter(Boolean);
 
-    // Find current and next prayer
+    // Find current, next, and previous prayer
+    let nextPrayerIndex = -1;
     for (let i = 0; i < prayerList.length; i++) {
         const prayer = prayerList[i];
         const nextIdx = i + 1 < prayerList.length ? i + 1 : 0;
@@ -3944,6 +3946,9 @@ function calculateNextPrayer() {
             nextPrayerMinutes = prayer.totalMinutes;
             nextPrayer = prayer.name;
             nextPrayerTime = { hours: prayer.hours, minutes: prayer.minutes };
+            nextPrayerIndex = i;
+            // Previous prayer is the one before this
+            prevPrayer = i > 0 ? prayerList[i - 1] : prayerList[prayerList.length - 1];
         }
     }
 
@@ -3961,12 +3966,77 @@ function calculateNextPrayer() {
         nextPrayer = 'Fajr';
         const fajrTime = prayerState.timings.Fajr.split(' ')[0].split(':').map(Number);
         nextPrayerTime = { hours: fajrTime[0], minutes: fajrTime[1] };
+        nextPrayerIndex = 0;
+        prevPrayer = prayerList[prayerList.length - 1]; // Isha
     }
+
+    // Get the prayer after next for the label
+    const afterNextIndex = (nextPrayerIndex + 1) % prayerList.length;
+    const afterNextPrayer = prayerList[afterNextIndex];
 
     prayerState.currentPrayer = currentPrayer;
     prayerState.nextPrayer = { name: nextPrayer, time: nextPrayerTime };
 
-    // Update current prayer display
+    // Update next prayer display (main name)
+    const nextPrayerNameEl = document.getElementById('next-prayer-name');
+    if (nextPrayerNameEl) {
+        nextPrayerNameEl.textContent = nextPrayer;
+    }
+
+    // Update large time display
+    const nextPrayerTimeDisplay = document.getElementById('next-prayer-time-display');
+    const nextPrayerTimePeriod = document.querySelector('.prayer-time-period');
+    if (nextPrayerTimeDisplay && nextPrayerTime) {
+        const time12 = convertTo12Hour(`${String(nextPrayerTime.hours).padStart(2, '0')}:${String(nextPrayerTime.minutes).padStart(2, '0')}`);
+        const [time, period] = time12.split(' ');
+        nextPrayerTimeDisplay.textContent = time;
+        if (nextPrayerTimePeriod) {
+            nextPrayerTimePeriod.textContent = period;
+        }
+    }
+
+    // Update progress bar labels
+    const prevLabel = document.getElementById('prev-prayer-label');
+    const currentLabel = document.getElementById('current-prayer-label');
+    const nextLabel = document.getElementById('next-prayer-label');
+
+    if (prevLabel && currentPrayer) {
+        prevLabel.textContent = currentPrayer.name;
+    }
+    if (currentLabel) {
+        currentLabel.textContent = nextPrayer;
+    }
+    if (nextLabel && afterNextPrayer) {
+        nextLabel.textContent = afterNextPrayer.name;
+    }
+
+    // Calculate and update progress bar
+    if (currentPrayer && nextPrayerTime) {
+        const currentPrayerMinutes = currentPrayer.totalMinutes;
+        let nextMinutes = nextPrayerTime.hours * 60 + nextPrayerTime.minutes;
+
+        // Handle case when next prayer is tomorrow (Fajr after Isha)
+        if (nextMinutes < currentPrayerMinutes) {
+            nextMinutes += 24 * 60; // Add 24 hours
+        }
+
+        const totalSpan = nextMinutes - currentPrayerMinutes;
+        let elapsed = currentTime - currentPrayerMinutes;
+
+        // Handle midnight wrap
+        if (elapsed < 0) {
+            elapsed += 24 * 60;
+        }
+
+        const progress = Math.min(Math.max((elapsed / totalSpan) * 100, 0), 100);
+
+        const progressFill = document.getElementById('prayer-progress-fill');
+        if (progressFill) {
+            progressFill.style.width = `${progress}%`;
+        }
+    }
+
+    // Legacy: Update current prayer display for backward compatibility
     const currentPrayerNameEl = document.getElementById('current-prayer-name');
     const currentPrayerTimeEl = document.getElementById('current-prayer-time');
     if (currentPrayerNameEl && currentPrayer) {
@@ -3974,12 +4044,6 @@ function calculateNextPrayer() {
     }
     if (currentPrayerTimeEl && currentPrayerTime) {
         currentPrayerTimeEl.textContent = currentPrayerTime;
-    }
-
-    // Update next prayer display
-    const nextPrayerNameEl = document.getElementById('next-prayer-name');
-    if (nextPrayerNameEl) {
-        nextPrayerNameEl.textContent = nextPrayer;
     }
 
     // Highlight prayer cards in grid

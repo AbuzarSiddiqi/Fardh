@@ -242,30 +242,50 @@
 
                     <!-- Prayer Times Display (Compact + Expandable) -->
                     <div id="prayer-times-display" class="hidden">
-                        <!-- Compact View (Click to expand) -->
-                        <div id="prayer-compact-card" class="prayer-compact-card">
-                            <div class="prayer-compact-main">
-                                <!-- Current Prayer -->
-                                <div class="prayer-current-section">
-                                    <p class="prayer-current-label">Current</p>
-                                    <p id="current-prayer-name" class="prayer-current-name">--</p>
-                                    <p id="current-prayer-time" class="prayer-current-time">--:--</p>
+                        <!-- Premium Prayer Card (Click to expand) -->
+                        <div id="prayer-compact-card" class="prayer-premium-card">
+                            <!-- Decorative glow -->
+                            <div class="prayer-card-glow"></div>
+                            
+                            <!-- Card Content -->
+                            <div class="prayer-card-content">
+                                <!-- Top Row: Next Prayer Info & Time -->
+                                <div class="prayer-top-row">
+                                    <div class="prayer-info-left">
+                                        <!-- Next Prayer Badge -->
+                                        <span class="prayer-next-badge">
+                                            <span class="prayer-badge-pulse"></span>
+                                            Next Prayer
+                                        </span>
+                                        <!-- Prayer Name -->
+                                        <h3 id="next-prayer-name" class="prayer-main-name">--</h3>
+                                        <!-- Countdown -->
+                                        <p class="prayer-starts-in">
+                                            Starts in <span id="next-prayer-countdown" class="prayer-countdown-value">--:--</span>
+                                        </p>
+                                    </div>
+                                    <div class="prayer-info-right">
+                                        <div id="next-prayer-time-display" class="prayer-time-large">--:--</div>
+                                        <div class="prayer-time-period">--</div>
+                                    </div>
                                 </div>
                                 
-                                <!-- Divider -->
-                                <div class="prayer-divider"></div>
-                                
-                                <!-- Next Prayer -->
-                                <div class="prayer-next-section">
-                                    <p class="prayer-next-label">Next</p>
-                                    <p id="next-prayer-name" class="prayer-next-name">--</p>
-                                    <p id="next-prayer-countdown" class="prayer-next-countdown">--:--</p>
+                                <!-- Progress Bar Section -->
+                                <div class="prayer-progress-section">
+                                    <div class="prayer-progress-labels">
+                                        <span id="prev-prayer-label">--</span>
+                                        <span id="current-prayer-label">--</span>
+                                        <span id="next-prayer-label">--</span>
+                                    </div>
+                                    <div class="prayer-progress-bar">
+                                        <div id="prayer-progress-fill" class="prayer-progress-fill"></div>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <!-- Location & Expand indicator -->
-                            <div class="prayer-compact-footer">
-                                <p id="prayer-location-name" class="prayer-compact-location">
+                            <!-- Footer: Location & Expand -->
+                            <div class="prayer-card-footer">
+                                <p id="prayer-location-name" class="prayer-location">
                                     <span class="material-symbols-outlined">location_on</span>
                                     <span id="location-city">Loading...</span>
                                 </p>
@@ -824,7 +844,7 @@
                                 For any issues or feedback:<br>
                                 <a href="mailto:abuzarxsiddiqi@gmail.com" style="color: var(--primary);">abuzarxsiddiqi@gmail.com</a>
                             </p>
-                            <p style="font-size: 0.8125rem; color: var(--text-muted);">Version 3.3.5</p>
+                            <p style="font-size: 0.8125rem; color: var(--text-muted);">Version 3.3.6</p>
                         </div>
                     </div>
                 </div>
