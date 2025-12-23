@@ -4050,10 +4050,24 @@ function calculateNextPrayer() {
         currentPrayerTimeEl.textContent = currentTime12;
     }
 
-    // Update next prayer display (in premium card)
-    const nextPrayerNameEl = document.getElementById('next-prayer-name');
-    if (nextPrayerNameEl) {
-        nextPrayerNameEl.textContent = nextPrayer;
+    // Update main prayer display (in premium card) - show CURRENT prayer
+    const mainPrayerNameEl = document.getElementById('main-prayer-name');
+    const mainTimeDisplay = document.getElementById('main-prayer-time-display');
+    const mainPeriodDisplay = document.getElementById('main-prayer-period');
+
+    if (mainPrayerNameEl && currentPrayer) {
+        mainPrayerNameEl.textContent = currentPrayer.name;
+    }
+
+    if (mainTimeDisplay && currentPrayer) {
+        const hours = currentPrayer.hours;
+        const minutes = currentPrayer.minutes;
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const hours12 = hours % 12 || 12;
+        mainTimeDisplay.textContent = `${hours12}:${String(minutes).padStart(2, '0')}`;
+        if (mainPeriodDisplay) {
+            mainPeriodDisplay.textContent = period;
+        }
     }
 
     // Update progress bar next label and time
@@ -4067,20 +4081,6 @@ function calculateNextPrayer() {
             `${String(nextPrayerTime.hours).padStart(2, '0')}:${String(nextPrayerTime.minutes).padStart(2, '0')}`
         );
         progressNextTime.textContent = nextTime12;
-    }
-
-    // Update time display on the right side
-    const nextTimeDisplay = document.getElementById('next-prayer-time-display');
-    const periodDisplay = document.querySelector('.prayer-card-period');
-    if (nextTimeDisplay && nextPrayerTime) {
-        const hours = nextPrayerTime.hours;
-        const minutes = nextPrayerTime.minutes;
-        const period = hours >= 12 ? 'PM' : 'AM';
-        const hours12 = hours % 12 || 12;
-        nextTimeDisplay.textContent = `${hours12}:${String(minutes).padStart(2, '0')}`;
-        if (periodDisplay) {
-            periodDisplay.textContent = period;
-        }
     }
 
     // Update progress bar
@@ -4363,24 +4363,135 @@ function renderReadingHistoryModal() {
         const progress = item.totalAyahs ? Math.round((item.ayahNumber / item.totalAyahs) * 100) : 0;
 
         return `
-            <div class="reading-history-item" data-history-index="${index}">
-                <div class="reading-history-item-icon">
-                    <span class="material-symbols-outlined">menu_book</span>
+            <div class="reading-history-item-wrapper" data-history-index="${index}">
+                <div class="reading-history-item-content">
+                    <div class="reading-history-item-icon">
+                        <span class="material-symbols-outlined">menu_book</span>
+                    </div>
+                    <div class="reading-history-item-info">
+                        <h4>${surahName}</h4>
+                        <p>Ayah ${item.ayahNumber} • ${progress}% • ${timeAgo}</p>
+                    </div>
+                    <span class="material-symbols-outlined">chevron_right</span>
                 </div>
-                <div class="reading-history-item-info">
-                    <h4>${surahName}</h4>
-                    <p>Ayah ${item.ayahNumber} • ${progress}% • ${timeAgo}</p>
+                <div class="reading-history-item-delete">
+                    <span class="material-symbols-outlined">delete</span>
                 </div>
-                <span class="material-symbols-outlined">chevron_right</span>
             </div>
         `;
     }).join('');
 
-    // Add click handlers
-    container.querySelectorAll('.reading-history-item').forEach(itemEl => {
-        itemEl.addEventListener('click', () => {
-            const index = parseInt(itemEl.dataset.historyIndex);
-            jumpToHistoryPosition(index);
+    // Add click and swipe handlers
+    container.querySelectorAll('.reading-history-item-wrapper').forEach(wrapper => {
+        const content = wrapper.querySelector('.reading-history-item-content');
+        const deleteBtn = wrapper.querySelector('.reading-history-item-delete');
+        const wrapperWidth = wrapper.offsetWidth || 300;
+        const halfWidth = wrapperWidth / 2;
+
+        let startX = 0;
+        let currentX = 0;
+        let isSwiping = false;
+        let currentPosition = 0; // Track current slide position
+
+        // Touch start
+        wrapper.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isSwiping = true;
+            content.style.transition = '';
+
+            // Get current position from transform
+            const transform = content.style.transform;
+            if (transform && transform.includes('translateX')) {
+                const match = transform.match(/translateX\((-?\d+)/);
+                if (match) {
+                    currentPosition = parseInt(match[1]);
+                }
+            }
+        }, { passive: true });
+
+        // Touch move
+        wrapper.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            const deltaX = e.touches[0].clientX - startX;
+
+            // Calculate new position based on current position + delta
+            let newPosition = currentPosition + deltaX;
+
+            // Clamp between -wrapperWidth and 0
+            newPosition = Math.max(-wrapperWidth, Math.min(0, newPosition));
+
+            content.style.transform = `translateX(${newPosition}px)`;
+            currentX = newPosition;
+
+            // Update delete button text based on swipe amount
+            if (Math.abs(newPosition) > halfWidth) {
+                deleteBtn.innerHTML = '<span class="material-symbols-outlined">delete_forever</span><span>Release to Delete</span>';
+                deleteBtn.classList.add('confirm');
+            } else {
+                deleteBtn.innerHTML = '<span class="material-symbols-outlined">delete</span><span>Delete</span>';
+                deleteBtn.classList.remove('confirm');
+            }
+        }, { passive: true });
+
+        // Touch end
+        wrapper.addEventListener('touchend', () => {
+            if (!isSwiping) return;
+            isSwiping = false;
+
+            content.style.transition = 'transform 0.3s ease';
+
+            // If swiped more than half, delete the item
+            if (Math.abs(currentX) > halfWidth) {
+                // Slide out completely and delete
+                content.style.transform = `translateX(-${wrapperWidth}px)`;
+                wrapper.style.transition = 'opacity 0.3s ease, max-height 0.3s ease';
+                wrapper.style.opacity = '0';
+                wrapper.style.maxHeight = wrapper.offsetHeight + 'px';
+
+                setTimeout(() => {
+                    wrapper.style.maxHeight = '0';
+                    wrapper.style.marginBottom = '0';
+                    wrapper.style.padding = '0';
+                }, 50);
+
+                setTimeout(() => {
+                    const index = parseInt(wrapper.dataset.historyIndex);
+                    deleteHistoryItem(index);
+                }, 350);
+                currentPosition = -wrapperWidth;
+            } else if (Math.abs(currentX) > 40) {
+                // Stop at half - show delete option
+                content.style.transform = `translateX(-${halfWidth}px)`;
+                currentPosition = -halfWidth;
+            } else {
+                // Close
+                content.style.transform = 'translateX(0)';
+                currentPosition = 0;
+            }
+
+            setTimeout(() => {
+                content.style.transition = '';
+            }, 300);
+        }, { passive: true });
+
+        // Click on content to navigate or close
+        content.addEventListener('click', () => {
+            const currentTransform = content.style.transform;
+            if (currentTransform && currentTransform !== 'translateX(0px)') {
+                // Close if open
+                content.style.transition = 'transform 0.3s ease';
+                content.style.transform = 'translateX(0)';
+            } else {
+                const index = parseInt(wrapper.dataset.historyIndex);
+                jumpToHistoryPosition(index);
+            }
+        });
+
+        // Click on delete button
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const index = parseInt(wrapper.dataset.historyIndex);
+            deleteHistoryItem(index);
         });
     });
 }
@@ -4475,6 +4586,26 @@ function saveToReadingHistory(position) {
     history = history.slice(0, 4);
 
     localStorage.setItem('readingHistory', JSON.stringify(history));
+}
+
+// Delete a specific history item by index
+function deleteHistoryItem(index) {
+    let history = getReadingHistory();
+
+    if (index >= 0 && index < history.length) {
+        // Remove the item at the specified index
+        history.splice(index, 1);
+        localStorage.setItem('readingHistory', JSON.stringify(history));
+
+        // Re-render the modal
+        renderReadingHistoryModal();
+
+        // Update the last read display on home page
+        updateLastReadDisplay();
+
+        // Show feedback
+        showSuccess('History item removed');
+    }
 }
 
 // Get reading history array
@@ -4600,23 +4731,28 @@ function scrollToAyah(ayahNumber) {
 // Play audio from last read position
 async function playLastReadAudio() {
     if (lastReadState.surahNumber && lastReadState.ayahNumber) {
-        // Play the surah starting from the last read ayah
-        const reciter = state.selectedAudioEdition || 'ar.alafasy';
+        // Navigate to the Quran reading page (not listen tab)
+        switchTab('read');
 
-        // This would start playing from the specific ayah
-        // For now, we just switch to the Listen tab and play the surah
-        switchTab('listen');
+        // Load the surah and scroll to saved position
+        await loadSurah(lastReadState.surahNumber);
 
-        // Select the surah in the dropdown
-        if (elements.audioSurahSelect) {
-            elements.audioSurahSelect.value = lastReadState.surahNumber;
-            await onAudioSurahChange();
+        // Wait for content to render
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-            // Try to skip to the correct ayah
-            if (audioState.playlist.length > 0 && lastReadState.ayahNumber > 1) {
-                audioState.currentIndex = Math.min(lastReadState.ayahNumber - 1, audioState.playlist.length - 1);
-                playCurrentAyah();
-            }
+        // Scroll to the saved ayah
+        const ayahCard = document.querySelector(`.ayah-card[data-ayah-number="${lastReadState.ayahNumber}"]`);
+        if (ayahCard) {
+            ayahCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Find and click the play button on that ayah to start audio playback
+        // This will trigger the mini player with audio from that position
+        const playBtn = ayahCard?.querySelector('.ayah-play-btn');
+        if (playBtn) {
+            setTimeout(() => {
+                playBtn.click();
+            }, 500);
         }
     }
 }
@@ -7337,6 +7473,49 @@ function initTasbih() {
             modal.classList.remove('active');
         });
     }
+
+    // Swipe back to close (right swipe)
+    let tasbihSwipeStartX = 0;
+    let tasbihSwipeStartY = 0;
+    let tasbihSwipeDistX = 0;
+
+    modal.addEventListener('touchstart', (e) => {
+        tasbihSwipeStartX = e.touches[0].clientX;
+        tasbihSwipeStartY = e.touches[0].clientY;
+        tasbihSwipeDistX = 0;
+    }, { passive: true });
+
+    modal.addEventListener('touchmove', (e) => {
+        tasbihSwipeDistX = e.touches[0].clientX - tasbihSwipeStartX;
+        const distY = Math.abs(e.touches[0].clientY - tasbihSwipeStartY);
+
+        // If swiping right and more horizontal than vertical
+        if (tasbihSwipeDistX > 0 && tasbihSwipeDistX > distY) {
+            const progress = Math.min(tasbihSwipeDistX / 200, 1);
+            modal.style.transform = `translateX(${tasbihSwipeDistX * 0.5}px)`;
+            modal.style.opacity = 1 - (progress * 0.3);
+        }
+    }, { passive: true });
+
+    modal.addEventListener('touchend', (e) => {
+        const distY = Math.abs(e.changedTouches[0].clientY - tasbihSwipeStartY);
+
+        // Reset transform with animation
+        modal.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+
+        // If swiped right more than 80px and more horizontal than vertical
+        if (tasbihSwipeDistX > 80 && tasbihSwipeDistX > distY) {
+            modal.classList.remove('active');
+        }
+
+        modal.style.transform = '';
+        modal.style.opacity = '';
+
+        // Reset transition after animation
+        setTimeout(() => {
+            modal.style.transition = '';
+        }, 300);
+    }, { passive: true });
 
     // Increment counter
     if (countBtn) {
