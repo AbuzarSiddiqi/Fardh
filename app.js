@@ -369,6 +369,20 @@ function initEventListeners() {
         switchTab('listen');
     });
 
+    // Daily Duas card - switch to dua tab and expand daily-dua section
+    document.querySelector('[data-action="open-dua"]')?.addEventListener('click', () => {
+        switchTab('dua');
+        // Wait for tab to switch, then expand the daily-dua category
+        setTimeout(() => {
+            const dailyDuaCategory = document.querySelector('.dua-category-card[data-category="daily-dua"]');
+            if (dailyDuaCategory && !dailyDuaCategory.classList.contains('expanded')) {
+                dailyDuaCategory.classList.add('expanded');
+                // Scroll to it
+                dailyDuaCategory.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
+    });
+
     // Back to surah list
     elements.backToList?.addEventListener('click', showSurahList);
 
