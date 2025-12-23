@@ -379,40 +379,67 @@
                     </div>
                 </div>
 
-                <!-- Feature Cards -->
-                <div class="grid-2 section">
-                    <button class="feature-card" data-action="start-reading">
-                        <div>
-                            <div class="feature-icon">
+                <!-- Explore Section -->
+                <div class="section explore-section">
+                    <h3 class="explore-title">
+                        Explore
+                        <span class="material-symbols-outlined explore-arrow">arrow_forward</span>
+                    </h3>
+                    
+                    <!-- Large Feature Cards Grid -->
+                    <div class="explore-grid">
+                        <!-- Quran Card -->
+                        <button class="explore-card explore-card-large" data-action="start-reading">
+                            <div class="explore-card-bg-icon">
                                 <span class="material-symbols-outlined">menu_book</span>
                             </div>
-                            <h3 class="feature-title">Read Quran</h3>
-                        </div>
-                        <p class="feature-subtitle">Continue reading</p>
-                    </button>
-                    <button class="feature-card" data-action="start-listening">
-                        <div>
-                            <div class="feature-icon">
-                                <span class="material-symbols-outlined">headset</span>
+                            <div class="explore-card-icon">
+                                <span class="material-symbols-outlined">menu_book</span>
                             </div>
-                            <h3 class="feature-title">Listen</h3>
-                        </div>
-                        <p class="feature-subtitle">Audio recitation</p>
-                    </button>
-                </div>
-
-                <!-- Qibla Finder Button -->
-                <div class="section">
-                    <button id="open-qibla-btn" class="qibla-finder-btn">
-                        <div class="qibla-btn-icon">
-                            <span class="material-symbols-outlined">explore</span>
-                        </div>
-                        <div class="qibla-btn-info">
-                            <h3 class="qibla-btn-title">Qibla Direction</h3>
-                            <p class="qibla-btn-subtitle">Find the direction to Mecca</p>
-                        </div>
-                        <span class="material-symbols-outlined qibla-btn-arrow">arrow_forward_ios</span>
-                </button>
+                            <div class="explore-card-info">
+                                <h4 class="explore-card-title">Al-Quran</h4>
+                                <p class="explore-card-subtitle">Continue Reading</p>
+                            </div>
+                        </button>
+                        
+                        <!-- Duas Card -->
+                        <button class="explore-card explore-card-large" data-action="open-dua">
+                            <div class="explore-card-bg-icon">
+                                <span class="material-symbols-outlined">volunteer_activism</span>
+                            </div>
+                            <div class="explore-card-icon">
+                                <span class="material-symbols-outlined">volunteer_activism</span>
+                            </div>
+                            <div class="explore-card-info">
+                                <h4 class="explore-card-title">Daily Duas</h4>
+                                <p class="explore-card-subtitle">Morning Adhkar</p>
+                            </div>
+                        </button>
+                        
+                        <!-- Qibla Card -->
+                        <button class="explore-card explore-card-small" id="open-qibla-btn">
+                            <div class="explore-card-icon small">
+                                <span class="material-symbols-outlined">explore</span>
+                            </div>
+                            <div class="explore-card-info">
+                                <h4 class="explore-card-title-small">Qibla</h4>
+                                <p class="explore-card-subtitle-small">Direction</p>
+                            </div>
+                            <span class="material-symbols-outlined explore-card-arrow">chevron_right</span>
+                        </button>
+                        
+                        <!-- Tasbih Card -->
+                        <button class="explore-card explore-card-small" id="open-tasbih-btn">
+                            <div class="explore-card-icon small">
+                                <span class="material-symbols-outlined">trip_origin</span>
+                            </div>
+                            <div class="explore-card-info">
+                                <h4 class="explore-card-title-small">Tasbih</h4>
+                                <p class="explore-card-subtitle-small">Counter</p>
+                            </div>
+                            <span class="material-symbols-outlined explore-card-arrow">chevron_right</span>
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -1545,6 +1572,34 @@
                 <div class="dua-detail-source">
                     <span class="dua-tag" id="dua-detail-source"></span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasbih Counter Modal -->
+    <div id="tasbih-modal" class="tasbih-modal">
+        <div class="tasbih-header">
+            <h3 class="tasbih-title">Tasbih Counter</h3>
+            <button id="close-tasbih-modal" class="tasbih-close-btn">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="tasbih-content">
+            <div class="tasbih-dhikr-selector">
+                <button class="tasbih-dhikr-btn active" data-dhikr="subhanallah">سُبْحَانَ ٱللَّٰهِ</button>
+                <button class="tasbih-dhikr-btn" data-dhikr="alhamdulillah">ٱلْحَمْدُ لِلَّٰهِ</button>
+                <button class="tasbih-dhikr-btn" data-dhikr="allahuakbar">ٱللَّٰهُ أَكْبَرُ</button>
+            </div>
+            <p class="tasbih-target">Target: <span id="tasbih-target">33</span></p>
+            <div id="tasbih-count" class="tasbih-count">0</div>
+            <button id="tasbih-btn" class="tasbih-btn">
+                <span class="material-symbols-outlined">add</span>
+            </button>
+            <div class="tasbih-controls">
+                <button id="tasbih-reset-btn" class="tasbih-reset-btn">
+                    <span class="material-symbols-outlined">refresh</span>
+                    Reset
+                </button>
             </div>
         </div>
     </div>

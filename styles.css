@@ -9767,3 +9767,320 @@ body.mini-player-active .main-content {
     align-items: center;
     justify-content: space-between;
 }
+
+/* ===========================================
+   EXPLORE SECTION - Reference UI Design
+   =========================================== */
+
+.explore-section {
+    margin-top: var(--space-lg);
+}
+
+.explore-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.explore-arrow {
+    font-size: 1rem;
+    color: var(--primary);
+}
+
+.explore-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+}
+
+/* Large Explore Cards */
+.explore-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.explore-card:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-glow);
+}
+
+.explore-card-large {
+    padding: var(--space-lg);
+    min-height: 144px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Background watermark icon */
+.explore-card-bg-icon {
+    position: absolute;
+    right: -16px;
+    bottom: -16px;
+    opacity: 0.05;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.explore-card-bg-icon .material-symbols-outlined {
+    font-size: 96px;
+    color: var(--primary);
+}
+
+.explore-card:hover .explore-card-bg-icon {
+    opacity: 0.1;
+}
+
+/* Card icon */
+.explore-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-lg);
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    transition: all 0.3s ease;
+}
+
+.explore-card-icon .material-symbols-outlined {
+    font-size: 24px;
+}
+
+.explore-card:hover .explore-card-icon {
+    background: var(--primary);
+    color: white;
+}
+
+/* Card info */
+.explore-card-info {
+    position: relative;
+    z-index: 1;
+}
+
+.explore-card-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.explore-card-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: var(--space-xs) 0 0 0;
+}
+
+/* Small horizontal cards */
+.explore-card-small {
+    padding: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    min-height: auto;
+}
+
+.explore-card-icon.small {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+}
+
+.explore-card-icon.small .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.explore-card-title-small {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.explore-card-subtitle-small {
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    margin: 2px 0 0 0;
+}
+
+.explore-card-small .explore-card-info {
+    flex: 1;
+}
+
+.explore-card-arrow {
+    font-size: 18px;
+    color: var(--text-hint);
+}
+
+/* Light mode adjustments for explore cards */
+[data-theme="light"] .explore-card {
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="light"] .explore-card:hover {
+    background: rgba(209, 250, 229, 1);
+}
+
+[data-theme="light"] .explore-card-icon {
+    background: #D1FAE5;
+    color: #059669;
+}
+
+[data-theme="light"] .explore-card:hover .explore-card-icon {
+    background: #10B981;
+    color: white;
+}
+
+/* ===========================================
+   TASBIH COUNTER MODAL
+   =========================================== */
+
+.tasbih-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: var(--bg-darker);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.tasbih-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.tasbih-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.tasbih-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.tasbih-close-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.tasbih-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    gap: var(--space-xl);
+}
+
+.tasbih-count {
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+    text-shadow: 0 0 30px var(--primary-glow);
+}
+
+.tasbih-target {
+    font-size: 1.125rem;
+    color: var(--text-muted);
+}
+
+.tasbih-btn {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 32px var(--primary-glow);
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tasbih-btn:active {
+    transform: scale(0.95);
+}
+
+.tasbih-btn .material-symbols-outlined {
+    font-size: 48px;
+}
+
+.tasbih-controls {
+    display: flex;
+    gap: var(--space-md);
+}
+
+.tasbih-reset-btn {
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-full);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.tasbih-dhikr-selector {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 320px;
+}
+
+.tasbih-dhikr-btn {
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-full);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tasbih-dhikr-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}

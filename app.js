@@ -7284,3 +7284,105 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// ============================================
+// TASBIH COUNTER
+// ============================================
+
+const tasbihState = {
+    count: parseInt(localStorage.getItem('tasbihCount') || '0'),
+    target: 33,
+    currentDhikr: localStorage.getItem('tasbihDhikr') || 'subhanallah'
+};
+
+function initTasbih() {
+    const openBtn = document.getElementById('open-tasbih-btn');
+    const closeBtn = document.getElementById('close-tasbih-modal');
+    const modal = document.getElementById('tasbih-modal');
+    const countBtn = document.getElementById('tasbih-btn');
+    const resetBtn = document.getElementById('tasbih-reset-btn');
+    const countDisplay = document.getElementById('tasbih-count');
+    const dhikrBtns = document.querySelectorAll('.tasbih-dhikr-btn');
+
+    if (!modal) return;
+
+    // Open modal
+    if (openBtn) {
+        openBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+            updateTasbihDisplay();
+        });
+    }
+
+    // Close modal
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+    }
+
+    // Increment counter
+    if (countBtn) {
+        countBtn.addEventListener('click', () => {
+            tasbihState.count++;
+            localStorage.setItem('tasbihCount', tasbihState.count.toString());
+            updateTasbihDisplay();
+
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(15);
+            }
+
+            // Visual feedback on target reached
+            if (tasbihState.count === tasbihState.target) {
+                countBtn.style.boxShadow = '0 0 40px var(--gold)';
+                setTimeout(() => {
+                    countBtn.style.boxShadow = '';
+                }, 500);
+                if (navigator.vibrate) {
+                    navigator.vibrate([50, 50, 50]);
+                }
+            }
+        });
+    }
+
+    // Reset counter
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            tasbihState.count = 0;
+            localStorage.setItem('tasbihCount', '0');
+            updateTasbihDisplay();
+        });
+    }
+
+    // Dhikr selector
+    dhikrBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            dhikrBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            tasbihState.currentDhikr = btn.dataset.dhikr;
+            localStorage.setItem('tasbihDhikr', tasbihState.currentDhikr);
+        });
+
+        // Set initial active state
+        if (btn.dataset.dhikr === tasbihState.currentDhikr) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    updateTasbihDisplay();
+}
+
+function updateTasbihDisplay() {
+    const countDisplay = document.getElementById('tasbih-count');
+    if (countDisplay) {
+        countDisplay.textContent = tasbihState.count;
+    }
+}
+
+// Initialize Tasbih on load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initTasbih, 100);
+});
