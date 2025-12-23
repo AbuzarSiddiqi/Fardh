@@ -758,6 +758,26 @@
     border-color: rgba(16, 185, 129, 0.2);
 }
 
+/* ===========================================
+   SPLASH SCREEN - Light Mode
+   =========================================== */
+
+[data-theme="light"] .splash-screen {
+    background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 50%, #6EE7B7 100%) !important;
+}
+
+[data-theme="light"] .splash-logo {
+    filter: drop-shadow(0 0 30px rgba(16, 185, 129, 0.5)) !important;
+}
+
+[data-theme="light"] .splash-title {
+    color: #1F2937 !important;
+}
+
+[data-theme="light"] .splash-subtitle {
+    color: #374151 !important;
+}
+
 /* Smooth theme transition */
 body,
 .page-header,
