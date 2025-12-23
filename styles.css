@@ -403,7 +403,7 @@
 }
 
 [data-theme="light"] .search-input::placeholder {
-    color: #047857;
+    color: #6B7280;
 }
 
 /* Loading states */
@@ -428,6 +428,94 @@
 
 [data-theme="light"] .tasbih-count {
     text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+}
+
+/* ===========================================
+   LIGHT MODE - DUA CATEGORY CARDS (Critical Fix)
+   =========================================== */
+
+/* Main category card - WHITE background */
+[data-theme="light"] .dua-category-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+    box-shadow: 0 2px 12px rgba(16, 185, 129, 0.08);
+}
+
+[data-theme="light"] .dua-category-card:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="light"] .dua-category-card.expanded {
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+/* Category gradient overlay - hide in light mode */
+[data-theme="light"] .dua-category-gradient {
+    display: none;
+}
+
+/* Category header border */
+[data-theme="light"] .dua-category-card.expanded .dua-category-header {
+    border-bottom-color: rgba(16, 185, 129, 0.15);
+}
+
+/* Category icon */
+[data-theme="light"] .dua-category-icon {
+    background: #D1FAE5;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="light"] .dua-category-icon .material-symbols-outlined {
+    color: #059669;
+}
+
+/* Category name - DARK text for visibility */
+[data-theme="light"] .dua-category-name {
+    color: #1F2937 !important;
+}
+
+/* Category count - slightly muted */
+[data-theme="light"] .dua-category-count {
+    color: #6B7280 !important;
+}
+
+/* Category arrow/expand button */
+[data-theme="light"] .dua-category-arrow,
+[data-theme="light"] .dua-category-expand-btn {
+    color: #6B7280;
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+/* Dua items inside expanded card */
+[data-theme="light"] .dua-category-items {
+    background: rgba(249, 250, 251, 0.95);
+}
+
+[data-theme="light"] .dua-item {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(16, 185, 129, 0.15);
+}
+
+/* Dua text in items - DARK for readability */
+[data-theme="light"] .dua-item-arabic {
+    color: #1F2937 !important;
+}
+
+[data-theme="light"] .dua-item-translation {
+    color: #374151 !important;
+}
+
+[data-theme="light"] .dua-item-reference {
+    color: #059669 !important;
+}
+
+/* Dua action buttons */
+[data-theme="light"] .dua-item-actions button {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border-color: rgba(16, 185, 129, 0.2);
 }
 
 /* Smooth theme transition */
