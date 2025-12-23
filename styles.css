@@ -607,14 +607,14 @@
     border-color: rgba(16, 185, 129, 0.2);
 }
 
-/* Dua items inside expanded card */
+/* Dua items inside expanded card - GREEN tint instead of gray */
 [data-theme="light"] .dua-category-items {
-    background: rgba(249, 250, 251, 0.95);
+    background: rgba(167, 243, 208, 0.5) !important;
 }
 
 [data-theme="light"] .dua-item {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(16, 185, 129, 0.15);
+    background: rgba(209, 250, 229, 0.95) !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
 }
 
 /* Dua text in items - DARK for readability */
