@@ -73,25 +73,25 @@
    =========================================== */
 
 [data-theme="light"] {
-    /* Background Colors - Soft mint/green tint throughout */
-    --bg-dark: #F0FDF4;
-    --bg-darker: #E6F7ED;
-    --bg-card: rgba(240, 253, 244, 0.95);
-    --bg-card-hover: rgba(236, 253, 245, 1);
+    /* Background Colors - Stronger green tint for separation */
+    --bg-dark: #D1FAE5;
+    --bg-darker: #A7F3D0;
+    --bg-card: rgba(255, 255, 255, 0.95);
+    --bg-card-hover: rgba(255, 255, 255, 1);
 
-    /* Text Colors - With slight green undertone */
-    --text-primary: #064E3B;
-    --text-secondary: #065F46;
-    --text-muted: #047857;
-    --text-hint: #10B981;
+    /* Text Colors - Dark for readability */
+    --text-primary: #1F2937;
+    --text-secondary: #374151;
+    --text-muted: #6B7280;
+    --text-hint: #9CA3AF;
 
     /* Border Colors - Greenish tint */
-    --border-light: rgba(16, 185, 129, 0.15);
+    --border-light: rgba(16, 185, 129, 0.25);
     --border-gold: rgba(180, 130, 60, 0.3);
     --border-primary: rgba(16, 185, 129, 0.4);
 
     /* Shadows with green tint */
-    --shadow-glass: 0 4px 24px rgba(16, 185, 129, 0.08), 0 1px 2px rgba(16, 185, 129, 0.04);
+    --shadow-glass: 0 4px 24px rgba(16, 185, 129, 0.12), 0 1px 2px rgba(16, 185, 129, 0.06);
     --shadow-glow: 0 0 30px rgba(16, 185, 129, 0.35);
     --shadow-gold: 0 0 12px rgba(180, 130, 60, 0.2);
 
@@ -106,9 +106,9 @@
     --gold-light: #D97706;
 }
 
-/* Light mode body background - gradient with more green */
+/* Light mode body background - strong green gradient */
 [data-theme="light"] body {
-    background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 50%, #A7F3D0 100%);
+    background: linear-gradient(180deg, #D1FAE5 0%, #A7F3D0 50%, #6EE7B7 100%);
 }
 
 /* Light mode glass panels - greenish tint */
@@ -1448,8 +1448,8 @@ h3 {
 
 .prayer-card-premium {
     position: relative;
-    padding: var(--space-md);
-    border-radius: var(--radius-xl);
+    padding: var(--space-lg);
+    border-radius: var(--radius-2xl);
     background: var(--bg-card);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
@@ -1470,13 +1470,13 @@ h3 {
     position: absolute;
     top: 0;
     right: 0;
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     background: var(--primary-glow);
     border-radius: 50%;
-    filter: blur(50px);
+    filter: blur(60px);
     pointer-events: none;
-    opacity: 0.4;
+    opacity: 0.5;
 }
 
 /* Main content layout */
@@ -1484,7 +1484,7 @@ h3 {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: var(--space-sm);
+    margin-bottom: var(--space-lg);
     position: relative;
     z-index: 1;
 }
@@ -1531,11 +1531,11 @@ h3 {
 
 /* Prayer name - Large display */
 .prayer-card-name {
-    font-size: 1.75rem;
+    font-size: 2.25rem;
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1.1;
-    margin: 0 0 2px 0;
+    margin: 0 0 var(--space-xs) 0;
     letter-spacing: -0.02em;
 }
 
@@ -1557,7 +1557,7 @@ h3 {
 }
 
 .prayer-card-time {
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1;
@@ -1576,7 +1576,7 @@ h3 {
 .prayer-card-progress-section {
     position: relative;
     z-index: 1;
-    padding-top: var(--space-sm);
+    padding-top: var(--space-md);
     border-top: 1px solid var(--border-light);
     margin-bottom: var(--space-sm);
 }
