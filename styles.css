@@ -637,6 +637,39 @@
     border-color: rgba(16, 185, 129, 0.2);
 }
 
+/* Dua of the Day card - green tint in light mode */
+[data-theme="light"] .dua-day-card {
+    background: linear-gradient(135deg, rgba(167, 243, 208, 0.6), rgba(209, 250, 229, 0.8)) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-theme="light"] .dua-day-title {
+    color: #059669 !important;
+}
+
+[data-theme="light"] .dua-day-arabic {
+    color: #1F2937 !important;
+}
+
+[data-theme="light"] .dua-day-translation {
+    color: #374151 !important;
+}
+
+/* Section header background - green */
+[data-theme="light"] .section-header {
+    background: rgba(167, 243, 208, 0.4) !important;
+}
+
+/* Share card decor (the stripe) - green instead of gray */
+[data-theme="light"] .share-card-decor {
+    background: rgba(16, 185, 129, 0.2) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-theme="light"] .share-card-inner {
+    background: rgba(167, 243, 208, 0.95) !important;
+}
+
 /* Smooth theme transition */
 body,
 .page-header,
