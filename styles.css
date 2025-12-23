@@ -194,6 +194,87 @@
     background: #F0FDF4;
 }
 
+/* ============================================
+   LIGHT MODE GREEN ACCENTS (matching reference)
+   ============================================ */
+
+/* Feature card icons - emerald background */
+[data-theme="light"] .feature-icon {
+    background: #ECFDF5;
+    color: #059669;
+}
+
+[data-theme="light"] .feature-card:hover .feature-icon {
+    background: #10B981;
+    color: white;
+}
+
+/* More feature icons */
+[data-theme="light"] .more-feature-icon {
+    background: #ECFDF5;
+}
+
+[data-theme="light"] .more-feature-icon.primary {
+    background: #ECFDF5;
+    color: #059669;
+}
+
+/* Nav active state - green */
+[data-theme="light"] .nav-link.active {
+    color: #059669;
+}
+
+/* Hijri date card */
+[data-theme="light"] .hijri-date-card-compact {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(229, 231, 235, 0.8);
+}
+
+[data-theme="light"] .hijri-date-card-compact .material-symbols-outlined {
+    color: #059669;
+}
+
+/* Prayer grid items in light mode */
+[data-theme="light"] .prayer-grid-item {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(229, 231, 235, 0.8);
+}
+
+[data-theme="light"] .prayer-grid-item.active {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="light"] .prayer-grid-item.current {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+/* Last read card */
+[data-theme="light"] .last-read-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(229, 231, 235, 0.8);
+}
+
+/* Surah list items */
+[data-theme="light"] .surah-item {
+    border-color: rgba(229, 231, 235, 0.6);
+}
+
+[data-theme="light"] .surah-item:hover {
+    background: rgba(240, 253, 244, 0.8);
+}
+
+/* Section action buttons */
+[data-theme="light"] .section-action {
+    color: #059669;
+}
+
+/* Arabic text in light mode */
+[data-theme="light"] .arabic-text {
+    color: #111827;
+}
+
 /* Smooth theme transition */
 body,
 .page-header,
