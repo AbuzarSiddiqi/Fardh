@@ -275,6 +275,161 @@
     color: #064E3B;
 }
 
+/* ===========================================
+   LIGHT MODE - DUA PAGE & TAB CONTENT
+   =========================================== */
+
+/* Dua page header */
+[data-theme="light"] .dua-header {
+    background: rgba(236, 253, 245, 0.95);
+    border-bottom-color: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1);
+}
+
+[data-theme="light"] .dua-header-title {
+    color: #064E3B;
+    text-shadow: none;
+}
+
+[data-theme="light"] .dua-bookmark-btn {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2);
+    color: #059669;
+}
+
+/* Dua category tabs */
+[data-theme="light"] .dua-category-tabs,
+[data-theme="light"] .dua-categories {
+    background: rgba(236, 253, 245, 0.9);
+}
+
+[data-theme="light"] .dua-category-btn {
+    background: rgba(255, 255, 255, 0.8);
+    color: #065F46;
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .dua-category-btn.active {
+    background: #059669;
+    color: white;
+}
+
+/* Dua cards */
+[data-theme="light"] .dua-card,
+[data-theme="light"] .dua-item {
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="light"] .dua-arabic {
+    color: #064E3B;
+}
+
+[data-theme="light"] .dua-translation {
+    color: #065F46;
+}
+
+[data-theme="light"] .dua-reference,
+[data-theme="light"] .dua-source {
+    color: #047857;
+}
+
+/* Tab content areas */
+[data-theme="light"] .tab-content {
+    background: transparent;
+}
+
+/* Page headers */
+[data-theme="light"] .header-title {
+    color: #064E3B;
+}
+
+/* Quran page */
+[data-theme="light"] .surah-content-view {
+    background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 100%);
+}
+
+[data-theme="light"] .surah-header {
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .surah-title {
+    color: #064E3B;
+}
+
+[data-theme="light"] .ayah-card {
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="light"] .ayah-arabic {
+    color: #064E3B;
+}
+
+[data-theme="light"] .ayah-translation {
+    color: #065F46;
+}
+
+/* More page */
+[data-theme="light"] .more-header {
+    background: rgba(236, 253, 245, 0.95);
+}
+
+[data-theme="light"] .more-title {
+    color: #064E3B;
+}
+
+/* Share card modal */
+[data-theme="light"] .share-card-modal {
+    background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 100%);
+}
+
+[data-theme="light"] .share-card-header {
+    background: rgba(236, 253, 245, 0.95);
+}
+
+/* Search containers */
+[data-theme="light"] .search-container,
+[data-theme="light"] .search-input-wrapper {
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .search-input {
+    background: rgba(255, 255, 255, 0.9);
+    color: #064E3B;
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .search-input::placeholder {
+    color: #047857;
+}
+
+/* Loading states */
+[data-theme="light"] .loading-overlay {
+    background: rgba(236, 253, 245, 0.9);
+}
+
+[data-theme="light"] .loading-spinner {
+    border-color: rgba(16, 185, 129, 0.2);
+    border-top-color: #059669;
+}
+
+/* Tasbih modal */
+[data-theme="light"] .tasbih-modal {
+    background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 100%);
+}
+
+[data-theme="light"] .tasbih-header {
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .tasbih-count {
+    text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+}
+
 /* Smooth theme transition */
 body,
 .page-header,
