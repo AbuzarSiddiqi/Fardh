@@ -475,9 +475,26 @@
     color: #1F2937 !important;
 }
 
-/* Category count - slightly muted */
+/* Ensure hover doesn't make text invisible */
+[data-theme="light"] .dua-category-card:hover .dua-category-name {
+    color: #059669 !important;
+}
+
+/* Category count - slightly muted but visible */
 [data-theme="light"] .dua-category-count {
-    color: #6B7280 !important;
+    color: #4B5563 !important;
+}
+
+/* All text inside dua cards - ensure visibility */
+[data-theme="light"] .dua-category-card * {
+    color: inherit;
+}
+
+[data-theme="light"] .dua-category-card span,
+[data-theme="light"] .dua-category-card p,
+[data-theme="light"] .dua-category-card h3,
+[data-theme="light"] .dua-category-card h4 {
+    color: #1F2937;
 }
 
 /* Category arrow/expand button */
