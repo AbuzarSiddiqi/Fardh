@@ -73,51 +73,51 @@
    =========================================== */
 
 [data-theme="light"] {
-    /* Background Colors - Soft mint/green tint */
+    /* Background Colors - Soft mint/green tint throughout */
     --bg-dark: #F0FDF4;
-    --bg-darker: #E8F5EC;
-    --bg-card: rgba(255, 255, 255, 0.9);
-    --bg-card-hover: rgba(255, 255, 255, 1);
+    --bg-darker: #E6F7ED;
+    --bg-card: rgba(240, 253, 244, 0.95);
+    --bg-card-hover: rgba(236, 253, 245, 1);
 
-    /* Text Colors - Strong contrast */
-    --text-primary: #111827;
-    --text-secondary: #4B5563;
-    --text-muted: #6B7280;
-    --text-hint: #9CA3AF;
+    /* Text Colors - With slight green undertone */
+    --text-primary: #064E3B;
+    --text-secondary: #065F46;
+    --text-muted: #047857;
+    --text-hint: #10B981;
 
-    /* Border Colors */
-    --border-light: rgba(229, 231, 235, 1);
+    /* Border Colors - Greenish tint */
+    --border-light: rgba(16, 185, 129, 0.15);
     --border-gold: rgba(180, 130, 60, 0.3);
     --border-primary: rgba(16, 185, 129, 0.4);
 
-    /* Shadows for light mode */
-    --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+    /* Shadows with green tint */
+    --shadow-glass: 0 4px 24px rgba(16, 185, 129, 0.08), 0 1px 2px rgba(16, 185, 129, 0.04);
+    --shadow-glow: 0 0 30px rgba(16, 185, 129, 0.35);
     --shadow-gold: 0 0 12px rgba(180, 130, 60, 0.2);
 
     /* Primary colors for light mode */
     --primary: #059669;
     --primary-dark: #047857;
-    --primary-light: rgba(16, 185, 129, 0.15);
-    --primary-glow: rgba(16, 185, 129, 0.25);
+    --primary-light: rgba(16, 185, 129, 0.2);
+    --primary-glow: rgba(16, 185, 129, 0.35);
 
     /* Gold adjustments */
     --gold: #B45309;
     --gold-light: #D97706;
 }
 
-/* Light mode body background */
+/* Light mode body background - gradient with more green */
 [data-theme="light"] body {
-    background: linear-gradient(180deg, #F0FDF4 0%, #E8F5EC 100%);
+    background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 50%, #A7F3D0 100%);
 }
 
-/* Light mode glass panels */
+/* Light mode glass panels - greenish tint */
 [data-theme="light"] .glass,
 [data-theme="light"] .glass-card,
 [data-theme="light"] .glass-strong {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: rgba(229, 231, 235, 0.8);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    background: rgba(236, 253, 245, 0.9);
+    border-color: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 2px 12px rgba(16, 185, 129, 0.08);
 }
 
 /* Light mode background glows - hide them */
@@ -125,48 +125,48 @@
     opacity: 0;
 }
 
-/* Light mode page header */
+/* Light mode page header - greenish tint */
 [data-theme="light"] .page-header {
-    background: rgba(240, 253, 244, 0.95);
-    border-bottom-color: rgba(229, 231, 235, 0.6);
+    background: rgba(236, 253, 245, 0.95);
+    border-bottom-color: rgba(16, 185, 129, 0.15);
 }
 
-/* Light mode bottom nav */
+/* Light mode bottom nav - greenish tint */
 [data-theme="light"] .nav-container {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(229, 231, 235, 0.8);
-    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.06);
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 -2px 20px rgba(16, 185, 129, 0.1);
 }
 
-/* Light mode icon buttons */
+/* Light mode icon buttons - greenish tint */
 [data-theme="light"] .icon-btn {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(229, 231, 235, 1);
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.2);
 }
 
 [data-theme="light"] .icon-btn:hover {
-    background: rgba(240, 253, 244, 1);
+    background: rgba(209, 250, 229, 1);
 }
 
-/* Light mode cards */
+/* Light mode cards - greenish tint */
 [data-theme="light"] .card,
 [data-theme="light"] .feature-card {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(229, 231, 235, 0.8);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.15);
+    box-shadow: 0 2px 12px rgba(16, 185, 129, 0.08);
 }
 
 [data-theme="light"] .dua-card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 253, 244, 0.9));
-    border-color: rgba(180, 130, 60, 0.2);
+    background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(209, 250, 229, 0.9));
+    border-color: rgba(16, 185, 129, 0.2);
 }
 
-/* Light mode form elements */
+/* Light mode form elements - greenish tint */
 [data-theme="light"] .form-select,
 [data-theme="light"] .settings-card,
 [data-theme="light"] .more-feature-card {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(229, 231, 235, 1);
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.2);
     color: var(--text-primary);
 }
 
@@ -182,16 +182,16 @@
     color: #047857;
 }
 
-/* Light mode progress bar */
+/* Light mode progress bar - greenish */
 [data-theme="light"] .prayer-progress-bar {
-    background: rgba(229, 231, 235, 1);
+    background: rgba(16, 185, 129, 0.15);
 }
 
-/* Light mode modals */
+/* Light mode modals - greenish bg */
 [data-theme="light"] .surah-content-view,
 [data-theme="light"] .dua-detail-modal,
 [data-theme="light"] .settings-modal {
-    background: #F0FDF4;
+    background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 100%);
 }
 
 /* ============================================
@@ -200,7 +200,7 @@
 
 /* Feature card icons - emerald background */
 [data-theme="light"] .feature-icon {
-    background: #ECFDF5;
+    background: #D1FAE5;
     color: #059669;
 }
 
@@ -211,11 +211,11 @@
 
 /* More feature icons */
 [data-theme="light"] .more-feature-icon {
-    background: #ECFDF5;
+    background: #D1FAE5;
 }
 
 [data-theme="light"] .more-feature-icon.primary {
-    background: #ECFDF5;
+    background: #D1FAE5;
     color: #059669;
 }
 
@@ -224,45 +224,45 @@
     color: #059669;
 }
 
-/* Hijri date card */
+/* Hijri date card - greenish */
 [data-theme="light"] .hijri-date-card-compact {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(229, 231, 235, 0.8);
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.2);
 }
 
 [data-theme="light"] .hijri-date-card-compact .material-symbols-outlined {
     color: #059669;
 }
 
-/* Prayer grid items in light mode */
+/* Prayer grid items in light mode - greenish */
 [data-theme="light"] .prayer-grid-item {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(229, 231, 235, 0.8);
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.15);
 }
 
 [data-theme="light"] .prayer-grid-item.active {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.3);
-}
-
-[data-theme="light"] .prayer-grid-item.current {
-    background: rgba(16, 185, 129, 0.15);
+    background: rgba(16, 185, 129, 0.2);
     border-color: rgba(16, 185, 129, 0.4);
 }
 
-/* Last read card */
-[data-theme="light"] .last-read-card {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(229, 231, 235, 0.8);
+[data-theme="light"] .prayer-grid-item.current {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: rgba(16, 185, 129, 0.5);
 }
 
-/* Surah list items */
+/* Last read card - greenish */
+[data-theme="light"] .last-read-card {
+    background: rgba(236, 253, 245, 0.95);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+/* Surah list items - greenish */
 [data-theme="light"] .surah-item {
-    border-color: rgba(229, 231, 235, 0.6);
+    border-color: rgba(16, 185, 129, 0.15);
 }
 
 [data-theme="light"] .surah-item:hover {
-    background: rgba(240, 253, 244, 0.8);
+    background: rgba(209, 250, 229, 0.8);
 }
 
 /* Section action buttons */
@@ -272,7 +272,7 @@
 
 /* Arabic text in light mode */
 [data-theme="light"] .arabic-text {
-    color: #111827;
+    color: #064E3B;
 }
 
 /* Smooth theme transition */
