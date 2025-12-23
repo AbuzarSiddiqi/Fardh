@@ -442,6 +442,97 @@
 }
 
 /* ===========================================
+   LIGHT MODE - ALL HEADER TYPES (Universal Fix)
+   =========================================== */
+
+/* Universal header light mode styles */
+[data-theme="light"] .qibla-header,
+[data-theme="light"] .full-player-header,
+[data-theme="light"] .reciter-modal-header,
+[data-theme="light"] .bookmark-header,
+[data-theme="light"] .bookmark-list-header,
+[data-theme="light"] .bookmark-card-header,
+[data-theme="light"] .share-modal-header,
+[data-theme="light"] .name-detail-header,
+[data-theme="light"] .feature-header,
+[data-theme="light"] .prophet-story-header,
+[data-theme="light"] .dua-section-header,
+[data-theme="light"] .dua-group-header,
+[data-theme="light"] .hadith-card-header,
+[data-theme="light"] .lang-selector-header,
+[data-theme="light"] .rakat-tooltip-header,
+[data-theme="light"] .reading-history-header,
+[data-theme="light"] .reminder-header,
+[data-theme="light"] .section-header,
+[data-theme="light"] .progress-header,
+[data-theme="light"] .ayah-header {
+    background: rgba(236, 253, 245, 0.98) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+/* All header titles in light mode */
+[data-theme="light"] .qibla-header h1,
+[data-theme="light"] .qibla-header h2,
+[data-theme="light"] .qibla-header h3,
+[data-theme="light"] .full-player-header h1,
+[data-theme="light"] .full-player-header h2,
+[data-theme="light"] .full-player-header h3,
+[data-theme="light"] .reciter-modal-header h3,
+[data-theme="light"] .bookmark-header h1,
+[data-theme="light"] .bookmark-header h2,
+[data-theme="light"] .bookmark-header h3,
+[data-theme="light"] .share-modal-header h3,
+[data-theme="light"] .name-detail-header h1,
+[data-theme="light"] .name-detail-header h2,
+[data-theme="light"] .prophet-story-header h1,
+[data-theme="light"] .prophet-story-header h2,
+[data-theme="light"] .dua-section-header h3,
+[data-theme="light"] .dua-group-header h3,
+[data-theme="light"] .hadith-card-header span,
+[data-theme="light"] .lang-selector-header h3,
+[data-theme="light"] .reading-history-header h3,
+[data-theme="light"] .reminder-header h3 {
+    color: #1F2937 !important;
+}
+
+/* All icon buttons in headers */
+[data-theme="light"] .qibla-header .icon-btn,
+[data-theme="light"] .full-player-header .icon-btn,
+[data-theme="light"] .reciter-modal-header .icon-btn,
+[data-theme="light"] .bookmark-header .icon-btn,
+[data-theme="light"] .share-modal-header .icon-btn,
+[data-theme="light"] .name-detail-header .icon-btn,
+[data-theme="light"] .prophet-story-header .icon-btn,
+[data-theme="light"] .reading-history-header .icon-btn,
+[data-theme="light"] .reminder-header .icon-btn {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+    color: #059669 !important;
+}
+
+/* Modal backgrounds */
+[data-theme="light"] .qibla-finder-modal,
+[data-theme="light"] .full-player-modal,
+[data-theme="light"] .reciter-modal,
+[data-theme="light"] .bookmark-modal,
+[data-theme="light"] .share-card-modal,
+[data-theme="light"] .name-detail-modal,
+[data-theme="light"] .prophet-story-modal,
+[data-theme="light"] .reading-history-modal,
+[data-theme="light"] .reminder-modal,
+[data-theme="light"] .lang-selector-modal {
+    background: linear-gradient(180deg, #ECFDF5 0%, #D1FAE5 100%) !important;
+}
+
+/* Modal sheets/content */
+[data-theme="light"] .reading-history-sheet,
+[data-theme="light"] .reminder-sheet,
+[data-theme="light"] .reciter-modal-content {
+    background: rgba(236, 253, 245, 0.98) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+/* ===========================================
    LIGHT MODE - DUA CATEGORY CARDS (Critical Fix)
    =========================================== */
 
