@@ -702,6 +702,55 @@
     color: #059669 !important;
 }
 
+/* ===========================================
+   RAKAT TOOLTIP - Light Mode Fix
+   =========================================== */
+
+[data-theme="light"] .rakat-tooltip {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.1) !important;
+}
+
+[data-theme="light"] .rakat-tooltip::before {
+    border-bottom-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+[data-theme="light"] .rakat-tooltip.below::before {
+    border-top-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+[data-theme="light"] .rakat-tooltip-header {
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #1F2937 !important;
+}
+
+[data-theme="light"] .rakat-tooltip-header span {
+    color: #1F2937 !important;
+}
+
+[data-theme="light"] .rakat-tooltip-content {
+    color: #374151 !important;
+}
+
+[data-theme="light"] .rakat-item-label {
+    color: #6B7280 !important;
+}
+
+[data-theme="light"] .rakat-item-count {
+    color: #059669 !important;
+}
+
+/* ===========================================
+   PRAYER GRID ITEMS - Unselectable
+   =========================================== */
+
+.prayer-grid-item {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+}
+
 /* Dua action buttons */
 [data-theme="light"] .dua-item-actions button {
     background: rgba(16, 185, 129, 0.1);
