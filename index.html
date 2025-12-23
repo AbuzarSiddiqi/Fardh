@@ -268,11 +268,17 @@
                                 </div>
                             </div>
                             
-                            <!-- Progress bar section -->
+                            <!-- Progress bar section with current prayer -->
                             <div class="prayer-card-progress-section">
                                 <div class="prayer-progress-labels">
-                                    <span id="current-prayer-name" class="progress-label-current">--</span>
-                                    <span id="progress-next-prayer" class="progress-label-next">--</span>
+                                    <div class="progress-prayer-info">
+                                        <span id="current-prayer-name" class="progress-label-current">--</span>
+                                        <span id="current-prayer-time" class="progress-time-current">--:--</span>
+                                    </div>
+                                    <div class="progress-prayer-info progress-prayer-next">
+                                        <span id="progress-next-prayer" class="progress-label-next">--</span>
+                                        <span id="progress-next-time" class="progress-time-next">--:--</span>
+                                    </div>
                                 </div>
                                 <div class="prayer-progress-bar">
                                     <div id="prayer-progress-fill" class="prayer-progress-fill"></div>

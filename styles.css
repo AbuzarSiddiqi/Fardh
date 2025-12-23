@@ -73,41 +73,51 @@
    =========================================== */
 
 [data-theme="light"] {
-    /* Background Colors */
+    /* Background Colors - Soft mint/green tint */
     --bg-dark: #F0FDF4;
-    --bg-darker: #ECFDF5;
-    --bg-card: rgba(255, 255, 255, 0.85);
-    --bg-card-hover: rgba(255, 255, 255, 0.95);
+    --bg-darker: #E8F5EC;
+    --bg-card: rgba(255, 255, 255, 0.9);
+    --bg-card-hover: rgba(255, 255, 255, 1);
 
-    /* Text Colors */
-    --text-primary: #1f2937;
-    --text-secondary: rgba(31, 41, 55, 0.75);
-    --text-muted: rgba(31, 41, 55, 0.55);
-    --text-hint: rgba(31, 41, 55, 0.35);
+    /* Text Colors - Strong contrast */
+    --text-primary: #111827;
+    --text-secondary: #4B5563;
+    --text-muted: #6B7280;
+    --text-hint: #9CA3AF;
 
     /* Border Colors */
-    --border-light: rgba(0, 0, 0, 0.08);
-    --border-gold: rgba(180, 130, 60, 0.25);
-    --border-primary: rgba(16, 185, 129, 0.35);
+    --border-light: rgba(229, 231, 235, 1);
+    --border-gold: rgba(180, 130, 60, 0.3);
+    --border-primary: rgba(16, 185, 129, 0.4);
 
-    /* Shadows - lighter for light mode */
-    --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.08);
-    --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.25);
-    --shadow-gold: 0 0 12px rgba(180, 130, 60, 0.15);
+    /* Shadows for light mode */
+    --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+    --shadow-gold: 0 0 12px rgba(180, 130, 60, 0.2);
 
-    /* Primary adjustments for light mode */
-    --primary: #10B981;
-    --primary-dark: #059669;
-    --primary-light: rgba(16, 185, 129, 0.12);
-    --primary-glow: rgba(16, 185, 129, 0.2);
+    /* Primary colors for light mode */
+    --primary: #059669;
+    --primary-dark: #047857;
+    --primary-light: rgba(16, 185, 129, 0.15);
+    --primary-glow: rgba(16, 185, 129, 0.25);
+
+    /* Gold adjustments */
+    --gold: #B45309;
+    --gold-light: #D97706;
+}
+
+/* Light mode body background */
+[data-theme="light"] body {
+    background: linear-gradient(180deg, #F0FDF4 0%, #E8F5EC 100%);
 }
 
 /* Light mode glass panels */
 [data-theme="light"] .glass,
 [data-theme="light"] .glass-card,
 [data-theme="light"] .glass-strong {
-    background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(229, 231, 235, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 /* Light mode background glows - hide them */
@@ -117,36 +127,71 @@
 
 /* Light mode page header */
 [data-theme="light"] .page-header {
-    background: rgba(240, 253, 244, 0.9);
-    border-bottom-color: rgba(0, 0, 0, 0.05);
+    background: rgba(240, 253, 244, 0.95);
+    border-bottom-color: rgba(229, 231, 235, 0.6);
 }
 
 /* Light mode bottom nav */
 [data-theme="light"] .nav-container {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(229, 231, 235, 0.8);
+    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.06);
 }
 
 /* Light mode icon buttons */
 [data-theme="light"] .icon-btn {
-    background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(229, 231, 235, 1);
+}
+
+[data-theme="light"] .icon-btn:hover {
+    background: rgba(240, 253, 244, 1);
 }
 
 /* Light mode cards */
 [data-theme="light"] .card,
-[data-theme="light"] .feature-card,
+[data-theme="light"] .feature-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(229, 231, 235, 0.8);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
 [data-theme="light"] .dua-card {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(0, 0, 0, 0.06);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 253, 244, 0.9));
+    border-color: rgba(180, 130, 60, 0.2);
 }
 
 /* Light mode form elements */
-[data-theme="light"] .form-select {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(0, 0, 0, 0.1);
+[data-theme="light"] .form-select,
+[data-theme="light"] .settings-card,
+[data-theme="light"] .more-feature-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(229, 231, 235, 1);
     color: var(--text-primary);
+}
+
+/* Light mode section titles */
+[data-theme="light"] .section-title,
+[data-theme="light"] .settings-label {
+    color: #111827;
+}
+
+/* Light mode prayer badge */
+[data-theme="light"] .prayer-card-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+}
+
+/* Light mode progress bar */
+[data-theme="light"] .prayer-progress-bar {
+    background: rgba(229, 231, 235, 1);
+}
+
+/* Light mode modals */
+[data-theme="light"] .surah-content-view,
+[data-theme="light"] .dua-detail-modal,
+[data-theme="light"] .settings-modal {
+    background: #F0FDF4;
 }
 
 /* Smooth theme transition */
@@ -1099,7 +1144,24 @@ h3 {
     font-size: 0.6875rem;
     color: var(--text-muted);
     font-weight: 500;
-    margin-bottom: var(--space-xs);
+    margin-bottom: var(--space-sm);
+}
+
+.progress-prayer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.progress-prayer-next {
+    text-align: right;
+    align-items: flex-end;
+}
+
+.progress-label-current,
+.progress-label-next {
+    font-weight: 600;
+    font-size: 0.75rem;
 }
 
 .progress-label-current {
@@ -1108,6 +1170,21 @@ h3 {
 
 .progress-label-next {
     color: var(--primary);
+}
+
+.progress-time-current,
+.progress-time-next {
+    font-size: 0.6875rem;
+    font-weight: 500;
+}
+
+.progress-time-current {
+    color: var(--text-muted);
+}
+
+.progress-time-next {
+    color: var(--primary);
+    opacity: 0.8;
 }
 
 .prayer-progress-bar {

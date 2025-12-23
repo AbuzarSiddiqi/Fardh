@@ -4025,8 +4025,15 @@ function calculateNextPrayer() {
 
     // Update current prayer display (for progress bar labels)
     const currentPrayerNameEl = document.getElementById('current-prayer-name');
+    const currentPrayerTimeEl = document.getElementById('current-prayer-time');
     if (currentPrayerNameEl && currentPrayer) {
         currentPrayerNameEl.textContent = currentPrayer.name;
+    }
+    if (currentPrayerTimeEl && currentPrayer) {
+        const currentTime12 = convertTo12Hour(
+            `${String(currentPrayer.hours).padStart(2, '0')}:${String(currentPrayer.minutes).padStart(2, '0')}`
+        );
+        currentPrayerTimeEl.textContent = currentTime12;
     }
 
     // Update next prayer display (in premium card)
@@ -4035,10 +4042,17 @@ function calculateNextPrayer() {
         nextPrayerNameEl.textContent = nextPrayer;
     }
 
-    // Update progress bar next label
+    // Update progress bar next label and time
     const progressNextLabel = document.getElementById('progress-next-prayer');
+    const progressNextTime = document.getElementById('progress-next-time');
     if (progressNextLabel) {
         progressNextLabel.textContent = nextPrayer;
+    }
+    if (progressNextTime && nextPrayerTime) {
+        const nextTime12 = convertTo12Hour(
+            `${String(nextPrayerTime.hours).padStart(2, '0')}:${String(nextPrayerTime.minutes).padStart(2, '0')}`
+        );
+        progressNextTime.textContent = nextTime12;
     }
 
     // Update time display on the right side
