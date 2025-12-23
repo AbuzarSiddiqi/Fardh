@@ -605,6 +605,46 @@
     border-color: rgba(16, 185, 129, 0.2);
 }
 
+/* ===========================================
+   DUA SEARCH BAR - Light Mode (Visibility Fix)
+   =========================================== */
+
+[data-theme="light"] .dua-search-container {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1) !important;
+}
+
+[data-theme="light"] .dua-search-wrapper:focus-within .dua-search-container {
+    background: rgba(255, 255, 255, 1) !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
+}
+
+[data-theme="light"] .dua-search-icon {
+    color: #059669 !important;
+}
+
+[data-theme="light"] .dua-search-input {
+    color: #1F2937 !important;
+}
+
+[data-theme="light"] .dua-search-input::placeholder {
+    color: #6B7280 !important;
+}
+
+/* ===========================================
+   SHARE MODAL HEADER TEXT - Light Mode Fix
+   =========================================== */
+
+[data-theme="light"] .share-modal-header .share-modal-title,
+[data-theme="light"] .share-modal-header h3 {
+    color: #1F2937 !important;
+}
+
+[data-theme="light"] .share-modal-header .done-btn {
+    color: #059669 !important;
+}
+
 /* Dua items inside expanded card - GREEN tint instead of gray */
 [data-theme="light"] .dua-category-items {
     background: rgba(167, 243, 208, 0.5) !important;
