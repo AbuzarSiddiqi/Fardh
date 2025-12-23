@@ -125,10 +125,21 @@
     opacity: 0;
 }
 
-/* Light mode page header - greenish tint */
+/* Light mode page header - greenish tint (IMPORTANT to override hardcoded dark) */
 [data-theme="light"] .page-header {
-    background: rgba(236, 253, 245, 0.95);
-    border-bottom-color: rgba(16, 185, 129, 0.15);
+    background: rgba(236, 253, 245, 0.98) !important;
+    border-bottom-color: rgba(16, 185, 129, 0.2) !important;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1) !important;
+}
+
+[data-theme="light"] .page-header .header-title {
+    color: #1F2937 !important;
+}
+
+[data-theme="light"] .page-header .icon-btn {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+    color: #059669 !important;
 }
 
 /* Light mode bottom nav - greenish tint */
@@ -279,22 +290,22 @@
    LIGHT MODE - DUA PAGE & TAB CONTENT
    =========================================== */
 
-/* Dua page header */
+/* Dua page header - IMPORTANT overrides */
 [data-theme="light"] .dua-header {
-    background: rgba(236, 253, 245, 0.95);
-    border-bottom-color: rgba(16, 185, 129, 0.2);
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1);
+    background: rgba(236, 253, 245, 0.98) !important;
+    border-bottom-color: rgba(16, 185, 129, 0.2) !important;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1) !important;
 }
 
 [data-theme="light"] .dua-header-title {
-    color: #064E3B;
-    text-shadow: none;
+    color: #1F2937 !important;
+    text-shadow: none !important;
 }
 
 [data-theme="light"] .dua-bookmark-btn {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.2);
-    color: #059669;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+    color: #059669 !important;
 }
 
 /* Dua category tabs */
