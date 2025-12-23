@@ -7301,12 +7301,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ============================================
 // TASBIH COUNTER
-// ============================================
+// ============================================// TASBIH COUNTER
 
 const tasbihState = {
     count: parseInt(localStorage.getItem('tasbihCount') || '0'),
-    target: 33,
-    currentDhikr: localStorage.getItem('tasbihDhikr') || 'subhanallah'
+    target: parseInt(localStorage.getItem('tasbihTarget') || '33')
 };
 
 function initTasbih() {
@@ -7316,7 +7315,10 @@ function initTasbih() {
     const countBtn = document.getElementById('tasbih-btn');
     const resetBtn = document.getElementById('tasbih-reset-btn');
     const countDisplay = document.getElementById('tasbih-count');
-    const dhikrBtns = document.querySelectorAll('.tasbih-dhikr-btn');
+    const currentDisplay = document.getElementById('tasbih-current');
+    const targetDisplay = document.getElementById('tasbih-target');
+    const beadsContainer = document.getElementById('tasbih-beads');
+    const countBtns = document.querySelectorAll('.tasbih-count-btn');
 
     if (!modal) return;
 
@@ -7324,6 +7326,7 @@ function initTasbih() {
     if (openBtn) {
         openBtn.addEventListener('click', () => {
             modal.classList.add('active');
+            renderBeads();
             updateTasbihDisplay();
         });
     }
@@ -7338,23 +7341,27 @@ function initTasbih() {
     // Increment counter
     if (countBtn) {
         countBtn.addEventListener('click', () => {
-            tasbihState.count++;
-            localStorage.setItem('tasbihCount', tasbihState.count.toString());
-            updateTasbihDisplay();
+            if (tasbihState.count < tasbihState.target) {
+                tasbihState.count++;
+                localStorage.setItem('tasbihCount', tasbihState.count.toString());
+                updateTasbihDisplay();
+                updateBeadPosition(tasbihState.count - 1);
 
-            // Haptic feedback
-            if (navigator.vibrate) {
-                navigator.vibrate(15);
-            }
-
-            // Visual feedback on target reached
-            if (tasbihState.count === tasbihState.target) {
-                countBtn.style.boxShadow = '0 0 40px var(--gold)';
-                setTimeout(() => {
-                    countBtn.style.boxShadow = '';
-                }, 500);
+                // Haptic feedback
                 if (navigator.vibrate) {
-                    navigator.vibrate([50, 50, 50]);
+                    navigator.vibrate(15);
+                }
+
+                // Completion feedback
+                if (tasbihState.count === tasbihState.target) {
+                    countBtn.style.boxShadow = '0 0 40px var(--gold)';
+                    setTimeout(() => {
+                        countBtn.style.boxShadow = '';
+                        completeAllBeads();
+                    }, 500);
+                    if (navigator.vibrate) {
+                        navigator.vibrate([50, 50, 50]);
+                    }
                 }
             }
         });
@@ -7366,20 +7373,26 @@ function initTasbih() {
             tasbihState.count = 0;
             localStorage.setItem('tasbihCount', '0');
             updateTasbihDisplay();
+            renderBeads();
         });
     }
 
-    // Dhikr selector
-    dhikrBtns.forEach(btn => {
+    // Count selector
+    countBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            dhikrBtns.forEach(b => b.classList.remove('active'));
+            const newTarget = parseInt(btn.dataset.count);
+            countBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            tasbihState.currentDhikr = btn.dataset.dhikr;
-            localStorage.setItem('tasbihDhikr', tasbihState.currentDhikr);
+            tasbihState.target = newTarget;
+            tasbihState.count = 0;
+            localStorage.setItem('tasbihTarget', newTarget.toString());
+            localStorage.setItem('tasbihCount', '0');
+            updateTasbihDisplay();
+            renderBeads();
         });
 
         // Set initial active state
-        if (btn.dataset.dhikr === tasbihState.currentDhikr) {
+        if (parseInt(btn.dataset.count) === tasbihState.target) {
             btn.classList.add('active');
         } else {
             btn.classList.remove('active');
@@ -7389,10 +7402,64 @@ function initTasbih() {
     updateTasbihDisplay();
 }
 
+function renderBeads() {
+    const beadsContainer = document.getElementById('tasbih-beads');
+    if (!beadsContainer) return;
+
+    beadsContainer.innerHTML = '';
+    const totalBeads = tasbihState.target;
+    const radius = beadsContainer.offsetWidth / 2;
+    const angleStep = (2 * Math.PI) / totalBeads;
+
+    for (let i = 0; i < totalBeads; i++) {
+        const bead = document.createElement('div');
+        bead.className = 'tasbih-bead';
+        bead.dataset.index = i;
+
+        const angle = i * angleStep - Math.PI / 2;
+        const x = radius + radius * Math.cos(angle) - 6;
+        const y = radius + radius * Math.sin(angle) - 6;
+
+        bead.style.left = `${x}px`;
+        bead.style.top = `${y}px`;
+
+        if (i < tasbihState.count) {
+            bead.classList.add('active');
+        }
+
+        beadsContainer.appendChild(bead);
+    }
+}
+
+function updateBeadPosition(index) {
+    const bead = document.querySelector(`.tasbih-bead[data-index="${index}"]`);
+    if (bead) {
+        bead.classList.add('active');
+    }
+}
+
+function completeAllBeads() {
+    const beads = document.querySelectorAll('.tasbih-bead');
+    beads.forEach((bead, index) => {
+        setTimeout(() => {
+            bead.classList.add('completed');
+        }, index * 15);
+    });
+}
+
 function updateTasbihDisplay() {
     const countDisplay = document.getElementById('tasbih-count');
+    const currentDisplay = document.getElementById('tasbih-current');
+    const targetDisplay = document.getElementById('tasbih-target');
+
     if (countDisplay) {
         countDisplay.textContent = tasbihState.count;
+    }
+    if (currentDisplay) {
+        currentDisplay.textContent = tasbihState.count;
+    }
+    if (targetDisplay) {
+        targetDisplay.textContent = tasbihState.target;
     }
 }
 
