@@ -322,12 +322,27 @@ function cacheElements() {
 }
 
 function initNavigation() {
+    // Bottom nav links
     elements.navLinks.forEach(link => {
         link.addEventListener('click', () => {
             const tabId = link.dataset.tab;
             switchTab(tabId);
         });
     });
+
+    // Desktop sidebar nav links
+    document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const tabId = link.dataset.tab;
+            switchTab(tabId);
+        });
+    });
+
+    // Desktop theme toggle button
+    const desktopThemeToggle = document.getElementById('desktop-theme-toggle');
+    if (desktopThemeToggle) {
+        desktopThemeToggle.addEventListener('click', toggleTheme);
+    }
 }
 
 function switchTab(tabId) {
@@ -340,8 +355,13 @@ function switchTab(tabId) {
         setTimeout(() => { isScrollingToSavedPosition = false; }, 500);
     }
 
-    // Update nav links
+    // Update nav links (bottom nav)
     elements.navLinks.forEach(link => {
+        link.classList.toggle('active', link.dataset.tab === tabId);
+    });
+
+    // Update sidebar nav links (desktop)
+    document.querySelectorAll('.sidebar-nav-link').forEach(link => {
         link.classList.toggle('active', link.dataset.tab === tabId);
     });
 
@@ -1343,6 +1363,7 @@ function attachReadAudioListeners() {
     const inlineCloseBtn = document.getElementById('inline-close-btn');
     const readAudioPlayer = document.getElementById('read-audio-player');
 
+    // Inline player controls (if they exist)
     if (inlinePlayPauseBtn && readAudioPlayer) {
         inlinePlayPauseBtn.addEventListener('click', () => {
             if (readAudioPlayer.paused) {
@@ -1361,7 +1382,10 @@ function attachReadAudioListeners() {
             readAudioState.isPlaying = false;
             inlinePlayPauseBtn.querySelector('.material-symbols-outlined').textContent = 'play_arrow';
         });
+    }
 
+    // Audio ended event - MUST be attached independently for full surah playback
+    if (readAudioPlayer) {
         readAudioPlayer.addEventListener('ended', () => {
             if (readAudioState.playlist.length > 1 && readAudioState.currentIndex < readAudioState.playlist.length - 1) {
                 // Play next ayah if we're in surah mode
@@ -1369,7 +1393,6 @@ function attachReadAudioListeners() {
             } else {
                 // Single ayah finished or end of surah
                 readAudioState.isPlaying = false;
-                inlinePlayPauseBtn.querySelector('.material-symbols-outlined').textContent = 'play_arrow';
                 updateReadPlayerUI();
             }
         });
@@ -6461,6 +6484,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 changeToPreviousDua();
             }
         }, { passive: true });
+
+        // Mouse wheel scroll for desktop - scroll to change dua
+        let wheelTimeout;
+        card.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(() => {
+                if (e.deltaY > 0) {
+                    // Scroll down - next dua
+                    changeToNextDua();
+                } else if (e.deltaY < 0) {
+                    // Scroll up - previous dua
+                    changeToPreviousDua();
+                }
+            }, 50);
+        }, { passive: false });
 
         // Click to open detail
         card.addEventListener('click', (e) => {

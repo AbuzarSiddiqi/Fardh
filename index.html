@@ -91,6 +91,37 @@
 
     <!-- App Container -->
     <div class="app-container">
+        <!-- Desktop Sidebar Navigation (hidden on mobile, shown on desktop) -->
+        <aside class="desktop-sidebar">
+            <div class="sidebar-logo">
+                <img src="AppImages/logo_nobg.svg" alt="Fardh Logo" class="sidebar-logo-img">
+                <span class="sidebar-logo-text">Fardh</span>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-nav-link active" data-tab="home">
+                    <span class="material-symbols-outlined">home</span>
+                    <span>Home</span>
+                </button>
+                <button class="sidebar-nav-link" data-tab="read">
+                    <span class="material-symbols-outlined">auto_stories</span>
+                    <span>Quran</span>
+                </button>
+                <button class="sidebar-nav-link" data-tab="dua">
+                    <span class="material-symbols-outlined">self_improvement</span>
+                    <span>Dua</span>
+                </button>
+                <button class="sidebar-nav-link" data-tab="more">
+                    <span class="material-symbols-outlined">apps</span>
+                    <span>More</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-theme-toggle" id="desktop-theme-toggle">
+                    <span class="material-symbols-outlined theme-icon-dark">dark_mode</span>
+                    <span class="material-symbols-outlined theme-icon-light">light_mode</span>
+                </button>
+            </div>
+        </aside>
         <!-- Install Banner -->
         <div id="install-banner" class="install-banner hidden">
             <p>📱 Install Quran PWA</p>

@@ -11267,3 +11267,422 @@ body.mini-player-active .main-content {
 [data-theme="light"] .qaza-total-count {
     color: #dc2626;
 }
+
+/* ===========================================
+   DESKTOP LAYOUT - RESPONSIVE DESIGN
+   =========================================== */
+
+/* Desktop Sidebar - Hidden by default on mobile */
+.desktop-sidebar {
+    display: none;
+}
+
+/* Desktop styles - only apply on screens 768px and wider */
+@media (min-width: 768px) {
+
+    /* Root layout changes */
+    :root {
+        --sidebar-width: 280px;
+        --desktop-max-width: 1400px;
+    }
+
+    /* App container becomes flex for sidebar layout */
+    .app-container {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* Show desktop sidebar */
+    .desktop-sidebar {
+        display: flex;
+        flex-direction: column;
+        width: var(--sidebar-width);
+        min-height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background: var(--bg-darker);
+        border-right: 1px solid var(--border-light);
+        padding: var(--space-lg);
+        z-index: 100;
+    }
+
+    /* Sidebar logo area */
+    .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        padding: var(--space-md) var(--space-sm);
+        margin-bottom: var(--space-xl);
+    }
+
+    .sidebar-logo-img {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+    }
+
+    .sidebar-logo-text {
+        font-family: "Cinzel Decorative", serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Sidebar navigation */
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+        flex: 1;
+    }
+
+    .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        padding: var(--space-md) var(--space-lg);
+        background: transparent;
+        border: none;
+        border-radius: var(--radius-lg);
+        color: var(--text-secondary);
+        font-size: 1rem;
+        font-family: var(--font-display);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        text-align: left;
+    }
+
+    .sidebar-nav-link:hover {
+        background: var(--bg-card);
+        color: var(--text-primary);
+    }
+
+    .sidebar-nav-link.active {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .sidebar-nav-link.active .material-symbols-outlined {
+        color: var(--primary);
+    }
+
+    .sidebar-nav-link .material-symbols-outlined {
+        font-size: 24px;
+    }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+        padding-top: var(--space-lg);
+        border-top: 1px solid var(--border-light);
+        margin-top: auto;
+    }
+
+    .sidebar-theme-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-full);
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        cursor: pointer;
+        transition: all var(--transition-base);
+    }
+
+    .sidebar-theme-toggle:hover {
+        background: var(--bg-card-hover);
+        transform: scale(1.05);
+    }
+
+    /* Hide bottom navigation on desktop */
+    .bottom-nav {
+        display: none !important;
+    }
+
+    /* Main content adjusts for sidebar */
+    .main-content {
+        margin-left: var(--sidebar-width);
+        max-width: none;
+        padding: var(--space-2xl) var(--space-2xl);
+        padding-bottom: var(--space-2xl);
+        flex: 1;
+    }
+
+    /* Page headers for desktop - improved styling */
+    .page-header,
+    .surah-header,
+    .feature-header,
+    .dua-header {
+        margin: 0 0 var(--space-xl) 0;
+        padding: var(--space-xl) var(--space-lg);
+        max-width: 1000px;
+        border-radius: var(--radius-xl);
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        backdrop-filter: blur(20px);
+    }
+
+    /* Larger header titles on desktop */
+    .header-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .header-subtitle {
+        font-size: 1.2rem;
+        margin-top: var(--space-xs);
+    }
+
+    /* Section headers (Dua of the Day, Last Read, Explore, etc.) */
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-md) 0;
+    }
+
+    .section-header h2,
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    /* Read tab header */
+    #read-tab .page-header {
+        position: static;
+        border-radius: var(--radius-xl);
+    }
+
+    /* Surah header in reading view */
+    .surah-header {
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+
+    .surah-header h1 {
+        font-size: 2rem;
+    }
+
+    .surah-header h2 {
+        font-size: 1.3rem;
+    }
+
+    /* Prayer times card better sizing */
+    .prayer-card {
+        padding: var(--space-xl);
+    }
+
+    .prayer-time-display {
+        font-size: 3rem;
+    }
+
+    /* Last read card sizing */
+    .last-read-card {
+        padding: var(--space-lg);
+    }
+
+    /* Dua of day card sizing */
+    .dua-of-day-card {
+        padding: var(--space-lg);
+    }
+
+    /* Explore grid on desktop - fewer columns, larger cards */
+    .explore-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: var(--space-lg);
+    }
+
+    /* Larger explore cards */
+    .explore-card {
+        padding: var(--space-lg);
+        min-height: 120px;
+    }
+
+    .explore-card .explore-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 28px;
+    }
+
+    .explore-card .explore-icon .material-symbols-outlined {
+        font-size: 28px;
+    }
+
+    .explore-card h3 {
+        font-size: 1rem;
+    }
+
+    .explore-card p {
+        font-size: 0.85rem;
+    }
+
+    /* Read tab - surah list grid */
+    .surah-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-md);
+    }
+
+    /* Surah view - ayah cards with better readability */
+    .surah-view {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .ayah-card {
+        padding: var(--space-xl);
+    }
+
+    .ayah-arabic {
+        font-size: 2.2rem;
+        line-height: 2.4;
+        text-align: center;
+    }
+
+    .ayah-translation {
+        font-size: 1.1rem;
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .ayah-header {
+        justify-content: center;
+        gap: var(--space-lg);
+    }
+
+    /* Dua of the Day - Desktop interaction */
+    .dua-day-card {
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dua-day-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(17, 212, 98, 0.15);
+    }
+
+    /* Change swipe hint to click hint on desktop */
+    .dua-day-swipe-hint span:first-child {
+        display: none;
+    }
+
+    .dua-day-swipe-hint span:last-child::before {
+        content: "🖱️ ";
+    }
+
+    .dua-day-swipe-hint span:last-child {
+        font-size: 0.9rem;
+    }
+
+    /* Support scroll wheel navigation for duas */
+    .dua-day-card {
+        scroll-snap-type: y mandatory;
+    }
+
+    /* Dua tab categories grid */
+    .dua-categories {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-md);
+    }
+
+    /* More tab features grid */
+    .more-features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-md);
+    }
+
+    /* Settings sections grid */
+    .settings-section {
+        max-width: 600px;
+    }
+
+    /* Modals - centered with better sizing */
+    .modal,
+    .lang-selector-modal,
+    .share-modal {
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content,
+    .lang-selector-content,
+    .share-modal-content {
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        border-radius: var(--radius-xl);
+    }
+
+    /* Full player modal sizing */
+    .full-player-modal .modal-content {
+        max-width: 500px;
+    }
+
+    /* Global mini player positioning */
+    .global-mini-player {
+        left: var(--sidebar-width);
+        right: 0;
+        width: auto;
+        max-width: none;
+        transform: none;
+    }
+
+    /* Toast positioning */
+    .toast {
+        left: calc(var(--sidebar-width) + 50%);
+        right: auto;
+        transform: translateX(-50%);
+    }
+}
+
+/* Extra large screens - even wider layout */
+@media (min-width: 1200px) {
+    .surah-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .explore-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .dua-categories {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .more-features-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Light mode adjustments for desktop sidebar */
+[data-theme="light"] .desktop-sidebar {
+    background: linear-gradient(180deg, #D1FAE5 0%, #A7F3D0 100%);
+    border-right-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .sidebar-nav-link:hover {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="light"] .sidebar-nav-link.active {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .sidebar-footer {
+    border-top-color: rgba(16, 185, 129, 0.2);
+}
