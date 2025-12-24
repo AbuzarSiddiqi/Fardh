@@ -151,7 +151,30 @@ async function sendNotification(title, body, category) {
             ],
             headings: { en: title },
             contents: { en: body },
-            url: targetUrl
+            url: targetUrl,
+
+            // Priority and delivery settings for better reliability
+            priority: 10,  // High priority (1-10, 10 is highest)
+            ttl: 86400,    // Time to live: 24 hours - retry delivery for a full day
+
+            // Web-specific settings
+            web_push_topic: 'daily-reminder',  // Replaces older notification with same topic
+
+            // Chrome-specific settings for better delivery
+            chrome_web_badge: 'https://fardh.netlify.app/icons/icon-72x72.png',
+
+            // Action buttons for better engagement
+            web_buttons: [
+                {
+                    id: 'open-app',
+                    text: 'Open App',
+                    url: targetUrl
+                }
+            ],
+
+            // iOS-specific settings (helps with delivery on iOS PWA)
+            ios_badgeType: 'Increase',
+            ios_badgeCount: 1
         });
 
         const options = {
