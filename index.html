@@ -60,6 +60,14 @@
     </script>
 </head>
 <body>
+    <!-- Inline theme initialization to prevent flash of wrong theme on splash screen -->
+    <script>
+        (function() {
+            var saved = localStorage.getItem('theme');
+            var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <!-- Splash Screen -->
     <div id="splash-screen" class="splash-screen">
         <!-- Main content -->
@@ -448,6 +456,18 @@
                             <div class="explore-card-info">
                                 <h4 class="explore-card-title-small">Qaza</h4>
                                 <p class="explore-card-subtitle-small">Calculator</p>
+                            </div>
+                            <span class="material-symbols-outlined explore-card-arrow">chevron_right</span>
+                        </button>
+                        
+                        <!-- Ramadan Card -->
+                        <button class="explore-card explore-card-small" id="open-ramadan-btn">
+                            <div class="explore-card-icon small">
+                                <span class="material-symbols-outlined">dark_mode</span>
+                            </div>
+                            <div class="explore-card-info">
+                                <h4 class="explore-card-title-small">Ramadan</h4>
+                                <p class="explore-card-subtitle-small">Coming Soon</p>
                             </div>
                             <span class="material-symbols-outlined explore-card-arrow">chevron_right</span>
                         </button>
@@ -861,8 +881,8 @@
                         </div>
                     </div>
 
-                    <!-- Settings Section (Inline) -->
-                    <div class="settings-section">
+                    <!-- Settings Section (Inline) - Hidden as per user request -->
+                    <div class="settings-section" style="display: none;">
                         <p class="settings-label">Text Edition</p>
                         <div class="settings-card">
                             <div class="form-group" style="margin-bottom: var(--space-md);">
@@ -880,7 +900,8 @@
                         </div>
                     </div>
 
-                    <div class="settings-section">
+                    <!-- Current Selection section - Hidden as per user request -->
+                    <div class="settings-section" style="display: none;">
                         <p class="settings-label">Current Selection</p>
                         <div class="settings-card">
                             <div class="settings-row" style="border-bottom: none; padding-top: 0; padding-bottom: 0;">
@@ -903,7 +924,7 @@
                                 For any issues or feedback:<br>
                                 <a href="mailto:abuzarxsiddiqi@gmail.com" style="color: var(--primary);">abuzarxsiddiqi@gmail.com</a>
                             </p>
-                            <p style="font-size: 0.8125rem; color: var(--text-muted);">Version 3.5.0</p>
+                            <p style="font-size: 0.8125rem; color: var(--text-muted);">Version 3.64.0</p>
                         </div>
                     </div>
                 </div>

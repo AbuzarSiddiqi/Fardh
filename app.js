@@ -372,11 +372,13 @@ function initEventListeners() {
     // Daily Duas card - switch to dua tab and expand daily-dua section
     document.querySelector('[data-action="open-dua"]')?.addEventListener('click', () => {
         switchTab('dua');
-        // Wait for tab to switch, then expand the daily-dua category
-        setTimeout(() => {
+        // Wait for tab to switch, then expand the daily-dua category and load duas
+        setTimeout(async () => {
             const dailyDuaCategory = document.querySelector('.dua-category-card[data-category="daily-dua"]');
             if (dailyDuaCategory && !dailyDuaCategory.classList.contains('expanded')) {
                 dailyDuaCategory.classList.add('expanded');
+                // Load the duas for this category
+                await loadDuasIntoCategory('daily-dua', dailyDuaCategory);
                 // Scroll to it
                 dailyDuaCategory.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -574,9 +576,9 @@ async function loadSurah(surahNumber) {
         // Fetch Arabic text
         const arabicData = await fetchAPI(`/surah/${surahNumber}/quran-uthmani`);
 
-        // Check if we have a translation edition selected
+        // Check if we have a translation edition selected (not 'none', 'quran-uthmani', or default)
         let translationData = null;
-        if (state.selectedEdition && state.selectedEdition !== 'quran-uthmani' && state.selectedEdition !== DEFAULT_EDITION) {
+        if (state.selectedEdition && state.selectedEdition !== 'none' && state.selectedEdition !== 'quran-uthmani' && state.selectedEdition !== DEFAULT_EDITION) {
             try {
                 translationData = await fetchAPI(`/surah/${surahNumber}/${state.selectedEdition}`);
             } catch (e) {
@@ -673,41 +675,27 @@ function renderSurah() {
 
         elements.ayahsContainer.innerHTML = playSurahBtn + ayahsHtml;
 
-        // Add inline audio player (hidden initially)
-        const inlinePlayer = document.getElementById('read-inline-player');
-        if (!inlinePlayer) {
-            const playerHtml = `
-                <div id="read-inline-player" class="read-inline-player hidden">
-                    <div class="inline-player-info">
-                        <span class="material-symbols-outlined playing-icon">graphic_eq</span>
-                        <span id="inline-player-text">Playing...</span>
-                    </div>
-                    <div class="inline-player-controls">
-                        <button id="inline-prev-btn" class="inline-control-btn">
-                            <span class="material-symbols-outlined">skip_previous</span>
-                        </button>
-                        <button id="inline-play-pause-btn" class="inline-control-btn">
-                            <span class="material-symbols-outlined">pause</span>
-                        </button>
-                        <button id="inline-next-btn" class="inline-control-btn">
-                            <span class="material-symbols-outlined">skip_next</span>
-                        </button>
-                        <button id="inline-close-btn" class="inline-control-btn close">
-                            <span class="material-symbols-outlined">close</span>
-                        </button>
-                    </div>
-                    <audio id="read-audio-player"></audio>
-                </div>
-            `;
-            elements.ayahsContainer.insertAdjacentHTML('afterbegin', playerHtml);
+        // Add hidden audio player for Quran recitation (needed for global mini player)
+        if (!document.getElementById('read-audio-player')) {
+            const audioElement = document.createElement('audio');
+            audioElement.id = 'read-audio-player';
+            audioElement.style.display = 'none';
+            document.body.appendChild(audioElement);
         }
 
         // Attach event listeners for play buttons
         attachReadAudioListeners();
     }
 
-    // Scroll to top instantly
-    window.scrollTo(0, 0);
+    // Scroll to top after DOM update
+    requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        // Also ensure the surah view header is visible
+        const surahHeader = document.querySelector('.surah-header');
+        if (surahHeader) {
+            surahHeader.scrollIntoView({ behavior: 'instant', block: 'start' });
+        }
+    });
 }
 
 function showSurahView() {
@@ -878,7 +866,12 @@ const LANGUAGE_NAMES = {
 function updateSurahLanguageLabel() {
     const langLabel = document.getElementById('surah-lang-label');
     if (langLabel) {
-        langLabel.textContent = state.selectedLanguage.toUpperCase();
+        // Show "OFF" when no translation is selected
+        if (state.selectedEdition === 'none') {
+            langLabel.textContent = 'OFF';
+        } else {
+            langLabel.textContent = state.selectedLanguage.toUpperCase();
+        }
     }
 }
 
@@ -928,9 +921,24 @@ function renderQuickLanguageOptions() {
         return aName.localeCompare(bName);
     });
 
-    list.innerHTML = sortedLanguages.map(lang => {
+    // Add "No Translation" option at the top
+    const noTranslationActive = state.selectedEdition === 'none';
+    const noTranslationOption = `
+        <div class="lang-option ${noTranslationActive ? 'active' : ''}" data-lang="none">
+            <div class="lang-option-info">
+                <span class="lang-option-name">No Translation</span>
+                <span class="lang-option-code">Arabic Only</span>
+            </div>
+            <div class="lang-option-check">
+                <span class="material-symbols-outlined">check</span>
+            </div>
+        </div>
+        <div class="lang-selector-divider"></div>
+    `;
+
+    list.innerHTML = noTranslationOption + sortedLanguages.map(lang => {
         const displayName = LANGUAGE_NAMES[lang] || lang.toUpperCase();
-        const isActive = lang === state.selectedLanguage;
+        const isActive = lang === state.selectedLanguage && state.selectedEdition !== 'none';
 
         return `
             <div class="lang-option ${isActive ? 'active' : ''}" data-lang="${lang}">
@@ -956,7 +964,27 @@ function renderQuickLanguageOptions() {
 
 // Select a language from the quick selector
 async function selectQuickLanguage(lang) {
-    if (lang === state.selectedLanguage) {
+    // Handle "No Translation" option
+    if (lang === 'none') {
+        state.selectedEdition = 'none';
+        localStorage.setItem('selectedEdition', 'none');
+
+        // Close modal first
+        closeQuickLanguageSelector();
+
+        // Update displays
+        updateSettingsDisplay();
+        updateSurahLanguageLabel();
+
+        // Reload current surah if viewing (must await to ensure translation is cleared)
+        if (state.currentSurah) {
+            await loadSurah(state.currentSurah.arabic.number);
+            showSuccess('Switched to Arabic Only');
+        }
+        return;
+    }
+
+    if (lang === state.selectedLanguage && state.selectedEdition !== 'none') {
         closeQuickLanguageSelector();
         return;
     }
@@ -7781,4 +7809,14 @@ function updateQazaDisplay() {
 // Initialize Qaza Calculator on load
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initQazaCalculator, 100);
+});
+
+// Ramadan button - Coming Soon
+document.addEventListener('DOMContentLoaded', () => {
+    const ramadanBtn = document.getElementById('open-ramadan-btn');
+    if (ramadanBtn) {
+        ramadanBtn.addEventListener('click', () => {
+            showSuccess('Ramadan features will be updated soon! 🌙');
+        });
+    }
 });

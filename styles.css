@@ -957,7 +957,10 @@
 }
 
 [data-theme="light"] .splash-title {
-    color: #000000 !important;
+    background: linear-gradient(135deg, #064E3B 0%, #047857 60%, #059669 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
 }
 
 [data-theme="light"] .splash-subtitle {
@@ -1881,7 +1884,10 @@ h3 {
 /* Right side - Time display */
 .prayer-card-right {
     text-align: right;
-    margin-top: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
 }
 
 .prayer-card-time {
@@ -1889,6 +1895,11 @@ h3 {
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1;
+}
+
+[data-theme="light"] .prayer-card-time {
+    color: #059669;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .prayer-card-period {
@@ -6012,6 +6023,14 @@ audio::-webkit-media-controls-panel {
     border: 1px solid var(--border-gold);
 }
 
+[data-theme="light"] .dua-detail-arabic {
+    background:
+        radial-gradient(ellipse 150% 100% at 0% 0%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+        rgba(255, 255, 255, 0.95);
+    border-color: rgba(16, 185, 129, 0.2);
+    color: #1F2937;
+}
+
 .dua-detail-section {
     margin-bottom: var(--space-lg);
 }
@@ -8032,7 +8051,7 @@ body.mini-player-active .main-content {
 /* Bookmark Tabs */
 .bookmark-tabs-container {
     padding: var(--space-sm) var(--space-lg) var(--space-md);
-    background: rgba(17, 33, 22, 0.85);
+    background: var(--bg-darker);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     position: sticky;
@@ -10316,6 +10335,12 @@ body.mini-player-active .main-content {
 
 .lang-option-check .material-symbols-outlined {
     font-size: 20px;
+}
+
+.lang-selector-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: var(--space-xs) 0;
 }
 
 /* ===========================================
