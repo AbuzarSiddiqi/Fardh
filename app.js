@@ -236,6 +236,8 @@ function initSplashScreen() {
             // Remove from DOM after diamond expansion animation
             setTimeout(() => {
                 splashScreen.classList.add('hidden');
+                // Show onboarding for first-time users after splash hides
+                initOnboarding();
             }, 600);
         }, remainingTime);
     };
@@ -248,6 +250,281 @@ function initSplashScreen() {
     }
 }
 
+// ============================================
+// FEATURE DISCOVERY TOOLTIPS - Coach Marks
+// ============================================
+
+let tooltipCurrentStep = 0;
+
+// Detect platform for install instructions
+function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+function isAndroid() {
+    return /Android/.test(navigator.userAgent);
+}
+
+// Define the feature tour steps
+const FEATURE_TOUR_STEPS = [
+    // Step 1: Install / Add to Home (platform specific)
+    {
+        selector: isAndroid() ? '#install-banner' : '.page-header',
+        text: isIOS()
+            ? '📲 Add to Home Screen — Tap the Share button below, then "Add to Home Screen" for the best experience!'
+            : '📲 Install App — When prompted, tap "Install" in the banner above to add Fardh to your home screen!',
+        position: 'bottom',
+        fallbackSelector: '.page-header'
+    },
+    // Step 2: Dua of the Day
+    {
+        selector: '.dua-day-card',
+        text: '📿 Dua of the Day — Swipe up for a new dua. Tap to read the full dua.',
+        position: 'bottom'
+    },
+    // Step 3: Last Read
+    {
+        selector: '#last-read-card',
+        text: '📖 Continue Reading — Jump back to where you left off in the Quran.',
+        position: 'bottom'
+    },
+    // Step 4: Explore section
+    {
+        selector: '.explore-grid',
+        text: '🧭 Explore — Qibla finder, Tasbih counter, Qaza calculator and more tools.',
+        position: 'top'
+    },
+    // Step 5: Quran Tab
+    {
+        selector: '.nav-link[data-tab="read"]',
+        text: '📚 Quran — Tap here to browse all 114 Surahs with beautiful recitations.',
+        position: 'top',
+        action: () => switchTab('read')
+    },
+    // Step 6: Play Surah feature (after navigating to Quran)
+    {
+        selector: '.surah-card:first-child',
+        text: '▶️ Play Surah — Tap any Surah to read. Inside, use the Play button to listen with different reciters.',
+        position: 'bottom',
+        waitForElement: true
+    },
+    // Step 7: Dua Tab
+    {
+        selector: '.nav-link[data-tab="dua"]',
+        text: '🤲 Duas — Morning & Evening Adhkar, Daily Duas and supplications.',
+        position: 'top',
+        action: () => switchTab('dua')
+    },
+    // Step 8: Dua categories
+    {
+        selector: '.dua-category-card:first-child',
+        text: '🗂️ Dua Categories — Tap to expand and browse duas. Each dua can be shared!',
+        position: 'bottom',
+        waitForElement: true
+    },
+    // Step 9: More Tab (Hadith, Settings)
+    {
+        selector: '.nav-link[data-tab="more"]',
+        text: '⚙️ More — Hadith of the Day, Bookmarks, Settings and additional features.',
+        position: 'top',
+        action: () => switchTab('more')
+    },
+    // Step 10: Share feature hint (back to home)
+    {
+        selector: '.nav-link[data-tab="home"]',
+        text: '🎁 Share Feature — Tap any ayah or dua to create beautiful share cards! Enjoy your journey. 💚',
+        position: 'top',
+        action: () => switchTab('home')
+    }
+];
+
+function initOnboarding() {
+    // Check if user has already seen onboarding
+    if (localStorage.getItem('hasSeenOnboarding')) {
+        return;
+    }
+
+    const overlay = document.getElementById('feature-tooltip-overlay');
+    if (!overlay) return;
+
+    // Show the tour
+    overlay.classList.remove('hidden');
+
+    // Set up event listeners
+    const skipBtn = document.getElementById('tooltip-skip');
+    const nextBtn = document.getElementById('tooltip-next');
+
+    skipBtn?.addEventListener('click', closeFeatureTour);
+    nextBtn?.addEventListener('click', () => {
+        if (tooltipCurrentStep < FEATURE_TOUR_STEPS.length - 1) {
+            goToTooltipStep(tooltipCurrentStep + 1);
+        } else {
+            closeFeatureTour();
+        }
+    });
+
+    // Start the tour
+    goToTooltipStep(0);
+}
+
+function goToTooltipStep(stepIndex) {
+    if (stepIndex < 0 || stepIndex >= FEATURE_TOUR_STEPS.length) return;
+
+    tooltipCurrentStep = stepIndex;
+    const step = FEATURE_TOUR_STEPS[stepIndex];
+
+    // Execute any action first (like switching tabs)
+    if (step.action && typeof step.action === 'function') {
+        step.action();
+    }
+
+    // Find the target element (with fallback support)
+    const findElement = () => {
+        let targetElement = document.querySelector(step.selector);
+        if (!targetElement && step.fallbackSelector) {
+            targetElement = document.querySelector(step.fallbackSelector);
+        }
+        return targetElement;
+    };
+
+    // If we need to wait for element (after tab switch), retry a few times
+    if (step.waitForElement || step.action) {
+        let attempts = 0;
+        const maxAttempts = 10;
+        const checkElement = () => {
+            const targetElement = findElement();
+            if (targetElement) {
+                showTooltipForElement(targetElement, step, stepIndex);
+            } else if (attempts < maxAttempts) {
+                attempts++;
+                setTimeout(checkElement, 100);
+            } else {
+                // Element not found, skip to next
+                if (stepIndex < FEATURE_TOUR_STEPS.length - 1) {
+                    goToTooltipStep(stepIndex + 1);
+                } else {
+                    closeFeatureTour();
+                }
+            }
+        };
+        setTimeout(checkElement, 200);
+    } else {
+        const targetElement = findElement();
+        if (!targetElement) {
+            if (stepIndex < FEATURE_TOUR_STEPS.length - 1) {
+                goToTooltipStep(stepIndex + 1);
+            } else {
+                closeFeatureTour();
+            }
+            return;
+        }
+        showTooltipForElement(targetElement, step, stepIndex);
+    }
+}
+
+function showTooltipForElement(targetElement, step, stepIndex) {
+    // Scroll element into view if needed (skip for bottom nav items)
+    const isBottomNavItem = targetElement.closest('.bottom-nav');
+    if (!isBottomNavItem) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Wait for scroll to complete
+    setTimeout(() => {
+        positionSpotlight(targetElement);
+        positionTooltip(targetElement, step.position);
+        updateTooltipContent(step.text, stepIndex);
+    }, isBottomNavItem ? 100 : 300);
+}
+
+function positionSpotlight(element) {
+    const overlay = document.getElementById('feature-tooltip-overlay');
+    const rect = element.getBoundingClientRect();
+    const padding = 8;
+
+    // Create or get spotlight element
+    let spotlight = overlay.querySelector('.tooltip-spotlight');
+    if (!spotlight) {
+        spotlight = document.createElement('div');
+        spotlight.className = 'tooltip-spotlight';
+        overlay.insertBefore(spotlight, overlay.firstChild);
+    }
+
+    // Position the spotlight
+    spotlight.style.top = `${rect.top - padding}px`;
+    spotlight.style.left = `${rect.left - padding}px`;
+    spotlight.style.width = `${rect.width + padding * 2}px`;
+    spotlight.style.height = `${rect.height + padding * 2}px`;
+    spotlight.style.borderRadius = getComputedStyle(element).borderRadius || '16px';
+}
+
+function positionTooltip(element, preferredPosition) {
+    const tooltipBox = document.getElementById('tooltip-box');
+    if (!tooltipBox) return;
+
+    const rect = element.getBoundingClientRect();
+    const tooltipWidth = 280;
+    const tooltipHeight = tooltipBox.offsetHeight || 120;
+    const margin = 16;
+    const arrowOffset = 20;
+
+    // Remove existing arrow classes
+    tooltipBox.classList.remove('arrow-top', 'arrow-bottom', 'arrow-left', 'arrow-right');
+
+    let top, left;
+    let arrowClass = 'arrow-top';
+
+    if (preferredPosition === 'bottom' || rect.top < tooltipHeight + margin + 50) {
+        // Position below element
+        top = rect.bottom + margin;
+        left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+        arrowClass = 'arrow-top';
+    } else {
+        // Position above element
+        top = rect.top - tooltipHeight - margin;
+        left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+        arrowClass = 'arrow-bottom';
+    }
+
+    // Keep within screen bounds
+    const maxLeft = window.innerWidth - tooltipWidth - margin;
+    left = Math.max(margin, Math.min(left, maxLeft));
+
+    tooltipBox.style.top = `${top}px`;
+    tooltipBox.style.left = `${left}px`;
+    tooltipBox.classList.add(arrowClass);
+}
+
+function updateTooltipContent(text, stepIndex) {
+    const tooltipText = document.getElementById('tooltip-text');
+    const tooltipProgress = document.getElementById('tooltip-progress');
+    const nextBtn = document.getElementById('tooltip-next');
+
+    if (tooltipText) tooltipText.textContent = text;
+    if (tooltipProgress) tooltipProgress.textContent = `${stepIndex + 1} of ${FEATURE_TOUR_STEPS.length}`;
+
+    // Update button text for last step
+    if (nextBtn) {
+        nextBtn.textContent = stepIndex === FEATURE_TOUR_STEPS.length - 1 ? 'Done' : 'Next';
+    }
+}
+
+function closeFeatureTour() {
+    const overlay = document.getElementById('feature-tooltip-overlay');
+    if (!overlay) return;
+
+    // Mark as seen
+    localStorage.setItem('hasSeenOnboarding', 'true');
+
+    // Fade out
+    overlay.classList.add('hidden');
+
+    // Track completion
+    trackEvent('feature-tour-completed', {
+        stepsCompleted: tooltipCurrentStep + 1,
+        totalSteps: FEATURE_TOUR_STEPS.length
+    });
+}
 
 
 // Auto-hide bottom nav on scroll

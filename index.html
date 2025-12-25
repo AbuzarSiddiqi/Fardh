@@ -84,6 +84,25 @@
         </div>
     </div>
 
+    <!-- Feature Discovery Tooltips Overlay -->
+    <div id="feature-tooltip-overlay" class="tooltip-overlay hidden">
+        <!-- Dark backdrop with spotlight cutout (positioned dynamically via JS) -->
+        <div class="tooltip-backdrop"></div>
+        
+        <!-- Tooltip box (positioned dynamically via JS) -->
+        <div class="tooltip-box" id="tooltip-box">
+            <div class="tooltip-arrow"></div>
+            <p class="tooltip-text" id="tooltip-text">Welcome to Fardh!</p>
+            <div class="tooltip-nav">
+                <span class="tooltip-progress" id="tooltip-progress">1 of 6</span>
+                <button class="tooltip-next" id="tooltip-next">Next</button>
+            </div>
+        </div>
+        
+        <!-- Skip button -->
+        <button class="tooltip-skip" id="tooltip-skip">Skip Tour</button>
+    </div>
+
     <!-- Background Effects -->
     <div class="bg-pattern"></div>
     <div class="bg-glow bg-glow-1"></div>

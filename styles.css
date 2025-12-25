@@ -11686,3 +11686,225 @@ body.mini-player-active .main-content {
 [data-theme="light"] .sidebar-footer {
     border-top-color: rgba(16, 185, 129, 0.2);
 }
+
+/* ============================================
+   FEATURE DISCOVERY TOOLTIPS - Coach Marks
+   ============================================ */
+
+.tooltip-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    pointer-events: auto;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.tooltip-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Hide the backdrop - we use spotlight box-shadow instead */
+.tooltip-backdrop {
+    display: none;
+}
+
+/* Spotlight cutout - creates dark overlay with clear window for highlighted element */
+.tooltip-spotlight {
+    position: fixed;
+    border-radius: var(--radius-lg);
+    /* This box-shadow creates the dark overlay everywhere EXCEPT the spotlight area */
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    z-index: 10001;
+}
+
+/* Pulsing ring around spotlight */
+.tooltip-spotlight::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 2px solid var(--primary);
+    border-radius: inherit;
+    animation: spotlight-pulse 2s ease-in-out infinite;
+}
+
+@keyframes spotlight-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.02);
+    }
+}
+
+/* Tooltip box - solid glassmorphism */
+.tooltip-box {
+    position: fixed;
+    max-width: 280px;
+    background: rgba(20, 25, 30, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-xl);
+    padding: var(--space-lg);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px var(--primary-glow);
+    z-index: 10002;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tooltip arrow */
+.tooltip-arrow {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: rgba(20, 25, 30, 0.95);
+    border: 2px solid var(--primary);
+    transform: rotate(45deg);
+    z-index: -1;
+}
+
+/* Arrow positions - set via .arrow-top, .arrow-bottom, etc classes */
+.tooltip-box.arrow-top .tooltip-arrow {
+    top: -9px;
+    left: 50%;
+    margin-left: -8px;
+    border-bottom: none;
+    border-right: none;
+}
+
+.tooltip-box.arrow-bottom .tooltip-arrow {
+    bottom: -9px;
+    left: 50%;
+    margin-left: -8px;
+    border-top: none;
+    border-left: none;
+}
+
+.tooltip-box.arrow-left .tooltip-arrow {
+    left: -9px;
+    top: 50%;
+    margin-top: -8px;
+    border-top: none;
+    border-right: none;
+}
+
+.tooltip-box.arrow-right .tooltip-arrow {
+    right: -9px;
+    top: 50%;
+    margin-top: -8px;
+    border-bottom: none;
+    border-left: none;
+}
+
+/* Tooltip text */
+.tooltip-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: var(--space-md);
+}
+
+/* Tooltip navigation */
+.tooltip-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tooltip-progress {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+.tooltip-next {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border: none;
+    color: white;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.tooltip-next:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px var(--primary-glow);
+}
+
+.tooltip-next:active {
+    transform: translateY(0);
+}
+
+/* Skip Tour button - positioned below install banner */
+.tooltip-skip {
+    position: fixed;
+    top: 100px;
+    right: 16px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10003;
+}
+
+.tooltip-skip:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Light mode */
+[data-theme="light"] .tooltip-box {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #059669;
+}
+
+[data-theme="light"] .tooltip-arrow {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #059669;
+}
+
+[data-theme="light"] .tooltip-text {
+    color: #1F2937;
+}
+
+[data-theme="light"] .tooltip-next {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+[data-theme="light"] .tooltip-skip {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Desktop: account for sidebar */
+@media (min-width: 768px) {
+    .tooltip-skip {
+        right: 32px;
+        top: 32px;
+    }
+}
