@@ -424,6 +424,7 @@ async function initApp() {
     initQuickLanguageSelector();
     checkOnlineStatus();
     initAutoHideNav();
+    initQuranViewToggle();
 
     // Load initial data
     await loadInitialData();
@@ -435,6 +436,22 @@ async function initApp() {
     setTimeout(() => {
         prefetchAllSurahsForOffline();
     }, 5000);
+
+    // Lock orientation to portrait
+    lockOrientation();
+}
+
+// Lock screen orientation to portrait
+async function lockOrientation() {
+    try {
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('portrait');
+            console.log('Screen orientation locked to portrait');
+        }
+    } catch (e) {
+        // Orientation lock not supported or failed (common in some browsers/states)
+        console.log('Orientation lock not supported or failed:', e);
+    }
 }
 
 // Handle hash-based deep linking from push notifications
@@ -997,17 +1014,43 @@ async function loadInitialData() {
 function checkOnlineStatus() {
     window.addEventListener('online', () => {
         state.isOffline = false;
-        elements.offlineIndicator?.classList.add('hidden');
+        showConnectionIndicator('online');
+        // Resume prefetch if it was paused
+        if (!prefetchInProgress) {
+            setTimeout(() => prefetchAllSurahsForOffline(), 2000);
+        }
     });
 
     window.addEventListener('offline', () => {
         state.isOffline = true;
-        elements.offlineIndicator?.classList.remove('hidden');
+        showConnectionIndicator('offline');
     });
 
+    // Show initial state if offline
     if (!navigator.onLine) {
-        elements.offlineIndicator?.classList.remove('hidden');
+        showConnectionIndicator('offline');
     }
+}
+
+// Show connection status indicator with auto-hide
+function showConnectionIndicator(status) {
+    const indicator = document.getElementById('offline-indicator');
+    if (!indicator) return;
+
+    if (status === 'offline') {
+        indicator.textContent = '📴 You are offline';
+        indicator.classList.remove('hidden');
+        indicator.style.background = 'var(--danger, #ef4444)';
+    } else {
+        indicator.textContent = '✅ Back online';
+        indicator.classList.remove('hidden');
+        indicator.style.background = 'var(--success, #10b981)';
+    }
+
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        indicator.classList.add('hidden');
+    }, 3000);
 }
 
 // ============================================
@@ -1066,7 +1109,7 @@ async function fetchAPI(endpoint) {
             console.log('[Offline] Using cached data for:', endpoint);
             return cachedData;
         }
-        throw new Error('You are offline and this content has not been cached yet.');
+        throw new Error('📴 You are offline. Please turn on internet to load this content.');
     }
 
     try {
@@ -1094,7 +1137,7 @@ async function fetchAPI(endpoint) {
                 console.log('[Offline Fallback] Using cached data for:', endpoint);
                 return cachedData;
             }
-            throw new Error('Network error. Please check your connection.');
+            throw new Error('📴 No internet connection. Please turn on WiFi or mobile data.');
         }
         throw error;
     }
@@ -1150,7 +1193,414 @@ function filterSurahs() {
     renderSurahList();
 }
 
-async function loadSurah(surahNumber) {
+// ============================================
+// PARA/JUZ VIEW
+// ============================================
+
+// Para (Juz) data - each para with starting surah and ayah
+const PARA_DATA = [
+    { para: 1, name: "Alif Lam Mim", nameAr: "الم", startSurah: 1, startAyah: 1, endSurah: 2, endAyah: 141 },
+    { para: 2, name: "Sayaqool", nameAr: "سَيَقُولُ", startSurah: 2, startAyah: 142, endSurah: 2, endAyah: 252 },
+    { para: 3, name: "Tilka ar-Rusul", nameAr: "تِلْكَ الرُّسُلُ", startSurah: 2, startAyah: 253, endSurah: 3, endAyah: 92 },
+    { para: 4, name: "Lan Tana Loo", nameAr: "لَنْ تَنَالُوا", startSurah: 3, startAyah: 93, endSurah: 4, endAyah: 23 },
+    { para: 5, name: "Wal Mohsanaat", nameAr: "وَالْمُحْصَنَاتُ", startSurah: 4, startAyah: 24, endSurah: 4, endAyah: 147 },
+    { para: 6, name: "La Yuhibbullah", nameAr: "لَا يُحِبُّ اللَّهُ", startSurah: 4, startAyah: 148, endSurah: 5, endAyah: 81 },
+    { para: 7, name: "Wa Iza Samiu", nameAr: "وَإِذَا سَمِعُوا", startSurah: 5, startAyah: 82, endSurah: 6, endAyah: 110 },
+    { para: 8, name: "Wa Lau Annana", nameAr: "وَلَوْ أَنَّنَا", startSurah: 6, startAyah: 111, endSurah: 7, endAyah: 87 },
+    { para: 9, name: "Qalal Malao", nameAr: "قَالَ الْمَلَأُ", startSurah: 7, startAyah: 88, endSurah: 8, endAyah: 40 },
+    { para: 10, name: "Wa Alamu", nameAr: "وَاعْلَمُوا", startSurah: 8, startAyah: 41, endSurah: 9, endAyah: 92 },
+    { para: 11, name: "Yatazeroon", nameAr: "يَعْتَذِرُونَ", startSurah: 9, startAyah: 93, endSurah: 11, endAyah: 5 },
+    { para: 12, name: "Wa Mamin Dabbah", nameAr: "وَمَا مِنْ دَابَّةٍ", startSurah: 11, startAyah: 6, endSurah: 12, endAyah: 52 },
+    { para: 13, name: "Wa Ma Ubarrio", nameAr: "وَمَا أُبَرِّئُ", startSurah: 12, startAyah: 53, endSurah: 14, endAyah: 52 },
+    { para: 14, name: "Rubama", nameAr: "رُبَمَا", startSurah: 15, startAyah: 1, endSurah: 16, endAyah: 128 },
+    { para: 15, name: "Subhanallazi", nameAr: "سُبْحَانَ الَّذِي", startSurah: 17, startAyah: 1, endSurah: 18, endAyah: 74 },
+    { para: 16, name: "Qala Alam", nameAr: "قَالَ أَلَمْ", startSurah: 18, startAyah: 75, endSurah: 20, endAyah: 135 },
+    { para: 17, name: "Aqtarabo", nameAr: "اقْتَرَبَ", startSurah: 21, startAyah: 1, endSurah: 22, endAyah: 78 },
+    { para: 18, name: "Qadd Aflaha", nameAr: "قَدْ أَفْلَحَ", startSurah: 23, startAyah: 1, endSurah: 25, endAyah: 20 },
+    { para: 19, name: "Wa Qalallazina", nameAr: "وَقَالَ الَّذِينَ", startSurah: 25, startAyah: 21, endSurah: 27, endAyah: 55 },
+    { para: 20, name: "Amman Khalaq", nameAr: "أَمَّنْ خَلَقَ", startSurah: 27, startAyah: 56, endSurah: 29, endAyah: 45 },
+    { para: 21, name: "Utlu Ma Oohi", nameAr: "اتْلُ مَا أُوحِيَ", startSurah: 29, startAyah: 46, endSurah: 33, endAyah: 30 },
+    { para: 22, name: "Wa Manyaqnut", nameAr: "وَمَنْ يَقْنُتْ", startSurah: 33, startAyah: 31, endSurah: 36, endAyah: 27 },
+    { para: 23, name: "Wa Mali", nameAr: "وَمَا لِيَ", startSurah: 36, startAyah: 28, endSurah: 39, endAyah: 31 },
+    { para: 24, name: "Faman Azlam", nameAr: "فَمَنْ أَظْلَمُ", startSurah: 39, startAyah: 32, endSurah: 41, endAyah: 46 },
+    { para: 25, name: "Elahe Yuruddo", nameAr: "إِلَيْهِ يُرَدُّ", startSurah: 41, startAyah: 47, endSurah: 45, endAyah: 37 },
+    { para: 26, name: "Ha Mim", nameAr: "حم", startSurah: 46, startAyah: 1, endSurah: 51, endAyah: 30 },
+    { para: 27, name: "Qala Fama Khatbukum", nameAr: "قَالَ فَمَا خَطْبُكُمْ", startSurah: 51, startAyah: 31, endSurah: 57, endAyah: 29 },
+    { para: 28, name: "Qadd Sami Allah", nameAr: "قَدْ سَمِعَ اللَّهُ", startSurah: 58, startAyah: 1, endSurah: 66, endAyah: 12 },
+    { para: 29, name: "Tabarakal Lazi", nameAr: "تَبَارَكَ الَّذِي", startSurah: 67, startAyah: 1, endSurah: 77, endAyah: 50 },
+    { para: 30, name: "Amma Yatasa'aloon", nameAr: "عَمَّ يَتَسَاءَلُونَ", startSurah: 78, startAyah: 1, endSurah: 114, endAyah: 6 }
+];
+
+// Initialize Para/Surah toggle
+function initQuranViewToggle() {
+    const surahBtn = document.getElementById('surah-view-btn');
+    const paraBtn = document.getElementById('para-view-btn');
+    const surahList = document.getElementById('surah-list');
+    const paraList = document.getElementById('para-list');
+    const searchInput = document.getElementById('surah-search');
+
+    if (surahBtn && paraBtn) {
+        surahBtn.addEventListener('click', () => {
+            surahBtn.classList.add('active');
+            paraBtn.classList.remove('active');
+            surahList?.classList.remove('hidden');
+            paraList?.classList.add('hidden');
+            if (searchInput) searchInput.placeholder = 'Search Surah...';
+        });
+
+        paraBtn.addEventListener('click', () => {
+            paraBtn.classList.add('active');
+            surahBtn.classList.remove('active');
+            paraList?.classList.remove('hidden');
+            surahList?.classList.add('hidden');
+            if (searchInput) searchInput.placeholder = 'Search Para...';
+            renderParaList();
+        });
+    }
+}
+
+// Render para list
+function renderParaList() {
+    const paraList = document.getElementById('para-list');
+    if (!paraList) return;
+
+    paraList.innerHTML = PARA_DATA.map(para => `
+        <div class="surah-card para-card" data-para="${para.para}">
+            <div class="surah-number">${para.para}</div>
+            <div class="surah-details">
+                <div class="surah-name-english">${para.name}</div>
+                <div class="surah-meta">Surah ${para.startSurah}:${para.startAyah} - ${para.endSurah}:${para.endAyah}</div>
+            </div>
+            <div class="surah-arabic-name">${para.nameAr}</div>
+        </div>
+    `).join('');
+
+    // Add click handlers
+    document.querySelectorAll('.para-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const paraNumber = parseInt(card.dataset.para);
+            loadPara(paraNumber);
+        });
+    });
+}
+
+// Current para state
+let currentParaState = null;
+
+// Load a para - fetches all surahs in the para and shows only para ayahs
+async function loadPara(paraNumber) {
+    const para = PARA_DATA.find(p => p.para === paraNumber);
+    if (!para) return;
+
+    showLoading();
+
+    try {
+        // Collect all ayahs for this para
+        const paraAyahs = [];
+        let totalAyahCount = 0;
+
+        // Fetch all surahs that are part of this para
+        for (let surahNum = para.startSurah; surahNum <= para.endSurah; surahNum++) {
+            // Fetch Arabic and Translation (if selected) in parallel
+            const promises = [fetchAPI(`/surah/${surahNum}/quran-uthmani`)];
+
+            // Check if we have a translation edition selected
+            if (state.selectedEdition && state.selectedEdition !== 'none' && state.selectedEdition !== 'quran-uthmani' && state.selectedEdition !== DEFAULT_EDITION) {
+                promises.push(fetchAPI(`/surah/${surahNum}/${state.selectedEdition}`).catch(e => {
+                    console.warn('Translation not available:', e);
+                    return null;
+                }));
+            } else {
+                promises.push(Promise.resolve(null));
+            }
+
+            const [surahData, translationData] = await Promise.all(promises);
+
+            // Determine which ayahs from this surah belong to this para
+            let startAyah = 1;
+            let endAyah = surahData.numberOfAyahs;
+
+            if (surahNum === para.startSurah) {
+                startAyah = para.startAyah;
+            }
+            if (surahNum === para.endSurah) {
+                endAyah = para.endAyah;
+            }
+
+            // Filter ayahs that belong to this para
+            const surahAyahs = surahData.ayahs.filter(ayah =>
+                ayah.numberInSurah >= startAyah && ayah.numberInSurah <= endAyah
+            );
+
+            // Add surah info and translation to each ayah
+            surahAyahs.forEach(ayah => {
+                ayah.surahName = surahData.name;
+                ayah.surahEnglishName = surahData.englishName;
+                ayah.surahNumber = surahData.number;
+                ayah.paraIndex = totalAyahCount;
+                ayah.revelationType = surahData.revelationType;
+
+                // Find translation if available
+                if (translationData && translationData.ayahs) {
+                    const transAyah = translationData.ayahs.find(t => t.numberInSurah === ayah.numberInSurah);
+                    if (transAyah) {
+                        ayah.translation = transAyah.text;
+                    }
+                }
+
+                totalAyahCount++;
+            });
+
+            paraAyahs.push({
+                surah: surahData,
+                ayahs: surahAyahs,
+                isPartial: startAyah > 1 || endAyah < surahData.numberOfAyahs
+            });
+        }
+
+        // Store para state
+        currentParaState = {
+            para: para,
+            paraAyahs: paraAyahs,
+            totalAyahs: totalAyahCount
+        };
+
+        // Clear surah state when viewing para
+        state.currentSurah = null;
+
+        // Render para view
+        renderParaView(para, paraAyahs, totalAyahCount);
+        showSurahView();
+
+        // Setup scroll tracking for para
+        setupParaScrollTracking(para, paraAyahs, totalAyahCount);
+
+        // Track para navigation
+        trackEvent('para-opened', {
+            paraNumber: paraNumber,
+            paraName: para.name
+        });
+    } catch (error) {
+        console.error('Error loading para:', error);
+        showError(error.message || 'Failed to load Para. Please try again.');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Render para view with all ayahs from multiple surahs
+function renderParaView(para, paraAyahs, totalAyahCount) {
+    // Update header to show para info
+    if (elements.surahTitle) {
+        elements.surahTitle.textContent = para.nameAr;
+    }
+    if (elements.surahSubtitle) {
+        elements.surahSubtitle.textContent = `Para ${para.para} • ${para.name}`;
+    }
+
+    // Build HTML for all ayahs in the para
+    let html = '';
+
+    // Add play para button at top (Using play-surah-btn class to reuse styling, but manual listener)
+    html += `
+        <div class="play-surah-container">
+            <button class="play-surah-btn" id="play-para-btn" data-para="${para.para}">
+                <span class="material-symbols-outlined">play_circle</span>
+                <span>Play Para ${para.para}</span>
+            </button>
+        </div>
+    `;
+
+    paraAyahs.forEach(({ surah, ayahs, isPartial }) => {
+        // Add surah separator
+        html += `
+            <div class="para-surah-header" data-surah="${surah.number}">
+                <div class="para-surah-name">${surah.name}</div>
+                <div class="para-surah-english">${surah.englishName}</div>
+                ${isPartial ? `<div class="para-partial-note">Ayahs ${ayahs[0].numberInSurah}-${ayahs[ayahs.length - 1].numberInSurah}</div>` : ''}
+                <button class="play-surah-inline-btn" data-surah="${surah.number}">
+                    <span class="material-symbols-outlined">play_arrow</span> Play Surah
+                </button>
+            </div>
+        `;
+
+        // Add Bismillah for new surahs (except Al-Fatihah and At-Tawbah)
+        if (ayahs[0].numberInSurah === 1 && surah.number !== 1 && surah.number !== 9) {
+            html += `
+                <div class="bismillah">
+                    <div class="bismillah-line"></div>
+                    <p class="bismillah-text">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+                    <div class="bismillah-line"></div>
+                </div>
+            `;
+        }
+
+        // Render ayahs - MATCHING RENDER SURAH STRUCTURE EXACTLY
+        ayahs.forEach(ayah => {
+            const translationText = ayah.translation || '';
+            const bookmarkId = `quran-${surah.number}-${ayah.numberInSurah}`;
+            const ayahIsBookmarked = typeof isBookmarked === 'function' && isBookmarked('quran', bookmarkId);
+
+            html += `
+                <div class="ayah-card" data-ayah-number="${ayah.numberInSurah}" data-surah="${surah.number}" data-para-index="${ayah.paraIndex}">
+                    <div class="ayah-header">
+                        <span class="ayah-number">${surah.number}:${ayah.numberInSurah}</span>
+                        <div class="ayah-actions">
+                            <button class="ayah-play-btn" data-surah="${surah.number}" data-ayah="${ayah.numberInSurah}" title="Play this ayah">
+                                <span class="material-symbols-outlined">play_arrow</span>
+                            </button>
+                            <button class="ayah-bookmark-btn ${ayahIsBookmarked ? 'bookmarked' : ''}"
+                                data-surah-number="${surah.number}"
+                                data-surah-name="${surah.name}"
+                                data-surah-english="${surah.englishName}"
+                                data-ayah-number="${ayah.numberInSurah}"
+                                data-arabic="${encodeURIComponent(ayah.text)}"
+                                data-translation="${encodeURIComponent(translationText)}"
+                                data-juz="${ayah.juz || ''}"
+                                data-revelation="${ayah.revelationType || 'Meccan'}"
+                                title="Bookmark this ayah">
+                                <span class="material-symbols-outlined">${ayahIsBookmarked ? 'bookmark' : 'bookmark_border'}</span>
+                            </button>
+                            <button class="ayah-share-btn"
+                                data-surah-name="${surah.englishName}"
+                                data-ayah-number="${ayah.numberInSurah}"
+                                data-arabic="${encodeURIComponent(ayah.text)}"
+                                data-translation="${encodeURIComponent(translationText)}"
+                                title="Share this ayah">
+                                <span class="material-symbols-outlined">share</span>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="ayah-arabic">${ayah.text}</p>
+                    ${translationText ? `<p class="ayah-translation">${translationText}</p>` : ''}
+                </div>
+            `;
+        });
+    });
+
+    if (elements.ayahsContainer) {
+        elements.ayahsContainer.innerHTML = html;
+
+        // Add hidden audio player if needed
+        if (!document.getElementById('read-audio-player')) {
+            const audioElement = document.createElement('audio');
+            audioElement.id = 'read-audio-player';
+            audioElement.style.display = 'none';
+            document.body.appendChild(audioElement);
+        }
+
+        // Attach event listeners for audio buttons
+        attachReadAudioListeners();
+
+        // Attach special listeners for Para view buttons
+        const playParaBtn = document.getElementById('play-para-btn');
+        if (playParaBtn) {
+            playParaBtn.addEventListener('click', () => {
+                if (currentParaState && currentParaState.para) {
+                    playParaAudio(currentParaState.para);
+                }
+            });
+        }
+
+        document.querySelectorAll('.play-surah-inline-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const surahNum = btn.dataset.surah;
+                playReadAudio(surahNum, 1, true);
+            });
+        });
+    }
+
+    // Scroll to top
+    requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+    });
+}
+
+// Setup scroll tracking for para (for last read)
+function setupParaScrollTracking(para, paraAyahs, totalAyahs) {
+    // Debounced scroll handler
+    let scrollTimeout;
+
+    const handleParaScroll = () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            // Find the ayah currently in view
+            const ayahCards = document.querySelectorAll('.ayah-card[data-para-index]');
+            let visibleAyah = null;
+
+            for (const card of ayahCards) {
+                const rect = card.getBoundingClientRect();
+                if (rect.top >= 0 && rect.top <= window.innerHeight * 0.5) {
+                    visibleAyah = card;
+                    break;
+                }
+            }
+
+            if (visibleAyah) {
+                const surahNum = parseInt(visibleAyah.dataset.surah);
+                const ayahNum = parseInt(visibleAyah.dataset.ayahNumber); // Updated property name
+                const paraIndex = parseInt(visibleAyah.dataset.paraIndex);
+
+                // Find surah info
+                const surahInfo = paraAyahs.find(pa => pa.surah.number === surahNum);
+                if (surahInfo) {
+                    // Save reading position with para info
+                    saveParaReadingPosition(para, surahNum, surahInfo.surah.name, surahInfo.surah.englishName, ayahNum, paraIndex, totalAyahs);
+                }
+            }
+        }, 500);
+    };
+
+    // Remove old listener and add new one
+    window.removeEventListener('scroll', handleParaScroll);
+    window.addEventListener('scroll', handleParaScroll, { passive: true });
+}
+
+// Save para reading position
+function saveParaReadingPosition(para, surahNumber, surahName, surahEnglishName, ayahNumber, paraIndex, totalAyahs) {
+    const currentPosition = {
+        type: 'para',
+        paraNumber: para.para,
+        paraName: para.name,
+        paraNameAr: para.nameAr,
+        surahNumber,
+        surahName,
+        surahEnglishName,
+        ayahNumber,
+        paraIndex,
+        totalAyahs,
+        timestamp: Date.now()
+    };
+
+    localStorage.setItem('lastRead', JSON.stringify(currentPosition));
+
+    // Update display
+    updateParaLastReadDisplay(currentPosition);
+
+    // Save to history
+    saveToReadingHistory(currentPosition);
+}
+
+// Update last read display for para
+function updateParaLastReadDisplay(position) {
+    const surahEl = document.getElementById('last-read-surah');
+    const ayahEl = document.getElementById('last-read-ayah');
+    const progressEl = document.querySelector('.last-read-progress');
+
+    if (surahEl) {
+        surahEl.textContent = `Para ${position.paraNumber} • ${position.surahEnglishName}`;
+    }
+    if (ayahEl) {
+        ayahEl.textContent = `Ayah ${position.ayahNumber}`;
+    }
+    if (progressEl && position.totalAyahs && position.paraIndex !== undefined) {
+        const progress = Math.round(((position.paraIndex + 1) / position.totalAyahs) * 100);
+        progressEl.style.width = `${progress}%`;
+    }
+}
+
+async function loadSurah(surahNumber, scrollToAyah = null) {
     showLoading();
 
     try {
@@ -1181,9 +1631,19 @@ async function loadSurah(surahNumber) {
 
         renderSurah();
         showSurahView();
+
+        // Scroll to specific ayah if requested (for Para navigation)
+        if (scrollToAyah && scrollToAyah > 1) {
+            setTimeout(() => {
+                const ayahElement = document.querySelector(`[data-ayah="${scrollToAyah}"]`);
+                if (ayahElement) {
+                    ayahElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 300);
+        }
     } catch (error) {
         console.error('Error loading surah:', error);
-        showError('Failed to load Surah. Please try again.');
+        showError(error.message || 'Failed to load Surah. Please try again.');
     } finally {
         hideLoading();
     }
@@ -1889,12 +2349,12 @@ function formatTime(seconds) {
 
 // Read audio state (separate from Listen tab)
 const readAudioState = {
-    playlist: [],
+    playlist: [], // Array of {url, surah, ayah}
     currentIndex: 0,
     isPlaying: false,
     surahNumber: null,
     surahName: '',
-    startAyahOffset: 1 // The actual ayah number of the first item in the playlist
+    startAyahOffset: 1
 };
 
 function attachReadAudioListeners() {
@@ -1984,11 +2444,18 @@ async function playReadAudio(surahNumber, startAyah, playWholeSurah) {
         const surah = state.surahs.find(s => s.number === parseInt(surahNumber));
 
         if (data.ayahs && data.ayahs.length > 0) {
+            readAudioState.playlist = [];
+
             if (playWholeSurah) {
                 // Set up playlist for entire surah
-                readAudioState.playlist = data.ayahs.map(a => a.audio).filter(Boolean);
+                readAudioState.playlist = data.ayahs.map(a => ({
+                    url: a.audio,
+                    surah: parseInt(surahNumber),
+                    ayah: a.numberInSurah
+                })).filter(item => item.url);
+
                 readAudioState.currentIndex = 0;
-                readAudioState.startAyahOffset = 1; // Surah starts from ayah 1
+                readAudioState.startAyahOffset = 1;
 
                 // Track full surah playback
                 trackEvent('audio-play-surah', {
@@ -1997,15 +2464,20 @@ async function playReadAudio(surahNumber, startAyah, playWholeSurah) {
                     reciter: reciterEdition
                 });
             } else {
-                // Single ayah - find the ayah by number
+                // Single ayah
                 const ayahIndex = data.ayahs.findIndex(a => a.numberInSurah === startAyah);
                 if (ayahIndex === -1) {
                     showError('Ayah not found');
                     return;
                 }
-                readAudioState.playlist = [data.ayahs[ayahIndex].audio];
+
+                readAudioState.playlist = [{
+                    url: data.ayahs[ayahIndex].audio,
+                    surah: parseInt(surahNumber),
+                    ayah: startAyah
+                }];
                 readAudioState.currentIndex = 0;
-                readAudioState.startAyahOffset = startAyah; // Store the actual ayah number
+                readAudioState.startAyahOffset = startAyah;
 
                 // Track single ayah playback
                 trackEvent('audio-play-ayah', {
@@ -2015,7 +2487,7 @@ async function playReadAudio(surahNumber, startAyah, playWholeSurah) {
                 });
             }
 
-            readAudioState.surahNumber = surahNumber;
+            readAudioState.surahNumber = parseInt(surahNumber);
             readAudioState.surahName = surah?.englishName || `Surah ${surahNumber}`;
             readAudioState.isPlaying = true;
 
@@ -2034,16 +2506,95 @@ async function playReadAudio(surahNumber, startAyah, playWholeSurah) {
     }
 }
 
+// Play entire Para
+async function playParaAudio(para) {
+    stopAllAudio('read');
+    showLoading();
+
+    try {
+        const reciterEdition = state.selectedAudioEdition || 'ar.alafasy';
+        readAudioState.playlist = [];
+
+        // Fetch audio for all surahs in para
+        const promises = [];
+        for (let surahNum = para.startSurah; surahNum <= para.endSurah; surahNum++) {
+            promises.push(fetchAPI(`/surah/${surahNum}/${reciterEdition}`));
+        }
+
+        const results = await Promise.all(promises);
+
+        // Build playlist
+        results.forEach(data => {
+            if (!data || !data.ayahs) return;
+
+            // Determine range for this surah in this para
+            let startAyah = 1;
+            let endAyah = data.numberOfAyahs;
+
+            if (data.number === para.startSurah) startAyah = para.startAyah;
+            if (data.number === para.endSurah) endAyah = para.endAyah;
+
+            // Filter ayahs
+            const relevantAyahs = data.ayahs.filter(a =>
+                a.numberInSurah >= startAyah && a.numberInSurah <= endAyah
+            );
+
+            // Add to playlist
+            const items = relevantAyahs.map(a => ({
+                url: a.audio,
+                surah: data.number,
+                ayah: a.numberInSurah
+            })).filter(item => item.url);
+
+            readAudioState.playlist.push(...items);
+        });
+
+        if (readAudioState.playlist.length > 0) {
+            readAudioState.currentIndex = 0;
+            readAudioState.surahNumber = para.startSurah; // Just initial ref
+            readAudioState.surahName = `Para ${para.para}`;
+            readAudioState.isPlaying = true;
+
+            showReadPlayer();
+            updateReadPlayerUI();
+            playCurrentReadAyah(); // This will highlight correctly because highlightCurrentAyah now checks item.surah
+
+            trackEvent('audio-play-para', {
+                paraNumber: para.para,
+                reciter: reciterEdition
+            });
+        } else {
+            showError('No audio available for this Para');
+        }
+
+    } catch (error) {
+        console.error('Error loading para audio:', error);
+        showError('Failed to load Para audio.');
+    } finally {
+        hideLoading();
+    }
+}
+
 function playCurrentReadAyah() {
     const readAudioPlayer = document.getElementById('read-audio-player');
     if (!readAudioPlayer || readAudioState.playlist.length === 0) return;
 
-    const audioUrl = readAudioState.playlist[readAudioState.currentIndex];
+    const item = readAudioState.playlist[readAudioState.currentIndex];
+
+    // Support new object structure {url, surah, ayah} or fallback to string (legacy safety)
+    const audioUrl = typeof item === 'string' ? item : item.url;
+
+    // Update state if using new structure
+    if (typeof item === 'object') {
+        readAudioState.currentAyahNumber = item.ayah;
+        readAudioState.currentSurahNumber = item.surah;
+    }
+
     readAudioPlayer.src = audioUrl;
     readAudioPlayer.load();
 
     updateReadPlayerUI();
-    highlightCurrentAyah();
+    highlightCurrentAyah(); // Now uses the state updated above
 
     readAudioPlayer.play().catch(e => {
         console.log('Autoplay prevented, user must click play');
@@ -2120,9 +2671,29 @@ function highlightCurrentAyah() {
         card.classList.remove('playing');
     });
 
-    // Add highlight to current ayah - use startAyahOffset to get the actual ayah number
-    const currentAyahNumber = readAudioState.startAyahOffset + readAudioState.currentIndex;
-    const currentAyahCard = document.querySelector(`.ayah-card[data-ayah-number="${currentAyahNumber}"]`);
+    // Determine current surah/ayah
+    let currentAyahNumber, currentSurahNumber;
+
+    const item = readAudioState.playlist[readAudioState.currentIndex];
+    if (typeof item === 'object') {
+        currentAyahNumber = item.ayah;
+        currentSurahNumber = item.surah;
+    } else {
+        // Fallback for simple single surah playback
+        currentAyahNumber = readAudioState.startAyahOffset + readAudioState.currentIndex;
+        currentSurahNumber = readAudioState.surahNumber;
+    }
+
+    // Try finding exact card with surah and ayah (Para view style)
+    let currentAyahCard = document.querySelector(`.ayah-card[data-surah="${currentSurahNumber}"][data-ayah-number="${currentAyahNumber}"]`);
+
+    // Fallback to just ayah number (Surah view style, if data-surah is missing)
+    if (!currentAyahCard) {
+        // Ensure we only match if we are logically in the same surah (implicitly)
+        // But for Surah view, state.currentSurah matches readAudioState.surahNumber usually.
+        currentAyahCard = document.querySelector(`.ayah-card[data-ayah-number="${currentAyahNumber}"]`);
+    }
+
     if (currentAyahCard) {
         currentAyahCard.classList.add('playing');
         currentAyahCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -5043,9 +5614,22 @@ function renderReadingHistoryModal() {
     }
 
     container.innerHTML = history.map((item, index) => {
-        const surahName = item.surahEnglishName || item.surahName || `Surah ${item.surahNumber}`;
+        let title = '';
+        if (item.type === 'para') {
+            title = `Para ${item.paraNumber} • ${item.surahEnglishName || item.surahName}`;
+        } else {
+            title = item.surahEnglishName || item.surahName || `Surah ${item.surahNumber}`;
+        }
+
         const timeAgo = getTimeAgo(item.timestamp);
-        const progress = item.totalAyahs ? Math.round((item.ayahNumber / item.totalAyahs) * 100) : 0;
+        // Calculate progress - use totalAyahs if available
+        let progress = 0;
+        if (item.totalAyahs) {
+            // For para, we use paraIndex if available, otherwise fallback
+            const currentVal = (item.type === 'para' && item.paraIndex !== undefined) ? item.paraIndex : item.ayahNumber;
+            // Note: item.totalAyahs for Para is total ayahs in para. For Surah it is total ayahs in surah.
+            progress = Math.round((currentVal / item.totalAyahs) * 100);
+        }
 
         return `
             <div class="reading-history-item-wrapper" data-history-index="${index}">
@@ -5054,7 +5638,7 @@ function renderReadingHistoryModal() {
                         <span class="material-symbols-outlined">menu_book</span>
                     </div>
                     <div class="reading-history-item-info">
-                        <h4>${surahName}</h4>
+                        <h4>${title}</h4>
                         <p>Ayah ${item.ayahNumber} • ${progress}% • ${timeAgo}</p>
                     </div>
                     <span class="material-symbols-outlined">chevron_right</span>
@@ -5191,22 +5775,50 @@ function jumpToHistoryPosition(index) {
     // Close modal
     closeReadingHistoryModal();
 
-    // Navigate to surah and scroll to ayah
+    // Navigate
     switchTab('read');
 
-    setTimeout(() => {
-        selectSurah(item.surahNumber);
+    if (item.type === 'para') {
+        // Load Para
+        loadPara(item.paraNumber).then(() => {
+            // Scroll to specific ayah
+            const scrollWithRetry = (attempts = 0) => {
+                // Try finding with exact attributes first (Para view style)
+                let ayahEl = document.querySelector(`.ayah-card[data-surah="${item.surahNumber}"][data-ayah-number="${item.ayahNumber}"]`);
 
-        // Scroll to specific ayah after rendering
+                // Fallback
+                if (!ayahEl) {
+                    ayahEl = document.querySelector(`.ayah-card[data-ayah-number="${item.ayahNumber}"]`);
+                }
+
+                if (ayahEl) {
+                    ayahEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    ayahEl.classList.add('highlight-pulse');
+                    setTimeout(() => ayahEl.classList.remove('highlight-pulse'), 2000);
+                } else if (attempts < 10) {
+                    setTimeout(() => scrollWithRetry(attempts + 1), 500);
+                }
+            };
+
+            // Start scrolling attempt
+            setTimeout(() => scrollWithRetry(), 500);
+        });
+    } else {
+        // Load Surah (Existing Logic)
         setTimeout(() => {
-            const ayahEl = document.querySelector(`[data-ayah="${item.ayahNumber}"]`);
-            if (ayahEl) {
-                ayahEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                ayahEl.classList.add('highlight-pulse');
-                setTimeout(() => ayahEl.classList.remove('highlight-pulse'), 2000);
-            }
-        }, 800);
-    }, 200);
+            selectSurah(item.surahNumber);
+
+            // Scroll to specific ayah after rendering
+            setTimeout(() => {
+                const ayahEl = document.querySelector(`[data-ayah-number="${item.ayahNumber}"]`); // Corrected selector to match renderSurah
+                if (ayahEl) {
+                    ayahEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    ayahEl.classList.add('highlight-pulse');
+                    setTimeout(() => ayahEl.classList.remove('highlight-pulse'), 2000);
+                }
+            }, 800);
+        }, 200);
+    }
 }
 
 // Get time ago string
@@ -5261,8 +5873,19 @@ function saveToReadingHistory(position) {
         history = [];
     }
 
-    // Remove duplicate surah entries (keep only latest position per surah)
-    history = history.filter(h => h.surahNumber !== position.surahNumber);
+    // Remove duplicate entries (keep only latest position per surah OR para)
+    history = history.filter(h => {
+        if (position.type === 'para') {
+            // If new is Para X, remove old Para X
+            if (h.type === 'para' && h.paraNumber === position.paraNumber) return false;
+            return true;
+        } else {
+            // If new is Surah Y, remove old Surah Y (and ensure we don't accidentally remove Para entries unless we want to?)
+            // Let's keep Para and Surah entries separate.
+            if (!h.type && h.surahNumber === position.surahNumber) return false;
+            return true;
+        }
+    });
 
     // Add new position at the beginning
     history.unshift(position);
@@ -5332,6 +5955,27 @@ function updateLastReadDisplay() {
     const percentEl = document.getElementById('last-read-percent');
     const progressFill = document.getElementById('last-read-progress-fill');
 
+    // Check for para reading first
+    const savedData = localStorage.getItem('lastRead');
+    if (savedData) {
+        const parsed = JSON.parse(savedData);
+        if (parsed.type === 'para' && parsed.paraNumber) {
+            if (surahEl) {
+                surahEl.textContent = `Para ${parsed.paraNumber} • ${parsed.surahEnglishName || ''}`;
+            }
+            if (ayahEl) {
+                ayahEl.textContent = `Ayah ${parsed.ayahNumber}`;
+            }
+            if (parsed.totalAyahs && parsed.paraIndex !== undefined) {
+                const progress = Math.round(((parsed.paraIndex + 1) / parsed.totalAyahs) * 100);
+                if (percentEl) percentEl.textContent = `${progress}%`;
+                if (progressFill) progressFill.style.width = `${progress}%`;
+            }
+            return;
+        }
+    }
+
+    // Original surah reading display
     if (lastReadState.surahNumber && lastReadState.ayahNumber) {
         const surahName = lastReadState.surahEnglishName || lastReadState.surahName || `Surah ${lastReadState.surahNumber}`;
 
@@ -5363,6 +6007,44 @@ function updateLastReadDisplay() {
 
 // Continue reading from last position
 async function continueReading() {
+    // Check localStorage directly the type of last read
+    const savedData = localStorage.getItem('lastRead');
+    if (savedData) {
+        const parsed = JSON.parse(savedData);
+
+        // Check if it's a para reading
+        if (parsed.type === 'para' && parsed.paraNumber) {
+            // Switch to read tab
+            switchTab('read');
+
+            // Set flag to prevent position updates during scroll
+            isScrollingToSavedPosition = true;
+
+            // Load the para
+            await loadPara(parsed.paraNumber);
+
+            // Wait for DOM update then scroll to ayah
+            const scrollWithRetry = (attempts = 0) => {
+                const ayahCard = document.querySelector(`.ayah-card[data-surah="${parsed.surahNumber}"][data-ayah="${parsed.ayahNumber}"]`);
+                if (ayahCard) {
+                    ayahCard.scrollIntoView({ behavior: 'instant', block: 'center' });
+                    ayahCard.classList.add('highlight');
+                    setTimeout(() => {
+                        ayahCard.classList.remove('highlight');
+                        isScrollingToSavedPosition = false;
+                    }, 2000);
+                } else if (attempts < 5) {
+                    setTimeout(() => scrollWithRetry(attempts + 1), 200);
+                } else {
+                    isScrollingToSavedPosition = false;
+                }
+            };
+            setTimeout(() => scrollWithRetry(), 500);
+            return;
+        }
+    }
+
+    // Handle surah reading (original logic)
     if (lastReadState.surahNumber) {
         // Switch to read tab
         switchTab('read');
@@ -8156,6 +8838,7 @@ function initTasbih() {
     const targetDisplay = document.getElementById('tasbih-target');
     const beadsContainer = document.getElementById('tasbih-beads');
     const countBtns = document.querySelectorAll('.tasbih-count-btn');
+    const customInput = document.getElementById('tasbih-custom-input');
 
     if (!modal) return;
 
@@ -8257,12 +8940,16 @@ function initTasbih() {
         });
     }
 
-    // Count selector
+    // Count selector buttons
     countBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const newTarget = parseInt(btn.dataset.count);
             countBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+
+            // Clear custom input
+            if (customInput) customInput.value = '';
+
             tasbihState.target = newTarget;
             tasbihState.count = 0;
             localStorage.setItem('tasbihTarget', newTarget.toString());
@@ -8270,14 +8957,54 @@ function initTasbih() {
             updateTasbihDisplay();
             renderBeads();
         });
-
-        // Set initial active state
-        if (parseInt(btn.dataset.count) === tasbihState.target) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
     });
+
+    // Custom Input Logic
+    if (customInput) {
+        customInput.addEventListener('input', (e) => {
+            let val = parseInt(e.target.value);
+            if (val && val > 0) {
+                // Determine valid range (e.g. max 9999)
+                if (val > 9999) val = 9999;
+
+                tasbihState.target = val;
+                tasbihState.count = 0;
+                localStorage.setItem('tasbihTarget', val.toString());
+                localStorage.setItem('tasbihCount', '0');
+
+                // Deselect preset buttons
+                countBtns.forEach(b => b.classList.remove('active'));
+
+                updateTasbihDisplay();
+                renderBeads();
+            }
+        });
+
+        // Initialize input value if target is custom
+        const predefined = [33, 34, 100];
+        if (!predefined.includes(tasbihState.target)) {
+            customInput.value = tasbihState.target;
+            countBtns.forEach(b => b.classList.remove('active'));
+        } else {
+            // Set active class for predefined
+            countBtns.forEach(btn => {
+                if (parseInt(btn.dataset.count) === tasbihState.target) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+    } else {
+        // Fallback initialization if custom input not found
+        countBtns.forEach(btn => {
+            if (parseInt(btn.dataset.count) === tasbihState.target) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
 
     updateTasbihDisplay();
 }

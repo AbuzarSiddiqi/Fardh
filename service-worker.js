@@ -14,7 +14,7 @@
  */
 
 // ⚠️ UPDATE THIS VERSION NUMBER WHEN YOU MAKE CHANGES!
-const APP_VERSION = '3.69.0';
+const APP_VERSION = '3.76.3';
 const CACHE_NAME = `quran-pwa-${APP_VERSION}`;
 const STATIC_CACHE = `quran-static-${APP_VERSION}`;
 const API_CACHE = 'quran-api-v1';
@@ -156,6 +156,18 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Handle Google Fonts Styles (Stale While Revalidate)
+    if (url.hostname === 'fonts.googleapis.com') {
+        event.respondWith(staleWhileRevalidate(request, STATIC_CACHE));
+        return;
+    }
+
+    // Handle Google Fonts Webfiles (Cache First)
+    if (url.hostname === 'fonts.gstatic.com') {
+        event.respondWith(cacheFirst(request, STATIC_CACHE));
+        return;
+    }
+
     // For HTML, CSS, JS files - use stale-while-revalidate (show cached but fetch fresh in background)
     const fileName = url.pathname.split('/').pop() || 'index.html';
     if (ALWAYS_FRESH.some(f => fileName.includes(f))) {
@@ -204,7 +216,19 @@ async function staleWhileRevalidate(request, cacheName) {
 
     // Fallback for HTML
     if (request.destination === 'document') {
-        return caches.match('./index.html');
+        const fallback = await caches.match('./index.html');
+        if (fallback) {
+            return fallback;
+        }
+
+        // Final fallback to avoid browser error page
+        return new Response(
+            '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Offline</title><style>body{font-family:system-ui,-apple-system,sans-serif;background:#102218;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center}h1{margin-bottom:1rem}.btn{background:#10b981;color:white;border:none;padding:10px 20px;border-radius:20px;font-size:1rem;cursor:pointer;margin-top:20px}</style></head><body><h1>You are offline</h1><p>Please check your connection and try again.</p><button class="btn" onclick="window.location.reload()">Retry</button></body></html>',
+            {
+                status: 503,
+                headers: { 'Content-Type': 'text/html' }
+            }
+        );
     }
 
     return new Response('Offline', { status: 503 });

@@ -39,8 +39,8 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" crossorigin="anonymous">
     
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
@@ -536,13 +536,25 @@
                         </button>
                     </header>
 
+                    <!-- Surah/Para Toggle -->
+                    <div class="quran-view-toggle">
+                        <button id="surah-view-btn" class="view-toggle-btn active">Surah</button>
+                        <button id="para-view-btn" class="view-toggle-btn">Para (Juz)</button>
+                    </div>
+
                     <div class="search-container">
                         <span class="material-symbols-outlined search-icon">search</span>
                         <input type="text" id="surah-search" class="search-input" placeholder="Search Surah...">
                     </div>
 
+                    <!-- Surah List -->
                     <div id="surah-list" class="surah-list">
                         <!-- Surahs will be loaded here -->
+                    </div>
+
+                    <!-- Para/Juz List -->
+                    <div id="para-list" class="surah-list hidden">
+                        <!-- Paras will be loaded here -->
                     </div>
                 </div>
 
@@ -1680,8 +1692,13 @@
             <!-- Count Selection -->
             <div class="tasbih-count-selector">
                 <button class="tasbih-count-btn active" data-count="33">33</button>
-                <button class="tasbih-count-btn" data-count="50">50</button>
+                <button class="tasbih-count-btn" data-count="34">34</button>
                 <button class="tasbih-count-btn" data-count="100">100</button>
+            </div>
+            
+            <!-- Custom Count Input -->
+            <div class="tasbih-custom-input-container">
+                <input type="number" id="tasbih-custom-input" class="tasbih-custom-input" placeholder="Custom" min="1" max="9999">
             </div>
             
             <!-- Main Count Button -->
