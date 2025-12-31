@@ -14,10 +14,11 @@
  */
 
 // ⚠️ UPDATE THIS VERSION NUMBER WHEN YOU MAKE CHANGES!
-const APP_VERSION = '3.66.0';
+const APP_VERSION = '3.68.0';
 const CACHE_NAME = `quran-pwa-${APP_VERSION}`;
 const STATIC_CACHE = `quran-static-${APP_VERSION}`;
 const API_CACHE = 'quran-api-v1';
+const OFFLINE_DATA_CACHE = 'quran-offline-data-v1';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -37,26 +38,63 @@ const STATIC_ASSETS = [
     './icons/icon-512x512.png'
 ];
 
+// Offline Islamic data files to cache (for offline Quran & Dua reading)
+const OFFLINE_DATA_ASSETS = [
+    // Quran data
+    './islamic_data/jsons/all-surah-meanings.json',
+    // Dua categories
+    './islamic_data/dua-dhikr/daily-dua/en.json',
+    './islamic_data/dua-dhikr/morning-dhikr/en.json',
+    './islamic_data/dua-dhikr/evening-dhikr/en.json',
+    './islamic_data/dua-dhikr/dhikr-after-salah/en.json',
+    './islamic_data/dua-dhikr/selected-dua/en.json',
+    // Other Islamic content
+    './islamic_data/jsons/list_allah_names.json',
+    './islamic_data/jsons/wudu-guide.json',
+    './islamic_data/jsons/islamic-facts.json',
+    './islamic_data/jsons/islamic-terms.json',
+    './islamic_data/jsons/prophet_stories.json',
+    './islamic_data/jsons/hadiths/bukhari.json',
+    './islamic_data/jsons/hadiths/muslim.json',
+    './islamic_data/jsons/hadiths/tirmidhi.json'
+];
+
 // Assets that should always be fetched fresh (code files)
 const ALWAYS_FRESH = ['index.html', 'styles.css', 'app.js'];
 
-// Install event - cache static assets
+// Install event - cache static assets and offline data
 self.addEventListener('install', (event) => {
     console.log(`[Service Worker] Installing version ${APP_VERSION}...`);
 
     event.waitUntil(
-        caches.open(STATIC_CACHE)
-            .then((cache) => {
-                console.log('[Service Worker] Caching static assets');
-                return cache.addAll(STATIC_ASSETS);
-            })
+        Promise.all([
+            // Cache static assets
+            caches.open(STATIC_CACHE)
+                .then((cache) => {
+                    console.log('[Service Worker] Caching static assets');
+                    return cache.addAll(STATIC_ASSETS);
+                }),
+            // Cache offline data files (for offline Quran & Dua)
+            caches.open(OFFLINE_DATA_CACHE)
+                .then((cache) => {
+                    console.log('[Service Worker] Caching offline Islamic data...');
+                    // Cache each file individually to avoid failing if one is missing
+                    return Promise.allSettled(
+                        OFFLINE_DATA_ASSETS.map(url =>
+                            cache.add(url).catch(err => {
+                                console.warn(`[Service Worker] Failed to cache ${url}:`, err);
+                            })
+                        )
+                    );
+                })
+        ])
             .then(() => {
-                console.log('[Service Worker] Static assets cached');
+                console.log('[Service Worker] All assets cached');
                 // Skip waiting to activate immediately
                 return self.skipWaiting();
             })
             .catch((error) => {
-                console.error('[Service Worker] Failed to cache static assets:', error);
+                console.error('[Service Worker] Failed to cache assets:', error);
             })
     );
 });
@@ -71,8 +109,8 @@ self.addEventListener('activate', (event) => {
                 return Promise.all(
                     cacheNames
                         .filter((name) => {
-                            // Delete any cache that isn't the current version (except API cache)
-                            return name !== STATIC_CACHE && name !== API_CACHE;
+                            // Delete any cache that isn't the current version (except API and offline data caches)
+                            return name !== STATIC_CACHE && name !== API_CACHE && name !== OFFLINE_DATA_CACHE;
                         })
                         .map((name) => {
                             console.log('[Service Worker] Deleting old cache:', name);
@@ -109,6 +147,12 @@ self.addEventListener('fetch', (event) => {
     // Handle API requests (network-first)
     if (url.hostname === 'api.alquran.cloud' || url.hostname === 'api.aladhan.com') {
         event.respondWith(networkFirst(request, API_CACHE));
+        return;
+    }
+
+    // Handle local Islamic data files (cache-first for offline use)
+    if (url.pathname.includes('islamic_data/')) {
+        event.respondWith(cacheFirst(request, OFFLINE_DATA_CACHE));
         return;
     }
 

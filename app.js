@@ -18,6 +18,122 @@
 // API Base URL
 const API_BASE = 'https://api.alquran.cloud/v1';
 
+// ============================================
+// OFFLINE CACHE (IndexedDB)
+// ============================================
+
+const OFFLINE_DB_NAME = 'FardhOfflineDB';
+const OFFLINE_DB_VERSION = 1;
+const QURAN_STORE = 'quran_cache';
+const DUA_STORE = 'dua_cache';
+
+let offlineDB = null;
+
+// Initialize IndexedDB for offline caching
+async function initOfflineDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(OFFLINE_DB_NAME, OFFLINE_DB_VERSION);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+            offlineDB = request.result;
+            resolve(offlineDB);
+        };
+
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+
+            // Store for Quran API responses
+            if (!db.objectStoreNames.contains(QURAN_STORE)) {
+                db.createObjectStore(QURAN_STORE, { keyPath: 'endpoint' });
+            }
+
+            // Store for Dua data
+            if (!db.objectStoreNames.contains(DUA_STORE)) {
+                db.createObjectStore(DUA_STORE, { keyPath: 'category' });
+            }
+        };
+    });
+}
+
+// Save data to IndexedDB cache
+async function saveToOfflineCache(storeName, key, data) {
+    if (!offlineDB) {
+        try {
+            await initOfflineDB();
+        } catch (e) {
+            console.warn('IndexedDB not available:', e);
+            return;
+        }
+    }
+
+    return new Promise((resolve, reject) => {
+        try {
+            const transaction = offlineDB.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const record = { endpoint: key, data: data, timestamp: Date.now() };
+            const request = store.put(record);
+
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        } catch (e) {
+            console.warn('Failed to save to offline cache:', e);
+            resolve(); // Don't fail the main operation
+        }
+    });
+}
+
+// Get data from IndexedDB cache
+async function getFromOfflineCache(storeName, key) {
+    if (!offlineDB) {
+        try {
+            await initOfflineDB();
+        } catch (e) {
+            console.warn('IndexedDB not available:', e);
+            return null;
+        }
+    }
+
+    return new Promise((resolve, reject) => {
+        try {
+            const transaction = offlineDB.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.get(key);
+
+            request.onsuccess = () => {
+                if (request.result) {
+                    resolve(request.result.data);
+                } else {
+                    resolve(null);
+                }
+            };
+            request.onerror = () => resolve(null);
+        } catch (e) {
+            console.warn('Failed to get from offline cache:', e);
+            resolve(null);
+        }
+    });
+}
+
+// Check if running offline
+function isOffline() {
+    return !navigator.onLine;
+}
+
+// Show offline indicator when using cached data
+function showOfflineDataIndicator() {
+    const indicator = document.getElementById('offline-indicator');
+    if (indicator) {
+        indicator.textContent = '📴 Using offline data';
+        indicator.classList.remove('hidden');
+        setTimeout(() => {
+            if (!isOffline()) {
+                indicator.classList.add('hidden');
+            }
+        }, 3000);
+    }
+}
+
 // Default edition for Arabic text
 const DEFAULT_EDITION = 'quran-uthmani';
 
@@ -160,6 +276,13 @@ async function initApp() {
 
     // Initialize splash screen handling
     initSplashScreen();
+
+    // Initialize offline database for caching
+    try {
+        await initOfflineDB();
+    } catch (e) {
+        console.warn('IndexedDB unavailable, offline mode may be limited:', e);
+    }
 
     cacheElements();
     initNavigation();
@@ -798,6 +921,17 @@ function hideSuccess() {
 // ============================================
 
 async function fetchAPI(endpoint) {
+    // Try to get from cache first if offline
+    if (isOffline()) {
+        const cachedData = await getFromOfflineCache(QURAN_STORE, endpoint);
+        if (cachedData) {
+            showOfflineDataIndicator();
+            console.log('[Offline] Using cached data for:', endpoint);
+            return cachedData;
+        }
+        throw new Error('You are offline and this content has not been cached yet.');
+    }
+
     try {
         const response = await fetch(`${API_BASE}${endpoint}`);
         if (!response.ok) {
@@ -807,9 +941,22 @@ async function fetchAPI(endpoint) {
         if (data.code !== 200) {
             throw new Error(data.data || 'API Error');
         }
+
+        // Cache the response for offline use (don't await, do it in background)
+        saveToOfflineCache(QURAN_STORE, endpoint, data.data).catch(e => {
+            console.warn('Failed to cache response:', e);
+        });
+
         return data.data;
     } catch (error) {
-        if (error.message.includes('Failed to fetch')) {
+        // If network fails, try cache as fallback
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            const cachedData = await getFromOfflineCache(QURAN_STORE, endpoint);
+            if (cachedData) {
+                showOfflineDataIndicator();
+                console.log('[Offline Fallback] Using cached data for:', endpoint);
+                return cachedData;
+            }
             throw new Error('Network error. Please check your connection.');
         }
         throw error;
@@ -3909,8 +4056,24 @@ const prayerState = {
     timings: null,
     date: null,
     nextPrayer: null,
-    countdownInterval: null
+    countdownInterval: null,
+    locationWatchId: null
 };
+
+// Minimum distance (in km) to trigger auto-update of prayer times
+const LOCATION_CHANGE_THRESHOLD_KM = 5;
+
+// Calculate distance between two coordinates using Haversine formula (returns km)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
 
 // Prayer names mapping
 const PRAYER_NAMES = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -4114,9 +4277,8 @@ function initPrayerTimes() {
 
     if (refreshBtn) {
         refreshBtn.addEventListener('click', () => {
-            if (prayerState.latitude && prayerState.longitude) {
-                fetchPrayerTimes(prayerState.latitude, prayerState.longitude);
-            }
+            // Re-request location to get fresh coordinates when user moves to a new place
+            requestLocation();
         });
     }
 
@@ -4133,6 +4295,9 @@ function initPrayerTimes() {
         // Auto-load prayer times
         showPrayerLoading();
         fetchPrayerTimes(prayerState.latitude, prayerState.longitude);
+
+        // Start watching for location changes
+        startLocationWatch();
     }
 }
 
@@ -4160,6 +4325,9 @@ function requestLocation() {
 
             // Fetch prayer times
             await fetchPrayerTimes(latitude, longitude);
+
+            // Start watching for location changes
+            startLocationWatch();
         },
         (error) => {
             hidePrayerLoading();
@@ -4183,6 +4351,58 @@ function requestLocation() {
             enableHighAccuracy: true,
             timeout: 10000,
             maximumAge: 300000 // 5 minutes cache
+        }
+    );
+}
+
+// Start watching for location changes to auto-update prayer times
+function startLocationWatch() {
+    if (!navigator.geolocation) return;
+
+    // Clear existing watch if any
+    if (prayerState.locationWatchId !== null) {
+        navigator.geolocation.clearWatch(prayerState.locationWatchId);
+    }
+
+    prayerState.locationWatchId = navigator.geolocation.watchPosition(
+        async (position) => {
+            const { latitude, longitude } = position.coords;
+
+            // Only update if location has changed significantly (more than threshold)
+            if (prayerState.latitude && prayerState.longitude) {
+                const distance = calculateDistance(
+                    prayerState.latitude, prayerState.longitude,
+                    latitude, longitude
+                );
+
+                // If moved more than threshold km, update prayer times
+                if (distance >= LOCATION_CHANGE_THRESHOLD_KM) {
+                    console.log(`Location changed by ${distance.toFixed(2)}km, updating prayer times...`);
+
+                    // Update state
+                    prayerState.latitude = latitude;
+                    prayerState.longitude = longitude;
+
+                    // Save to localStorage
+                    localStorage.setItem('prayerLat', latitude.toString());
+                    localStorage.setItem('prayerLng', longitude.toString());
+
+                    // Get new city name
+                    await getCityName(latitude, longitude);
+
+                    // Fetch new prayer times
+                    await fetchPrayerTimes(latitude, longitude);
+                }
+            }
+        },
+        (error) => {
+            // Silently handle watch errors - don't show to user as this is background monitoring
+            console.warn('Location watch error:', error.message);
+        },
+        {
+            enableHighAccuracy: false, // Use low accuracy for battery efficiency
+            timeout: 30000,
+            maximumAge: 60000 // Allow 1 minute cached position for efficiency
         }
     );
 }
