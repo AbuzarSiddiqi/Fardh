@@ -134,6 +134,138 @@ function showOfflineDataIndicator() {
     }
 }
 
+// ============================================
+// QURAN PREFETCH FOR OFFLINE
+// ============================================
+
+let prefetchInProgress = false;
+const TOTAL_SURAHS = 114;
+
+// Prefetch all surahs in background for complete offline access
+async function prefetchAllSurahsForOffline() {
+    // Don't prefetch if offline or already in progress
+    if (isOffline() || prefetchInProgress) return;
+
+    // Check if we've already prefetched (stored flag in localStorage)
+    const prefetchedVersion = localStorage.getItem('quranPrefetchVersion');
+    if (prefetchedVersion === '1.0') {
+        console.log('[Prefetch] Quran already cached for offline use');
+        return;
+    }
+
+    prefetchInProgress = true;
+    console.log('[Prefetch] Starting background download of all 114 surahs...');
+
+    // Show subtle progress indicator
+    showPrefetchProgress(0, TOTAL_SURAHS);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // Prefetch in batches to avoid overwhelming the API
+    const batchSize = 5;
+    for (let i = 1; i <= TOTAL_SURAHS; i += batchSize) {
+        if (isOffline()) {
+            console.log('[Prefetch] Gone offline, pausing prefetch');
+            break;
+        }
+
+        const batch = [];
+        for (let j = i; j < i + batchSize && j <= TOTAL_SURAHS; j++) {
+            batch.push(prefetchSurah(j));
+        }
+
+        const results = await Promise.allSettled(batch);
+        results.forEach(r => {
+            if (r.status === 'fulfilled' && r.value) successCount++;
+            else failCount++;
+        });
+
+        // Update progress
+        const progress = Math.min(i + batchSize - 1, TOTAL_SURAHS);
+        showPrefetchProgress(progress, TOTAL_SURAHS);
+
+        // Small delay between batches to be nice to the API
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    prefetchInProgress = false;
+    hidePrefetchProgress();
+
+    // Mark as complete if all succeeded
+    if (successCount >= TOTAL_SURAHS - 5) { // Allow a few failures
+        localStorage.setItem('quranPrefetchVersion', '1.0');
+        console.log(`[Prefetch] Complete! ${successCount} surahs cached for offline use`);
+        showSuccess('✅ Quran downloaded for offline use!');
+    } else {
+        console.log(`[Prefetch] Partial: ${successCount} succeeded, ${failCount} failed`);
+    }
+}
+
+// Prefetch a single surah (Arabic only for speed)
+async function prefetchSurah(surahNumber) {
+    const endpoint = `/surah/${surahNumber}/quran-uthmani`;
+
+    // Check if already cached
+    const cached = await getFromOfflineCache(QURAN_STORE, endpoint);
+    if (cached) return true;
+
+    try {
+        const response = await fetch(`${API_BASE}${endpoint}`);
+        if (!response.ok) return false;
+
+        const data = await response.json();
+        if (data.code !== 200) return false;
+
+        // Cache it
+        await saveToOfflineCache(QURAN_STORE, endpoint, data.data);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+// Show/hide prefetch progress indicator
+function showPrefetchProgress(current, total) {
+    let indicator = document.getElementById('prefetch-indicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'prefetch-indicator';
+        indicator.style.cssText = `
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card, #1a1a2e);
+            color: var(--text, #fff);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        `;
+        document.body.appendChild(indicator);
+    }
+
+    const percent = Math.round((current / total) * 100);
+    indicator.innerHTML = `
+        <span style="animation: spin 1s linear infinite; display: inline-block;">📥</span>
+        Downloading Quran... ${percent}%
+    `;
+}
+
+function hidePrefetchProgress() {
+    const indicator = document.getElementById('prefetch-indicator');
+    if (indicator) {
+        indicator.style.opacity = '0';
+        indicator.style.transition = 'opacity 0.3s';
+        setTimeout(() => indicator.remove(), 300);
+    }
+}
+
 // Default edition for Arabic text
 const DEFAULT_EDITION = 'quran-uthmani';
 
@@ -298,6 +430,11 @@ async function initApp() {
 
     // Handle deep links from notifications (e.g., #quran, #dua, #hadith)
     handleDeepLink();
+
+    // Start background prefetch of all Quran surahs for offline use (after 5 seconds)
+    setTimeout(() => {
+        prefetchAllSurahsForOffline();
+    }, 5000);
 }
 
 // Handle hash-based deep linking from push notifications
