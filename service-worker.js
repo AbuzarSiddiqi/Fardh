@@ -14,7 +14,7 @@
  */
 
 // ⚠️ UPDATE THIS VERSION NUMBER WHEN YOU MAKE CHANGES!
-const APP_VERSION = '3.76.3';
+const APP_VERSION = '3.77.0';
 const CACHE_NAME = `quran-pwa-${APP_VERSION}`;
 const STATIC_CACHE = `quran-static-${APP_VERSION}`;
 const API_CACHE = 'quran-api-v1';
@@ -141,6 +141,43 @@ self.addEventListener('fetch', (event) => {
 
     // Skip non-GET requests
     if (request.method !== 'GET') {
+        return;
+    }
+
+    // CRITICAL: Handle navigation requests (when user opens the app)
+    // This must come FIRST to ensure offline loads work
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            (async () => {
+                try {
+                    // Try network first
+                    const networkResponse = await fetch(request);
+                    if (networkResponse.ok) {
+                        const cache = await caches.open(STATIC_CACHE);
+                        cache.put(request, networkResponse.clone());
+                        return networkResponse;
+                    }
+                } catch (error) {
+                    // Network failed, use cache
+                }
+
+                // Fallback to cached index.html
+                const cachedResponse = await caches.match(request) || await caches.match('./index.html') || await caches.match('/index.html');
+
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+
+                // Final fallback - custom offline page
+                return new Response(
+                    '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Offline - Fardh</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#102218 0%,#1a3a2e 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;padding:20px}.container{max-width:400px}.icon{font-size:4rem;margin-bottom:1.5rem;opacity:0.9}h1{font-size:1.75rem;margin-bottom:0.75rem;font-weight:600}p{font-size:1rem;color:rgba(255,255,255,0.8);margin-bottom:2rem;line-height:1.5}.btn{background:#10b981;color:white;border:none;padding:14px 32px;border-radius:25px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(16,185,129,0.3)}.btn:active{transform:scale(0.95)}</style></head><body><div class="container"><div class="icon">📖</div><h1>You\'re Offline</h1><p>Please connect to the internet and open the app once to enable offline access.</p><button class="btn" onclick="window.location.reload()">Retry</button></div></body></html>',
+                    {
+                        status: 200,
+                        headers: { 'Content-Type': 'text/html' }
+                    }
+                );
+            })()
+        );
         return;
     }
 
