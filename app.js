@@ -6717,7 +6717,7 @@ const swipeState = {
     startTime: 0,
     // Android-specific protection
     isAndroid: /Android/i.test(navigator.userAgent),
-    edgeExclusion: 50, // Ignore swipes starting within 50px of screen edge
+    edgeExclusion: 80, // Ignore swipes starting within 80px of screen edge (prevents conflict with Android back gesture)
     maxAngle: 25 // Maximum angle from horizontal (degrees)
 };
 
@@ -6988,8 +6988,9 @@ function handleSwipe() {
     }
 
     // Check if it's a valid horizontal swipe
+    // Require horizontal distance > vertical distance AND within restraint
     if (elapsedTime <= swipeState.allowedTime) {
-        if (Math.abs(distX) >= swipeState.threshold && Math.abs(distY) <= swipeState.restraint) {
+        if (Math.abs(distX) >= swipeState.threshold && Math.abs(distY) <= swipeState.restraint && Math.abs(distX) > Math.abs(distY)) {
             // Check for open modals that should block swipe
             const qiblaModal = document.getElementById('qibla-modal');
             const fullPlayerModal = document.getElementById('full-player-modal');
