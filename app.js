@@ -6997,8 +6997,12 @@ function handleTouchMove(e) {
     const distY = touch.pageY - swipeState.startY;
 
     // Only show indicator for clearly horizontal swipes
-    // Require significant horizontal movement (50px) AND horizontal > vertical
-    if (Math.abs(distX) > 50 && Math.abs(distX) > Math.abs(distY) * 1.5) {
+    // Require: 60px horizontal, horizontal > 3x vertical, and vertical < 40px
+    const isHorizontalSwipe = Math.abs(distX) > 60 &&
+        Math.abs(distX) > Math.abs(distY) * 3 &&
+        Math.abs(distY) < 40;
+
+    if (isHorizontalSwipe) {
         // Check for open modals (these can change during swipe)
         const qiblaModal = document.getElementById('qibla-modal');
         const fullPlayerModal = document.getElementById('full-player-modal');
