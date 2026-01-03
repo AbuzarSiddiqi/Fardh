@@ -439,6 +439,86 @@ async function initApp() {
 
     // Lock orientation to portrait
     lockOrientation();
+
+    // Initialize Android back gesture prevention (keeps app from closing on swipe)
+    initBackGesturePrevention();
+}
+
+// ============================================
+// ANDROID BACK GESTURE PREVENTION
+// ============================================
+// Uses History API to catch back gestures and navigate within app instead of closing
+
+function initBackGesturePrevention() {
+    // Only apply on Android PWA
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true;
+
+    if (!isAndroid && !isPWA) {
+        // Still set up for browsers, but less critical
+    }
+
+    // Push initial state so we have something to go "back" to
+    if (!history.state || !history.state.appState) {
+        history.replaceState({ appState: 'home', depth: 0 }, '', window.location.href);
+        // Add an extra state so first back doesn't close
+        history.pushState({ appState: 'active', depth: 1 }, '', window.location.href);
+    }
+
+    // Handle back gesture/button
+    window.addEventListener('popstate', handleBackGesture);
+}
+
+// Handle Android back gesture
+function handleBackGesture(event) {
+    // Check what's currently open and close it, or navigate back
+
+    // 1. Check for open modals first (highest priority)
+    const modals = [
+        { id: 'share-modal', close: () => document.getElementById('share-modal')?.classList.add('hidden') },
+        { id: 'full-player-modal', close: closeFullPlayer },
+        { id: 'qibla-modal', close: () => document.getElementById('qibla-modal')?.classList.add('hidden') },
+        { id: 'reciter-modal', close: () => document.getElementById('reciter-modal')?.classList.add('hidden') },
+        { id: 'dua-detail-modal', close: () => document.getElementById('dua-detail-modal')?.classList.add('hidden') }
+    ];
+
+    for (const modal of modals) {
+        const element = document.getElementById(modal.id);
+        if (element && !element.classList.contains('hidden')) {
+            modal.close();
+            // Re-push state to prevent closing on next back
+            history.pushState({ appState: 'active', depth: 1 }, '', window.location.href);
+            return;
+        }
+    }
+
+    // 2. Check for internal views (surah view, dua detail, etc.)
+    const internalViewInfo = typeof getInternalViewInfo === 'function' ? getInternalViewInfo() : null;
+    if (internalViewInfo) {
+        internalViewInfo.goBack();
+        // Re-push state
+        history.pushState({ appState: 'active', depth: 1 }, '', window.location.href);
+        return;
+    }
+
+    // 3. If not on home tab, go to home
+    const currentTab = typeof getCurrentTab === 'function' ? getCurrentTab() : 'home';
+    if (currentTab !== 'home') {
+        if (typeof switchTab === 'function') {
+            switchTab('home');
+        }
+        // Re-push state
+        history.pushState({ appState: 'active', depth: 1 }, '', window.location.href);
+        return;
+    }
+
+    // 4. Already on home with nothing open - re-push state to prevent close
+    // This effectively "blocks" the back gesture from closing the app
+    history.pushState({ appState: 'active', depth: 1 }, '', window.location.href);
+
+    // Optional: Show a toast that back won't close the app
+    // showSuccess('Use home button to exit');
 }
 
 // Lock screen orientation to portrait
