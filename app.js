@@ -6916,8 +6916,9 @@ function handleTouchMove(e) {
     const distX = touch.pageX - swipeState.startX;
     const distY = touch.pageY - swipeState.startY;
 
-    // Only show indicator for horizontal swipes
-    if (Math.abs(distX) > 30 && Math.abs(distY) < Math.abs(distX)) {
+    // Only show indicator for clearly horizontal swipes
+    // Require significant horizontal movement (50px) AND horizontal > vertical
+    if (Math.abs(distX) > 50 && Math.abs(distX) > Math.abs(distY) * 1.5) {
         // Check for open modals (these can change during swipe)
         const qiblaModal = document.getElementById('qibla-modal');
         const fullPlayerModal = document.getElementById('full-player-modal');
@@ -6949,6 +6950,9 @@ function handleTouchMove(e) {
                 showSwipeIndicatorLive('right', nextTab.charAt(0).toUpperCase() + nextTab.slice(1), intensity);
             }
         }
+    } else {
+        // Hide indicator if swipe is not horizontal enough
+        hideSwipeIndicator();
     }
 }
 
