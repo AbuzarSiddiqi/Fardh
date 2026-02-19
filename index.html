@@ -1909,7 +1909,10 @@
                 <span class="material-symbols-outlined">arrow_back_ios_new</span>
             </button>
             <h2 class="ramadan-fullpage-title">Ramadan 1447 AH</h2>
-            <span class="ramadan-fullpage-location">VIT Vellore</span>
+            <span class="ramadan-fullpage-location" id="ramadan-fullpage-location">VIT Vellore</span>
+            <button class="icon-btn" id="ramadan-settings-btn" title="Configure Ramadan Timings">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
         </div>
 
         <div class="ramadan-fullpage-content">
@@ -1954,15 +1957,141 @@
                 <!-- Populated by JS -->
             </div>
 
-            <div class="ramadan-fullpage-disclaimer">
+            <div class="ramadan-fullpage-disclaimer" id="ramadan-fullpage-disclaimer">
                 <span class="material-symbols-outlined">info</span>
                 Timings are specifically for VIT Vellore area only. Source: Jamat-e-Ulama, Shahre Katpadi wa Vellore.
             </div>
         </div>
     </div>
 
+    <!-- Ramadan Settings Modal -->
+    <div id="ramadan-settings-modal" class="ramadan-settings-modal hidden">
+        <div class="ramadan-settings-overlay"></div>
+        <div class="ramadan-settings-content">
+            <div class="ramadan-settings-header">
+                <h3 class="ramadan-settings-title">Configure Ramadan Timings</h3>
+                <button class="icon-btn" id="ramadan-settings-close">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Mode Selection View -->
+            <div id="ramadan-mode-selection" class="ramadan-mode-view">
+                <p class="ramadan-settings-subtitle">Choose how you'd like to set your Sehri and Iftar times</p>
+                <div class="ramadan-mode-cards">
+                    <div class="ramadan-mode-card" data-mode="vit">
+                        <span class="material-symbols-outlined ramadan-mode-icon">school</span>
+                        <h4 class="ramadan-mode-card-title">VIT Vellore</h4>
+                        <p class="ramadan-mode-card-desc">Use default timings for VIT Vellore area</p>
+                        <span class="ramadan-mode-badge">Default</span>
+                    </div>
+                    <div class="ramadan-mode-card" data-mode="manual">
+                        <span class="material-symbols-outlined ramadan-mode-icon">edit_calendar</span>
+                        <h4 class="ramadan-mode-card-title">Manual Entry</h4>
+                        <p class="ramadan-mode-card-desc">Enter custom times for each day manually</p>
+                    </div>
+                    <div class="ramadan-mode-card" data-mode="upload">
+                        <span class="material-symbols-outlined ramadan-mode-icon">upload_file</span>
+                        <h4 class="ramadan-mode-card-title">Upload Timing Card</h4>
+                        <p class="ramadan-mode-card-desc">Upload an image and extract timings automatically</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Entry View -->
+            <div id="ramadan-manual-entry" class="ramadan-entry-view hidden">
+                <div class="ramadan-entry-header">
+                    <button class="ramadan-back-btn" id="ramadan-manual-back">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        Back
+                    </button>
+                    <h4 class="ramadan-entry-title">Manual Time Entry</h4>
+                </div>
+                <div class="ramadan-entry-toolbar">
+                    <input type="text" id="ramadan-location-input" placeholder="Enter location name (e.g., London, UK)" class="ramadan-location-input">
+                    <div class="ramadan-bulk-actions">
+                        <button class="ramadan-action-btn" id="ramadan-copy-all">
+                            <span class="material-symbols-outlined">content_copy</span>
+                            Copy to All Days
+                        </button>
+                    </div>
+                </div>
+                <div class="ramadan-entry-grid" id="ramadan-entry-grid">
+                    <!-- 30 day entries populated by JS -->
+                </div>
+                <div class="ramadan-entry-footer">
+                    <button class="ramadan-btn ramadan-btn-secondary" id="ramadan-manual-cancel">Cancel</button>
+                    <button class="ramadan-btn ramadan-btn-primary" id="ramadan-manual-save">
+                        <span class="material-symbols-outlined">save</span>
+                        Save Timings
+                    </button>
+                </div>
+            </div>
+
+            <!-- Upload View -->
+            <div id="ramadan-upload-view" class="ramadan-entry-view hidden">
+                <div class="ramadan-entry-header">
+                    <button class="ramadan-back-btn" id="ramadan-upload-back">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        Back
+                    </button>
+                    <h4 class="ramadan-entry-title">Upload Timing Card</h4>
+                </div>
+                
+                <!-- Upload Zone -->
+                <div id="ramadan-upload-zone" class="ramadan-upload-zone">
+                    <input type="file" id="ramadan-file-input" accept="image/jpeg,image/jpg,image/png,image/webp" hidden>
+                    <div class="ramadan-upload-content">
+                        <span class="material-symbols-outlined ramadan-upload-icon">cloud_upload</span>
+                        <h4 class="ramadan-upload-title">Drop your Ramadan timetable image here</h4>
+                        <p class="ramadan-upload-desc">or click to browse</p>
+                        <p class="ramadan-upload-note">Supports JPG, PNG, WebP (max 5MB)</p>
+                    </div>
+                </div>
+
+                <!-- Image Preview -->
+                <div id="ramadan-image-preview" class="ramadan-image-preview hidden">
+                    <img id="ramadan-preview-img" alt="Uploaded timetable">
+                    <button class="ramadan-btn ramadan-btn-secondary" id="ramadan-change-image">
+                        <span class="material-symbols-outlined">image</span>
+                        Change Image
+                    </button>
+                </div>
+
+                <!-- OCR Processing -->
+                <div id="ramadan-ocr-processing" class="ramadan-ocr-processing hidden">
+                    <div class="ramadan-processing-spinner"></div>
+                    <p id="ramadan-processing-text" class="ramadan-processing-text">Analyzing image...</p>
+                    <div class="ramadan-progress-bar">
+                        <div id="ramadan-progress-fill" class="ramadan-progress-fill"></div>
+                    </div>
+                </div>
+
+                <!-- Review & Edit -->
+                <div id="ramadan-review-view" class="ramadan-review-view hidden">
+                    <div class="ramadan-review-header">
+                        <h4>Review Extracted Timings</h4>
+                        <p class="ramadan-review-subtitle">Edit any incorrect times before saving</p>
+                    </div>
+                    <input type="text" id="ramadan-upload-location-input" placeholder="Enter location name (e.g., London, UK)" class="ramadan-location-input">
+                    <div class="ramadan-review-grid" id="ramadan-review-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div class="ramadan-entry-footer">
+                        <button class="ramadan-btn ramadan-btn-secondary" id="ramadan-review-cancel">Cancel</button>
+                        <button class="ramadan-btn ramadan-btn-primary" id="ramadan-review-save">
+                            <span class="material-symbols-outlined">save</span>
+                            Save Timings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@3.3.0/dist/dom-to-image-more.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
