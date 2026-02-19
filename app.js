@@ -10477,10 +10477,6 @@ function validateTiming(timing) {
     
     return sehriValid && iftarValid;
 }
-            }
-        }
-    }
-}
 
 // Show review view
 function showReviewView(timings) {
