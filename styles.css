@@ -12334,6 +12334,728 @@ body.mini-player-active .main-content {
     background: #059669;
 }
 
+/* ============================================ */
+/* RAMADAN SETTINGS MODAL */
+/* ============================================ */
+
+.ramadan-settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.ramadan-settings-modal.hidden {
+    display: none;
+}
+
+.ramadan-settings-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+}
+
+.ramadan-settings-content {
+    position: relative;
+    width: 95%;
+    max-width: 900px;
+    max-height: 90vh;
+    background: #1a1a1a;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.ramadan-settings-header {
+    padding: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.ramadan-settings-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #fff;
+}
+
+.ramadan-settings-subtitle {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 32px;
+    font-size: 15px;
+}
+
+.ramadan-mode-view,
+.ramadan-entry-view {
+    padding: 32px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Mode Selection Cards */
+.ramadan-mode-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.ramadan-mode-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ramadan-mode-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.ramadan-mode-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.2);
+}
+
+.ramadan-mode-card:hover::before {
+    opacity: 1;
+}
+
+.ramadan-mode-card.selected {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.ramadan-mode-icon {
+    font-size: 48px;
+    color: #10b981;
+    margin-bottom: 16px;
+    display: block;
+    position: relative;
+}
+
+.ramadan-mode-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: #fff;
+    position: relative;
+}
+
+.ramadan-mode-card-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+    position: relative;
+}
+
+.ramadan-mode-badge {
+    display: inline-block;
+    background: #10b981;
+    color: #000;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    margin-top: 12px;
+    position: relative;
+}
+
+/* Entry View Header */
+.ramadan-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.ramadan-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.ramadan-back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ramadan-back-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.ramadan-entry-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    color: #fff;
+}
+
+/* Location Input */
+.ramadan-location-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 20px;
+    transition: all 0.2s ease;
+}
+
+.ramadan-location-input:focus {
+    outline: none;
+    border-color: #10b981;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.ramadan-location-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Entry Toolbar */
+.ramadan-entry-toolbar {
+    margin-bottom: 24px;
+}
+
+.ramadan-bulk-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.ramadan-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.ramadan-action-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.ramadan-action-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* Manual Entry Grid */
+.ramadan-entry-grid {
+    display: grid;
+    gap: 16px;
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.ramadan-entry-day {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.ramadan-entry-day:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ramadan-day-badge {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.ramadan-time-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ramadan-time-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+}
+
+.ramadan-time-input {
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.ramadan-time-input:focus {
+    outline: none;
+    border-color: #10b981;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.ramadan-time-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.ramadan-time-input.error {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Confidence indicators for OCR results */
+.ramadan-entry-day.low-confidence {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.ramadan-entry-day.medium-confidence {
+    background: rgba(234, 179, 8, 0.06);
+    border-color: rgba(234, 179, 8, 0.15);
+}
+
+.confidence-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+    font-weight: 500;
+}
+
+.confidence-badge.low {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.confidence-badge.medium {
+    background: rgba(234, 179, 8, 0.2);
+    color: #eab308;
+}
+
+.ramadan-day-badge {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.ramadan-upload-zone {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 24px;
+}
+
+.ramadan-upload-zone:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.ramadan-upload-zone.drag-over {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.ramadan-upload-icon {
+    font-size: 64px;
+    color: #10b981;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.ramadan-upload-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: #fff;
+}
+
+.ramadan-upload-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 8px;
+}
+
+.ramadan-upload-note {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0;
+}
+
+/* Image Preview */
+.ramadan-image-preview {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.ramadan-image-preview.hidden {
+    display: none;
+}
+
+.ramadan-image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* OCR Processing */
+.ramadan-ocr-processing {
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.ramadan-ocr-processing.hidden {
+    display: none;
+}
+
+.ramadan-processing-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #10b981;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 24px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.ramadan-processing-text {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0 0 24px;
+}
+
+.ramadan-progress-bar {
+    width: 100%;
+    max-width: 300px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.ramadan-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #059669);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Review Grid */
+.ramadan-review-view {
+    display: flex;
+    flex-direction: column;
+}
+
+.ramadan-review-view.hidden {
+    display: none;
+}
+
+.ramadan-review-header {
+    margin-bottom: 24px;
+}
+
+.ramadan-review-header h4 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: #fff;
+}
+
+.ramadan-review-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+
+.ramadan-review-grid {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    padding-right: 8px;
+    margin-top: 16px;
+}
+
+/* Footer Buttons */
+.ramadan-entry-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 24px;
+}
+
+.ramadan-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.ramadan-btn-primary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+}
+
+.ramadan-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.ramadan-btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.ramadan-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ramadan-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Light Theme Support */
+[data-theme="light"] .ramadan-settings-content {
+    background: #fff;
+}
+
+[data-theme="light"] .ramadan-settings-title,
+[data-theme="light"] .ramadan-entry-title,
+[data-theme="light"] .ramadan-mode-card-title {
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .ramadan-settings-subtitle,
+[data-theme="light"] .ramadan-mode-card-desc,
+[data-theme="light"] .ramadan-upload-desc,
+[data-theme="light"] .ramadan-review-subtitle {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="light"] .ramadan-settings-header,
+[data-theme="light"] .ramadan-entry-footer {
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .ramadan-mode-card,
+[data-theme="light"] .ramadan-entry-day {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .ramadan-entry-day.low-confidence {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+[data-theme="light"] .ramadan-entry-day.medium-confidence {
+    background: rgba(234, 179, 8, 0.1);
+    border-color: rgba(234, 179, 8, 0.25);
+}
+
+[data-theme="light"] .confidence-badge.low {
+    background: rgba(245, 158, 11, 0.25);
+    color: #d97706;
+}
+
+[data-theme="light"] .confidence-badge.medium {
+    background: rgba(234, 179, 8, 0.25);
+    color: #ca8a04;
+}
+
+[data-theme="light"] .ramadan-back-btn,
+[data-theme="light"] .ramadan-location-input,
+[data-theme="light"] .ramadan-time-input {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .ramadan-location-input::placeholder,
+[data-theme="light"] .ramadan-time-input::placeholder {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .ramadan-time-label {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="light"] .ramadan-upload-zone {
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .ramadan-upload-title {
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .ramadan-upload-note {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .ramadan-processing-text {
+    color: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="light"] .ramadan-review-header h4 {
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .ramadan-btn-secondary {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .ramadan-processing-spinner {
+    border-color: rgba(0, 0, 0, 0.1);
+    border-top-color: #10b981;
+}
+
+[data-theme="light"] .ramadan-progress-bar {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .ramadan-mode-badge {
+    background: #10b981;
+    color: #fff;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .ramadan-settings-content {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+    
+    .ramadan-mode-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .ramadan-entry-day {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .ramadan-day-badge {
+        width: fit-content;
+    }
+    
+    .ramadan-entry-footer {
+        flex-direction: column-reverse;
+    }
+    
+    .ramadan-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
 
 @media (min-width: 768px) {
 

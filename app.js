@@ -1066,6 +1066,9 @@ function initEventListeners() {
     elements.installDismiss?.addEventListener('click', () => {
         elements.installBanner?.classList.add('hidden');
     });
+
+    // Ramadan Settings
+    initRamadanSettings();
 }
 
 async function loadInitialData() {
@@ -9371,6 +9374,95 @@ const KATPADI_RAMADAN_2026 = [
     { day: 30, date: '2026-03-20', sehri: '4:55 AM', iftar: '6:28 PM' }
 ];
 
+// ============================================
+// RAMADAN SETTINGS - Custom Timing Configuration
+// ============================================
+
+// Storage key for custom Ramadan configuration
+const RAMADAN_CONFIG_KEY = 'ramadan_custom_config';
+
+// Default timing values for fallback
+const DEFAULT_SEHRI_TIME = '5:00 AM';
+const DEFAULT_IFTAR_TIME = '6:30 PM';
+
+// Get saved configuration or return default
+function getRamadanConfig() {
+    try {
+        const saved = localStorage.getItem(RAMADAN_CONFIG_KEY);
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (e) {
+        console.error('Error loading Ramadan config:', e);
+    }
+    
+    // Default configuration
+    return {
+        timingMode: 'vit',
+        customTimings: {},
+        location: 'VIT Vellore',
+        lastUpdated: null
+    };
+}
+
+// Save configuration to localStorage
+function saveRamadanConfig(config) {
+    try {
+        config.lastUpdated = Date.now();
+        localStorage.setItem(RAMADAN_CONFIG_KEY, JSON.stringify(config));
+        return true;
+    } catch (e) {
+        console.error('Error saving Ramadan config:', e);
+        return false;
+    }
+}
+
+// Get timings for a specific day (returns {sehri, iftar, date, day})
+function getRamadanDayTiming(dayNumber) {
+    const config = getRamadanConfig();
+    
+    if (config.timingMode === 'vit') {
+        return KATPADI_RAMADAN_2026.find(d => d.day === dayNumber);
+    } else if (config.timingMode === 'manual' || config.timingMode === 'upload') {
+        const customDay = config.customTimings[dayNumber];
+        if (customDay) {
+            // Get the corresponding date from VIT data
+            const vitDay = KATPADI_RAMADAN_2026.find(d => d.day === dayNumber);
+            return {
+                day: dayNumber,
+                date: vitDay ? vitDay.date : null,
+                sehri: customDay.sehri,
+                iftar: customDay.iftar
+            };
+        }
+    }
+    
+    return KATPADI_RAMADAN_2026.find(d => d.day === dayNumber);
+}
+
+// Get all 30 days of Ramadan timings
+function getAllRamadanTimings() {
+    const config = getRamadanConfig();
+    
+    if (config.timingMode === 'vit') {
+        return KATPADI_RAMADAN_2026;
+    } else if (config.timingMode === 'manual' || config.timingMode === 'upload') {
+        return KATPADI_RAMADAN_2026.map(vitDay => {
+            const customDay = config.customTimings[vitDay.day];
+            if (customDay) {
+                return {
+                    ...vitDay,
+                    sehri: customDay.sehri,
+                    iftar: customDay.iftar
+                };
+            }
+            return vitDay;
+        });
+    }
+    
+    return KATPADI_RAMADAN_2026;
+}
+
 function parseRamadanTime(timeStr) {
     if (!timeStr || timeStr === '--:--') return null;
     const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -9394,7 +9486,15 @@ function initRamadanWidget() {
         String(today.getMonth() + 1).padStart(2, '0') + '-' +
         String(today.getDate()).padStart(2, '0');
 
-    currentRamadanDay = KATPADI_RAMADAN_2026.find(d => d.date === todayStr);
+    // Get current day from VIT data to determine which day of Ramadan it is
+    const vitDay = KATPADI_RAMADAN_2026.find(d => d.date === todayStr);
+    
+    if (vitDay) {
+        // Use custom configuration to get the timing for this day
+        currentRamadanDay = getRamadanDayTiming(vitDay.day);
+    } else {
+        currentRamadanDay = null;
+    }
 
     // Hide widget if outside Ramadan dates (use local dates to avoid UTC issues)
     const firstDay = new Date(2026, 1, 19); // Feb 19, 2026 local
@@ -9541,6 +9641,29 @@ function openRamadanFullPage() {
     const fullpage = document.getElementById('ramadan-fullpage');
     if (!fullpage) return;
 
+    // Update location display
+    const config = getRamadanConfig();
+    const locationEl = document.getElementById('ramadan-fullpage-location');
+    if (locationEl) {
+        locationEl.textContent = config.location;
+    }
+
+    // Update disclaimer
+    const disclaimerEl = document.getElementById('ramadan-fullpage-disclaimer');
+    if (disclaimerEl) {
+        if (config.timingMode === 'vit') {
+            disclaimerEl.innerHTML = `
+                <span class="material-symbols-outlined">info</span>
+                Timings are specifically for VIT Vellore area only. Source: Jamat-e-Ulama, Shahre Katpadi wa Vellore.
+            `;
+        } else {
+            disclaimerEl.innerHTML = `
+                <span class="material-symbols-outlined">info</span>
+                Custom timings configured for ${config.location}. Please verify accuracy for your location.
+            `;
+        }
+    }
+
     // Populate the 30-day grid
     populateRamadanDaysGrid();
 
@@ -9589,15 +9712,18 @@ function populateRamadanDaysGrid() {
     const grid = document.getElementById('ramadan-days-grid');
     if (!grid) return;
 
-    // Only populate once
-    if (grid.children.length > 0) return;
+    // Clear existing content to allow re-population with updated timings
+    grid.innerHTML = '';
 
     const today = new Date();
     const todayStr = today.getFullYear() + '-' +
         String(today.getMonth() + 1).padStart(2, '0') + '-' +
         String(today.getDate()).padStart(2, '0');
 
-    KATPADI_RAMADAN_2026.forEach(day => {
+    // Get all timings (either VIT or custom)
+    const allTimings = getAllRamadanTimings();
+
+    allTimings.forEach(day => {
         const isToday = day.date === todayStr;
         const isPast = day.date < todayStr;
         const dateObj = new Date(day.date + 'T00:00:00');
@@ -9627,5 +9753,942 @@ function populateRamadanDaysGrid() {
         grid.appendChild(card);
     });
 }
+
+// Initialize Ramadan settings modal
+function initRamadanSettings() {
+    const settingsBtn = document.getElementById('ramadan-settings-btn');
+    const modal = document.getElementById('ramadan-settings-modal');
+    const closeBtn = document.getElementById('ramadan-settings-close');
+    const overlay = document.querySelector('.ramadan-settings-overlay');
+    
+    if (!settingsBtn || !modal) return;
+    
+    // Open modal
+    settingsBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        showModeSelection();
+    });
+    
+    // Close modal
+    const closeModal = () => {
+        modal.classList.add('hidden');
+    };
+    
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
+    
+    // Mode selection
+    const modeCards = document.querySelectorAll('.ramadan-mode-card');
+    modeCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const mode = card.dataset.mode;
+            handleModeSelection(mode);
+        });
+    });
+    
+    // Manual entry handlers
+    initManualEntry();
+    
+    // Upload handlers
+    initUploadView();
+}
+
+// Show mode selection view
+function showModeSelection() {
+    document.getElementById('ramadan-mode-selection').classList.remove('hidden');
+    document.getElementById('ramadan-manual-entry').classList.add('hidden');
+    document.getElementById('ramadan-upload-view').classList.add('hidden');
+    
+    // Highlight current mode
+    const config = getRamadanConfig();
+    document.querySelectorAll('.ramadan-mode-card').forEach(card => {
+        card.classList.remove('selected');
+        if (card.dataset.mode === config.timingMode) {
+            card.classList.add('selected');
+        }
+    });
+}
+
+// Handle mode selection
+function handleModeSelection(mode) {
+    if (mode === 'vit') {
+        // Switch to VIT mode immediately
+        const config = getRamadanConfig();
+        config.timingMode = 'vit';
+        config.location = 'VIT Vellore';
+        saveRamadanConfig(config);
+        
+        // Close modal and update UI
+        document.getElementById('ramadan-settings-modal').classList.add('hidden');
+        updateRamadanUIAfterConfigChange();
+        showToast('Switched to VIT Vellore timings', 'success');
+        
+    } else if (mode === 'manual') {
+        showManualEntry();
+    } else if (mode === 'upload') {
+        showUploadView();
+    }
+}
+
+// Initialize manual entry
+function initManualEntry() {
+    const backBtn = document.getElementById('ramadan-manual-back');
+    const cancelBtn = document.getElementById('ramadan-manual-cancel');
+    const saveBtn = document.getElementById('ramadan-manual-save');
+    const copyAllBtn = document.getElementById('ramadan-copy-all');
+    
+    backBtn.addEventListener('click', showModeSelection);
+    cancelBtn.addEventListener('click', () => {
+        document.getElementById('ramadan-settings-modal').classList.add('hidden');
+    });
+    
+    saveBtn.addEventListener('click', saveManualEntry);
+    copyAllBtn.addEventListener('click', copyToAllDays);
+}
+
+// Show manual entry view
+function showManualEntry() {
+    document.getElementById('ramadan-mode-selection').classList.add('hidden');
+    document.getElementById('ramadan-manual-entry').classList.remove('hidden');
+    
+    populateManualEntryGrid();
+    
+    // Load saved location
+    const config = getRamadanConfig();
+    const locationInput = document.getElementById('ramadan-location-input');
+    if (config.location && config.location !== 'VIT Vellore') {
+        locationInput.value = config.location;
+    }
+}
+
+// Populate manual entry grid
+function populateManualEntryGrid() {
+    const grid = document.getElementById('ramadan-entry-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    const config = getRamadanConfig();
+    
+    for (let day = 1; day <= 30; day++) {
+        const dayData = getRamadanDayTiming(day);
+        
+        const dayEl = document.createElement('div');
+        dayEl.className = 'ramadan-entry-day';
+        dayEl.innerHTML = `
+            <div class="ramadan-day-badge">Day ${day}</div>
+            <div class="ramadan-time-input-group">
+                <label class="ramadan-time-label">Sehri Time</label>
+                <input type="time" class="ramadan-time-input" data-day="${day}" data-type="sehri" 
+                       value="${convertTo24Hour(dayData.sehri) || ''}" placeholder="05:00">
+            </div>
+            <div class="ramadan-time-input-group">
+                <label class="ramadan-time-label">Iftar Time</label>
+                <input type="time" class="ramadan-time-input" data-day="${day}" data-type="iftar" 
+                       value="${convertTo24Hour(dayData.iftar) || ''}" placeholder="18:30">
+            </div>
+        `;
+        grid.appendChild(dayEl);
+    }
+}
+
+// Convert 12-hour time to 24-hour format for input
+function convertTo24Hour(timeStr) {
+    if (!timeStr || timeStr === '--:--') return '';
+    
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return '';
+    
+    let hours = parseInt(match[1]);
+    const minutes = match[2];
+    const period = match[3].toUpperCase();
+    
+    if (period === 'PM' && hours !== 12) {
+        hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+        hours = 0;
+    }
+    
+    return `${String(hours).padStart(2, '0')}:${minutes}`;
+}
+
+// Convert 24-hour time to 12-hour format
+function convertTo12Hour(timeStr) {
+    if (!timeStr) return '';
+    
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    
+    return `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`;
+}
+
+// Copy first day's times to all days
+function copyToAllDays() {
+    const firstSehri = document.querySelector('[data-day="1"][data-type="sehri"]');
+    const firstIftar = document.querySelector('[data-day="1"][data-type="iftar"]');
+    
+    if (!firstSehri.value || !firstIftar.value) {
+        showToast('Please enter times for Day 1 first', 'error');
+        return;
+    }
+    
+    document.querySelectorAll('[data-type="sehri"]').forEach(input => {
+        input.value = firstSehri.value;
+    });
+    
+    document.querySelectorAll('[data-type="iftar"]').forEach(input => {
+        input.value = firstIftar.value;
+    });
+    
+    showToast('Times copied to all days', 'success');
+}
+
+// Save manual entry
+function saveManualEntry() {
+    const config = getRamadanConfig();
+    const customTimings = {};
+    let hasError = false;
+    
+    // Collect all time inputs
+    for (let day = 1; day <= 30; day++) {
+        const sehriInput = document.querySelector(`[data-day="${day}"][data-type="sehri"]`);
+        const iftarInput = document.querySelector(`[data-day="${day}"][data-type="iftar"]`);
+        
+        if (!sehriInput.value || !iftarInput.value) {
+            sehriInput.classList.add('error');
+            iftarInput.classList.add('error');
+            hasError = true;
+        } else {
+            sehriInput.classList.remove('error');
+            iftarInput.classList.remove('error');
+            
+            customTimings[day] = {
+                sehri: convertTo12Hour(sehriInput.value),
+                iftar: convertTo12Hour(iftarInput.value)
+            };
+        }
+    }
+    
+    if (hasError) {
+        showToast('Please fill in all time fields', 'error');
+        return;
+    }
+    
+    // Get location
+    const locationInput = document.getElementById('ramadan-location-input');
+    const location = locationInput.value.trim() || 'Custom Location';
+    
+    // Save configuration
+    config.timingMode = 'manual';
+    config.customTimings = customTimings;
+    config.location = location;
+    
+    if (saveRamadanConfig(config)) {
+        document.getElementById('ramadan-settings-modal').classList.add('hidden');
+        updateRamadanUIAfterConfigChange();
+        showToast('Custom timings saved successfully', 'success');
+    } else {
+        showToast('Error saving timings', 'error');
+    }
+}
+
+// Initialize upload view
+function initUploadView() {
+    const backBtn = document.getElementById('ramadan-upload-back');
+    const uploadZone = document.getElementById('ramadan-upload-zone');
+    const fileInput = document.getElementById('ramadan-file-input');
+    const changeImageBtn = document.getElementById('ramadan-change-image');
+    const reviewCancelBtn = document.getElementById('ramadan-review-cancel');
+    const reviewSaveBtn = document.getElementById('ramadan-review-save');
+    
+    backBtn.addEventListener('click', showModeSelection);
+    reviewCancelBtn.addEventListener('click', () => {
+        document.getElementById('ramadan-settings-modal').classList.add('hidden');
+    });
+    reviewSaveBtn.addEventListener('click', saveReviewedTimings);
+    
+    // Upload zone click
+    uploadZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleImageUpload(file);
+        }
+    });
+    
+    // Change image
+    changeImageBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // Drag and drop
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-over');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            handleImageUpload(file);
+        }
+    });
+}
+
+// Show upload view
+function showUploadView() {
+    document.getElementById('ramadan-mode-selection').classList.add('hidden');
+    document.getElementById('ramadan-upload-view').classList.remove('hidden');
+    
+    // Reset upload view
+    document.getElementById('ramadan-upload-zone').classList.remove('hidden');
+    document.getElementById('ramadan-image-preview').classList.add('hidden');
+    document.getElementById('ramadan-ocr-processing').classList.add('hidden');
+    document.getElementById('ramadan-review-view').classList.add('hidden');
+}
+
+// Handle image upload
+function handleImageUpload(file) {
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('Image size must be less than 5MB', 'error');
+        return;
+    }
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = document.getElementById('ramadan-preview-img');
+        img.src = e.target.result;
+        
+        document.getElementById('ramadan-upload-zone').classList.add('hidden');
+        document.getElementById('ramadan-image-preview').classList.remove('hidden');
+        
+        // Start OCR processing
+        setTimeout(() => {
+            processImageWithOCR(e.target.result);
+        }, 500);
+    };
+    reader.readAsDataURL(file);
+}
+
+// Process image with Tesseract OCR
+async function processImageWithOCR(imageDataURL) {
+    document.getElementById('ramadan-image-preview').classList.add('hidden');
+    document.getElementById('ramadan-ocr-processing').classList.remove('hidden');
+    
+    const progressFill = document.getElementById('ramadan-progress-fill');
+    const processingText = document.getElementById('ramadan-processing-text');
+    
+    try {
+        // Update status
+        processingText.textContent = 'Initializing OCR engine...';
+        progressFill.style.width = '10%';
+        
+        // Create Tesseract worker
+        const worker = await Tesseract.createWorker('eng', 1, {
+            logger: (m) => {
+                if (m.status === 'recognizing text') {
+                    const progress = Math.floor(m.progress * 70) + 10;  // 10-80%
+                    progressFill.style.width = `${progress}%`;
+                    processingText.textContent = `Reading timetable image... ${Math.floor(m.progress * 100)}%`;
+                }
+            }
+        });
+        
+        processingText.textContent = 'Analyzing image structure...';
+        progressFill.style.width = '80%';
+        
+        // Recognize text
+        const { data: { text } } = await worker.recognize(imageDataURL);
+        console.log('OCR completed, raw text length:', text.length);
+        
+        processingText.textContent = 'Extracting Sehri & Iftar timings...';
+        progressFill.style.width = '90%';
+        
+        // Parse timings from text
+        const timings = parseTimingsFromOCRText(text);
+        
+        // Count extracted timings
+        const extractedCount = Object.keys(timings).filter(day => 
+            timings[day] && timings[day].confidence === 'high'
+        ).length;
+        
+        console.log(`Extracted ${extractedCount} high-confidence timings out of 30 days`);
+        
+        await worker.terminate();
+        
+        progressFill.style.width = '100%';
+        processingText.textContent = `Successfully extracted timings for ${extractedCount} days!`;
+        
+        // Show review view
+        setTimeout(() => {
+            showReviewView(timings);
+            // Show helpful message if extraction quality is low
+            if (extractedCount < 15) {
+                showToast('Low extraction quality. Please review and correct the highlighted entries.', 'warning');
+            }
+        }, 800);
+        
+    } catch (error) {
+        console.error('OCR Error:', error);
+        showToast('Failed to extract timings. Please try manual entry or use a clearer image.', 'error');
+        
+        // Go back to upload view
+        setTimeout(() => {
+            showUploadView();
+        }, 2000);
+    }
+}
+
+// OCR Error Correction Map
+const OCR_CORRECTIONS = {
+    'O': '0', 'o': '0',
+    'I': '1', 'l': '1',
+    'B': '8', 'b': '8',
+    'S': '5', 's': '5',
+    'Z': '2', 'z': '2'
+};
+
+// Apply OCR error corrections to text
+function correctOCRErrors(text) {
+    let corrected = text;
+    
+    // Fix common time-related OCR errors
+    // Only correct in time-like contexts (digit-letter-digit patterns)
+    corrected = corrected.replace(/([0-9])[OoIlBbSsZz]([0-9])/g, (match, before, after) => {
+        const middle = match[1];
+        return before + (OCR_CORRECTIONS[middle] || middle) + after;
+    });
+    
+    // Fix leading O/o that should be 0 in times like "O4:30" -> "04:30"
+    corrected = corrected.replace(/\b[Oo](\d)/g, '0$1');
+    
+    return corrected;
+}
+
+// Parse timings from OCR text
+function parseTimingsFromOCRText(text) {
+    console.log('Raw OCR Text:', text);
+    
+    // Pre-process: Apply OCR error corrections
+    const correctedText = correctOCRErrors(text);
+    console.log('Corrected OCR Text:', correctedText);
+    
+    const timings = {};
+    const lines = correctedText.split('\n').map(line => line.trim()).filter(line => line);
+    
+    // Enhanced time pattern - more forgiving
+    // Matches: 4:30, 04:30, 4.30, 04.30, 0430, 430 with optional AM/PM
+    // Pattern breakdown:
+    // - \b word boundary
+    // - ([0-2]?[0-9]) captures hour (0-29, validated later to 0-23)
+    // - [\s:\.]* optional separator (space, colon, or dot)
+    // - ([0-5][0-9]) captures minutes (00-59)
+    // - [\s]* optional space before AM/PM
+    // - (AM|PM|am|pm)? optional AM/PM marker
+    const timePattern = /\b([0-2]?[0-9])[\s:\.]*([0-5][0-9])[\s]*(AM|PM|am|pm)?\b/gi;
+    
+    // Keywords to identify Sehri and Iftar columns
+    const sehriKeywords = ['sehri', 'suhoor', 'sahr', 'sahri', 'sehr', 'sehar'];
+    const iftarKeywords = ['iftar', 'iftaar', 'ifter'];
+    
+    // Detect table structure by looking for header row
+    let sehriFirst = true; // Default: Sehri column before Iftar
+    const headerLine = lines.slice(0, 5).find(line => {
+        const lower = line.toLowerCase();
+        return sehriKeywords.some(kw => lower.includes(kw)) || 
+               iftarKeywords.some(kw => lower.includes(kw));
+    });
+    
+    if (headerLine) {
+        const lower = headerLine.toLowerCase();
+        const sehriIndex = sehriKeywords.reduce((idx, kw) => {
+            const pos = lower.indexOf(kw);
+            return pos >= 0 && (idx < 0 || pos < idx) ? pos : idx;
+        }, -1);
+        const iftarIndex = iftarKeywords.reduce((idx, kw) => {
+            const pos = lower.indexOf(kw);
+            return pos >= 0 && (idx < 0 || pos < idx) ? pos : idx;
+        }, -1);
+        
+        if (sehriIndex >= 0 && iftarIndex >= 0) {
+            sehriFirst = sehriIndex < iftarIndex;
+            console.log(`Detected column order: ${sehriFirst ? 'Sehri -> Iftar' : 'Iftar -> Sehri'}`);
+        }
+    }
+    
+    // Try to find day numbers and associated times
+    for (let day = 1; day <= 30; day++) {
+        // Look for this day number in the text with various formats
+        // Match: "1", "01", "Day 1", "1)", "1.", "1-", etc.
+        const dayPattern = new RegExp(`\\b(?:Day\\s*)?0*${day}(?![0-9])(?:[\\)\\.]|\\s|$)`, 'i');
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            
+            if (dayPattern.test(line)) {
+                console.log(`Day ${day} found in line ${i}: "${line}"`);
+                
+                // Extract times from this line and nearby lines for context
+                const contextLines = [
+                    line,
+                    lines[i + 1] || '',
+                    lines[i + 2] || ''
+                ];
+                
+                // Collect all times from context
+                const allTimes = [];
+                contextLines.forEach((contextLine, offset) => {
+                    const matches = [...contextLine.matchAll(timePattern)];
+                    matches.forEach(match => {
+                        allTimes.push({
+                            raw: match[0],
+                            lineOffset: offset,
+                            index: match.index
+                        });
+                    });
+                });
+                
+                console.log(`Found ${allTimes.length} times for day ${day}:`, allTimes.map(t => t.raw));
+                
+                if (allTimes.length >= 2) {
+                    // Get first two times
+                    const time1 = normalizeTime(allTimes[0].raw);
+                    const time2 = normalizeTime(allTimes[1].raw);
+                    
+                    if (time1 && time2) {
+                        // Classify times based on hour of day
+                        const classified = classifyTimes(time1, time2, sehriFirst);
+                        
+                        if (classified.sehri && classified.iftar) {
+                            // Base confidence on number of times and validation
+                            let confidence = allTimes.length === 2 ? 'high' : 'medium';
+                            
+                            // Downgrade if validation fails
+                            const isValid = validateTiming({ sehri: classified.sehri, iftar: classified.iftar });
+                            if (!isValid && confidence === 'high') {
+                                confidence = 'medium';
+                            }
+                            
+                            timings[day] = {
+                                sehri: classified.sehri,
+                                iftar: classified.iftar,
+                                confidence: confidence
+                            };
+                            console.log(`Day ${day}: Sehri=${classified.sehri}, Iftar=${classified.iftar}, Confidence=${confidence}`);
+                            break;
+                        }
+                    }
+                } else if (allTimes.length === 1) {
+                    // Only one time found - mark for interpolation
+                    console.log(`Only one time found for day ${day}, will interpolate`);
+                }
+            }
+        }
+    }
+    
+    // Fill missing days with interpolation or default
+    fillMissingDays(timings);
+    
+    return timings;
+}
+
+// Classify two times as Sehri and Iftar based on hour
+function classifyTimes(time1, time2, sehriFirst) {
+    const hour1 = getHourFromTime(time1);
+    const hour2 = getHourFromTime(time2);
+    
+    console.log(`Classifying times: ${time1} (${hour1}h) and ${time2} (${hour2}h)`);
+    
+    // Use heuristics: Sehri is 3-6 AM, Iftar is 5-8 PM
+    const isSehriTime1 = hour1 >= 3 && hour1 <= 6;
+    const isIftarTime1 = hour1 >= 17 && hour1 <= 21;
+    const isSehriTime2 = hour2 >= 3 && hour2 <= 6;
+    const isIftarTime2 = hour2 >= 17 && hour2 <= 21;
+    
+    // Clear case: one is Sehri time, other is Iftar time
+    if (isSehriTime1 && isIftarTime2) {
+        return { sehri: time1, iftar: time2 };
+    }
+    if (isIftarTime1 && isSehriTime2) {
+        return { sehri: time2, iftar: time1 };
+    }
+    
+    // Both look like Sehri or both look like Iftar - use column order
+    if (isSehriTime1 && isSehriTime2) {
+        // Both are Sehri-like times, use first one
+        return sehriFirst ? 
+            { sehri: time1, iftar: null } : 
+            { sehri: time2, iftar: null };
+    }
+    
+    if (isIftarTime1 && isIftarTime2) {
+        // Both are Iftar-like times, use second one
+        return sehriFirst ? 
+            { sehri: null, iftar: time2 } : 
+            { sehri: null, iftar: time1 };
+    }
+    
+    // Default: use column order from header detection
+    return sehriFirst ? 
+        { sehri: time1, iftar: time2 } : 
+        { sehri: time2, iftar: time1 };
+}
+
+// Extract hour from time string (in 24-hour format)
+function getHourFromTime(timeStr) {
+    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!match) return 0;
+    
+    let hours = parseInt(match[1]);
+    const period = match[3] ? match[3].toUpperCase() : null;
+    
+    if (period === 'PM' && hours !== 12) {
+        hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+        hours = 0;
+    }
+    
+    return hours;
+}
+
+// Normalize time format
+function normalizeTime(timeStr) {
+    if (!timeStr) return null;
+    
+    // Enhanced pattern to handle more formats
+    // Matches: 4:30, 04:30, 4.30, 04.30, 4 30, with optional AM/PM
+    const match = timeStr.match(/\b([0-2]?[0-9])[\s:\.]+([0-5][0-9])[\s]*(AM|PM|am|pm)?\b/i);
+    if (!match) return null;
+    
+    let hours = parseInt(match[1]);
+    const minutes = match[2];
+    let period = match[3] ? match[3].toUpperCase() : null;
+    
+    // Validate hours before conversion (0-23 for 24h, or 1-12 for 12h with AM/PM)
+    if (hours < 0 || hours > 23) return null;
+    
+    // Infer AM/PM if not provided
+    if (!period) {
+        // Check if it's 24-hour format (hours > 12)
+        if (hours > 12) {
+            // Convert from 24-hour to 12-hour
+            period = 'PM';
+            hours = hours - 12;
+        } else if (hours === 12) {
+            period = 'PM';
+        } else if (hours === 0) {
+            // Midnight
+            hours = 12;
+            period = 'AM';
+        } else {
+            // For hours 1-11, we need to guess based on typical Ramadan times
+            // This will be handled by the classifyTimes function
+            // For now, just default to AM
+            period = 'AM';
+        }
+    } else {
+        // Period is provided - ensure hours are in 12-hour format
+        if (hours === 0) {
+            hours = 12;
+        } else if (hours > 12) {
+            hours = hours - 12;
+        }
+    }
+    
+    // Return formatted 12-hour time
+    return `${hours}:${minutes} ${period}`;
+}
+
+// Fill missing days with interpolation
+function fillMissingDays(timings) {
+    console.log('Filling missing days...');
+    let filledCount = 0;
+    
+    for (let day = 1; day <= 30; day++) {
+        if (!timings[day]) {
+            // Find nearest days with data
+            let prevDay = null;
+            let nextDay = null;
+            
+            for (let i = day - 1; i >= 1; i--) {
+                if (timings[i] && timings[i].sehri && timings[i].iftar) {
+                    prevDay = i;
+                    break;
+                }
+            }
+            
+            for (let i = day + 1; i <= 30; i++) {
+                if (timings[i] && timings[i].sehri && timings[i].iftar) {
+                    nextDay = i;
+                    break;
+                }
+            }
+            
+            if (prevDay && nextDay) {
+                // Interpolate between prev and next
+                timings[day] = {
+                    sehri: timings[prevDay].sehri,
+                    iftar: timings[nextDay].iftar,
+                    confidence: 'low'  // Interpolated
+                };
+                filledCount++;
+            } else if (prevDay) {
+                // Use previous day's times
+                timings[day] = { 
+                    ...timings[prevDay],
+                    confidence: 'low'  // Copied from previous
+                };
+                filledCount++;
+            } else if (nextDay) {
+                // Use next day's times
+                timings[day] = { 
+                    ...timings[nextDay],
+                    confidence: 'low'  // Copied from next
+                };
+                filledCount++;
+            } else {
+                // Use default
+                timings[day] = { 
+                    sehri: DEFAULT_SEHRI_TIME, 
+                    iftar: DEFAULT_IFTAR_TIME,
+                    confidence: 'low'  // Default values
+                };
+                filledCount++;
+            }
+        } else if (!timings[day].confidence) {
+            // Ensure all entries have confidence
+            timings[day].confidence = 'high';
+        }
+        
+        // Validate times
+        if (timings[day]) {
+            const isValid = validateTiming(timings[day]);
+            if (!isValid && timings[day].confidence === 'high') {
+                timings[day].confidence = 'medium';  // Downgrade if validation fails
+            }
+        }
+    }
+    
+    console.log(`Filled ${filledCount} missing days`);
+}
+
+// Validate timing entry
+function validateTiming(timing) {
+    if (!timing || !timing.sehri || !timing.iftar) {
+        return false;
+    }
+    
+    const sehriHour = getHourFromTime(timing.sehri);
+    const iftarHour = getHourFromTime(timing.iftar);
+    
+    // Sehri should be early morning (3-6 AM)
+    const sehriValid = sehriHour >= 3 && sehriHour <= 6;
+    
+    // Iftar should be evening (17-21 = 5-9 PM)
+    const iftarValid = iftarHour >= 17 && iftarHour <= 21;
+    
+    return sehriValid && iftarValid;
+}
+
+// Show review view
+function showReviewView(timings) {
+    document.getElementById('ramadan-ocr-processing').classList.add('hidden');
+    document.getElementById('ramadan-review-view').classList.remove('hidden');
+    
+    // Count low confidence entries
+    const lowConfidenceCount = Object.keys(timings).filter(day => 
+        timings[day] && (timings[day].confidence === 'low' || timings[day].confidence === 'medium')
+    ).length;
+    
+    // Update subtitle with helpful message
+    const subtitle = document.querySelector('.ramadan-review-subtitle');
+    if (subtitle) {
+        if (lowConfidenceCount > 0) {
+            const entryWord = lowConfidenceCount === 1 ? 'entry needs' : 'entries need';
+            subtitle.textContent = `⚠ ${lowConfidenceCount} ${entryWord} verification. Please review highlighted times before saving.`;
+            subtitle.style.color = '#f59e0b';
+        } else {
+            subtitle.textContent = 'Review and edit any incorrect times before saving';
+            subtitle.style.color = '';
+        }
+    }
+    
+    populateReviewGrid(timings);
+}
+
+// Populate review grid
+function populateReviewGrid(timings) {
+    const grid = document.getElementById('ramadan-review-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    for (let day = 1; day <= 30; day++) {
+        const dayData = timings[day] || { sehri: DEFAULT_SEHRI_TIME, iftar: DEFAULT_IFTAR_TIME, confidence: 'low' };
+        const confidence = dayData.confidence || 'medium';
+        
+        const dayEl = document.createElement('div');
+        dayEl.className = 'ramadan-entry-day';
+        
+        // Add confidence indicator class
+        let confidenceClass = '';
+        let confidenceLabel = '';
+        if (confidence === 'low') {
+            confidenceClass = 'low-confidence';
+            confidenceLabel = '<span class="confidence-badge low">⚠ Please verify</span>';
+        } else if (confidence === 'medium') {
+            confidenceClass = 'medium-confidence';
+            confidenceLabel = '<span class="confidence-badge medium">⚠ Check</span>';
+        }
+        
+        dayEl.className = `ramadan-entry-day ${confidenceClass}`;
+        dayEl.innerHTML = `
+            <div class="ramadan-day-badge">
+                Day ${day}
+                ${confidenceLabel}
+            </div>
+            <div class="ramadan-time-input-group">
+                <label class="ramadan-time-label">Sehri Time</label>
+                <input type="time" class="ramadan-time-input" data-day="${day}" data-type="sehri" 
+                       value="${convertTo24Hour(dayData.sehri) || ''}" placeholder="05:00">
+            </div>
+            <div class="ramadan-time-input-group">
+                <label class="ramadan-time-label">Iftar Time</label>
+                <input type="time" class="ramadan-time-input" data-day="${day}" data-type="iftar" 
+                       value="${convertTo24Hour(dayData.iftar) || ''}" placeholder="18:30">
+            </div>
+        `;
+        grid.appendChild(dayEl);
+    }
+}
+
+// Save reviewed timings
+function saveReviewedTimings() {
+    const config = getRamadanConfig();
+    const customTimings = {};
+    let hasError = false;
+    
+    // Collect all time inputs
+    for (let day = 1; day <= 30; day++) {
+        const sehriInput = document.querySelector(`#ramadan-review-grid [data-day="${day}"][data-type="sehri"]`);
+        const iftarInput = document.querySelector(`#ramadan-review-grid [data-day="${day}"][data-type="iftar"]`);
+        
+        if (!sehriInput.value || !iftarInput.value) {
+            sehriInput.classList.add('error');
+            iftarInput.classList.add('error');
+            hasError = true;
+        } else {
+            sehriInput.classList.remove('error');
+            iftarInput.classList.remove('error');
+            
+            customTimings[day] = {
+                sehri: convertTo12Hour(sehriInput.value),
+                iftar: convertTo12Hour(iftarInput.value)
+            };
+        }
+    }
+    
+    if (hasError) {
+        showToast('Please fill in all time fields', 'error');
+        return;
+    }
+    
+    // Get location
+    const locationInput = document.getElementById('ramadan-upload-location-input');
+    const location = locationInput.value.trim() || 'Custom Location';
+    
+    // Save configuration
+    config.timingMode = 'upload';
+    config.customTimings = customTimings;
+    config.location = location;
+    
+    if (saveRamadanConfig(config)) {
+        document.getElementById('ramadan-settings-modal').classList.add('hidden');
+        updateRamadanUIAfterConfigChange();
+        showToast('Custom timings saved successfully', 'success');
+    } else {
+        showToast('Error saving timings', 'error');
+    }
+}
+
+// Update Ramadan UI after configuration change
+function updateRamadanUIAfterConfigChange() {
+    const config = getRamadanConfig();
+    
+    // Update location display
+    const locationEl = document.getElementById('ramadan-fullpage-location');
+    if (locationEl) {
+        locationEl.textContent = config.location;
+    }
+    
+    // Update disclaimer
+    const disclaimerEl = document.getElementById('ramadan-fullpage-disclaimer');
+    if (disclaimerEl) {
+        const icon = disclaimerEl.querySelector('.material-symbols-outlined');
+        if (config.timingMode === 'vit') {
+            disclaimerEl.innerHTML = `
+                <span class="material-symbols-outlined">info</span>
+                Timings are specifically for VIT Vellore area only. Source: Jamat-e-Ulama, Shahre Katpadi wa Vellore.
+            `;
+        } else {
+            disclaimerEl.innerHTML = `
+                <span class="material-symbols-outlined">info</span>
+                Custom timings configured for ${config.location}. Please verify accuracy for your location.
+            `;
+        }
+    }
+    
+    // Re-initialize Ramadan widget with new timings
+    initRamadanWidget();
+    
+    // Update full page grid
+    populateRamadanDaysGrid();
+}
+
+// Toast notification helper
+function showToast(message, type = 'info') {
+    // Simple toast implementation
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10001;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        animation: slideUp 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
 
 
