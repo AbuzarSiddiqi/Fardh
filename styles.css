@@ -12945,6 +12945,26 @@ body.mini-player-active .main-content {
     border-color: rgba(0, 0, 0, 0.1);
 }
 
+[data-theme="light"] .ramadan-entry-day.low-confidence {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+[data-theme="light"] .ramadan-entry-day.medium-confidence {
+    background: rgba(234, 179, 8, 0.1);
+    border-color: rgba(234, 179, 8, 0.25);
+}
+
+[data-theme="light"] .confidence-badge.low {
+    background: rgba(245, 158, 11, 0.25);
+    color: #d97706;
+}
+
+[data-theme="light"] .confidence-badge.medium {
+    background: rgba(234, 179, 8, 0.25);
+    color: #ca8a04;
+}
+
 [data-theme="light"] .ramadan-back-btn,
 [data-theme="light"] .ramadan-location-input,
 [data-theme="light"] .ramadan-time-input {
