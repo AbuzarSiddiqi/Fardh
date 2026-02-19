@@ -24,6 +24,7 @@
     <meta name="description" content="Read and listen to the Holy Quran anywhere, anytime.">
     <meta name="theme-color" content="#102218">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Fardh">
     
@@ -401,6 +402,54 @@
                     </div>
                 </div>
 
+                <!-- Ramadan Sehri & Iftar Widget -->
+                <div id="ramadan-widget" class="section ramadan-widget-section">
+                    <div class="ramadan-widget-card" id="ramadan-widget-card">
+                        <!-- Compact View — always visible -->
+                        <div class="ramadan-widget-header">
+                            <span class="ramadan-widget-title">Ramadan Mubarak</span>
+                            <span id="ramadan-widget-day" class="ramadan-widget-day">Day 1 of 30</span>
+                        </div>
+                        <div class="ramadan-widget-times">
+                            <div class="ramadan-widget-time-block">
+                                <span class="ramadan-widget-label">Sehri</span>
+                                <span id="ramadan-widget-sehri" class="ramadan-widget-value">--:--</span>
+                            </div>
+                            <div class="ramadan-widget-time-block ramadan-widget-time-right">
+                                <span class="ramadan-widget-label">Iftar</span>
+                                <span id="ramadan-widget-iftar" class="ramadan-widget-value">--:--</span>
+                            </div>
+                        </div>
+                        <div class="ramadan-widget-progress">
+                            <div class="ramadan-widget-progress-bar">
+                                <div id="ramadan-widget-progress-fill" class="ramadan-widget-progress-fill"></div>
+                                <div id="ramadan-widget-moon" class="ramadan-widget-moon">🌙</div>
+                            </div>
+                        </div>
+                        <div class="ramadan-widget-countdown">
+                            <span class="material-symbols-outlined">hourglass_top</span>
+                            <span id="ramadan-widget-countdown-text">--</span>
+                        </div>
+
+                        <!-- Expand toggle -->
+                        <div class="ramadan-widget-expand" id="ramadan-widget-expand">
+                            <span id="ramadan-expand-icon" class="material-symbols-outlined">expand_more</span>
+                        </div>
+
+                        <!-- Expandable details -->
+                        <div id="ramadan-widget-details" class="ramadan-widget-details hidden">
+                            <div class="ramadan-detail-dua">
+                                <p id="ramadan-dua-arabic" class="ramadan-dua-text">--</p>
+                                <p id="ramadan-dua-english" class="ramadan-dua-translation">--</p>
+                            </div>
+                            <div class="ramadan-detail-disclaimer">
+                                <span class="material-symbols-outlined">info</span>
+                                Timings are for VIT Vellore area only
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Last Read Section -->
                 <div class="section">
                     <div class="section-header">
@@ -517,12 +566,14 @@
                             </div>
                             <div class="explore-card-info">
                                 <h4 class="explore-card-title-small">Ramadan</h4>
-                                <p class="explore-card-subtitle-small">Coming Soon</p>
+                                <p class="explore-card-subtitle-small">Sehri & Iftar</p>
                             </div>
                             <span class="material-symbols-outlined explore-card-arrow">chevron_right</span>
                         </button>
+                        
                     </div>
                 </div>
+
             </section>
 
             <!-- Read Tab -->
@@ -1150,6 +1201,8 @@
                         <!-- Facts will be loaded here -->
                     </div>
                 </div>
+
+
             </section>
 
         </main>
@@ -1496,19 +1549,19 @@
         <nav class="bottom-nav">
             <div class="nav-container">
                 <button class="nav-link active" data-tab="home">
-                    <span class="material-symbols-outlined nav-icon">home</span>
+                    <span class="material-symbols-outlined nav-icon">mosque</span>
                     <span>Home</span>
                 </button>
                 <button class="nav-link" data-tab="read">
-                    <span class="material-symbols-outlined nav-icon">auto_stories</span>
+                    <span class="material-symbols-outlined nav-icon">menu_book</span>
                     <span>Quran</span>
                 </button>
                 <button class="nav-link" data-tab="dua">
-                    <span class="material-symbols-outlined nav-icon">self_improvement</span>
+                    <span class="material-symbols-outlined nav-icon">folded_hands</span>
                     <span>Dua</span>
                 </button>
                 <button class="nav-link" data-tab="more">
-                    <span class="material-symbols-outlined nav-icon">apps</span>
+                    <span class="material-symbols-outlined nav-icon">grid_view</span>
                     <span>More</span>
                 </button>
             </div>
@@ -1845,6 +1898,65 @@
                     <span class="material-symbols-outlined">refresh</span>
                     Reset All
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ramadan Full Page View (body level overlay) -->
+    <div id="ramadan-fullpage" class="ramadan-fullpage hidden">
+        <div class="ramadan-fullpage-header">
+            <button class="icon-btn" id="ramadan-fullpage-back">
+                <span class="material-symbols-outlined">arrow_back_ios_new</span>
+            </button>
+            <h2 class="ramadan-fullpage-title">Ramadan 1447 AH</h2>
+            <span class="ramadan-fullpage-location">VIT Vellore</span>
+        </div>
+
+        <div class="ramadan-fullpage-content">
+            <!-- Hero Card -->
+            <div class="ramadan-hero-card">
+                <div class="ramadan-hero-glow"></div>
+                <div class="ramadan-hero-top">
+                    <span class="ramadan-hero-greeting">Ramadan Mubarak</span>
+                    <span id="ramadan-hero-day" class="ramadan-hero-day-badge">Day 1 of 30</span>
+                </div>
+                <div class="ramadan-hero-times">
+                    <div class="ramadan-hero-time-block">
+                        <span class="material-symbols-outlined">dark_mode</span>
+                        <div>
+                            <span class="ramadan-hero-time-label">Sehri</span>
+                            <span id="ramadan-hero-sehri" class="ramadan-hero-time-val">--:--</span>
+                        </div>
+                    </div>
+                    <div class="ramadan-hero-divider"></div>
+                    <div class="ramadan-hero-time-block">
+                        <span class="material-symbols-outlined">wb_twilight</span>
+                        <div>
+                            <span class="ramadan-hero-time-label">Iftar</span>
+                            <span id="ramadan-hero-iftar" class="ramadan-hero-time-val">--:--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ramadan-hero-countdown">
+                    <span class="material-symbols-outlined">timer</span>
+                    <span id="ramadan-hero-countdown-text">--</span>
+                </div>
+            </div>
+
+            <!-- Section Label -->
+            <div class="ramadan-section-label">
+                <span class="material-symbols-outlined">calendar_month</span>
+                All 30 Days
+            </div>
+
+            <!-- 30 Day Grid -->
+            <div id="ramadan-days-grid" class="ramadan-days-grid">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="ramadan-fullpage-disclaimer">
+                <span class="material-symbols-outlined">info</span>
+                Timings are specifically for VIT Vellore area only. Source: Jamat-e-Ulama, Shahre Katpadi wa Vellore.
             </div>
         </div>
     </div>

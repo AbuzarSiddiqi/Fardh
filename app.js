@@ -5084,8 +5084,8 @@ function initPrayerTimes() {
         showPrayerLoading();
         fetchPrayerTimes(prayerState.latitude, prayerState.longitude);
 
-        // Start watching for location changes
-        startLocationWatch();
+        // Start watching for location changes (only if permission already granted)
+        startLocationWatchIfGranted();
     }
 }
 
@@ -5193,6 +5193,22 @@ function startLocationWatch() {
             maximumAge: 60000 // Allow 1 minute cached position for efficiency
         }
     );
+}
+
+// Check permission before starting watch (avoids browser popup on every app open)
+async function startLocationWatchIfGranted() {
+    if (navigator.permissions) {
+        try {
+            const result = await navigator.permissions.query({ name: 'geolocation' });
+            if (result.state === 'granted') {
+                startLocationWatch();
+            }
+            // If 'prompt' or 'denied', do not call watchPosition (avoids popup)
+        } catch (e) {
+            // Permissions API not supported, fall back to using cached data only
+            console.warn('Permissions API not available:', e);
+        }
+    }
 }
 
 // Get city name from coordinates
@@ -6792,13 +6808,13 @@ const swipeState = {
     endX: 0,
     endY: 0,
     threshold: 80, // Minimum swipe distance
-    restraint: 100, // Maximum vertical deviation
+    restraint: 50, // Maximum vertical deviation (tightened to prevent diagonal scroll triggering back)
     allowedTime: 500, // Maximum time for swipe
     startTime: 0,
     // Android-specific protection
     isAndroid: /Android/i.test(navigator.userAgent),
     edgeExclusion: 80, // Ignore swipes starting within 80px of screen edge (prevents conflict with Android back gesture)
-    maxAngle: 25 // Maximum angle from horizontal (degrees)
+    maxAngle: 30 // Maximum angle from horizontal (degrees) - applied on all platforms
 };
 
 // Tab order for swipe navigation (matches bottom nav order)
@@ -6814,6 +6830,20 @@ function getCurrentTab() {
 // Returns: { tab: string, level: number, goBack: function } or null
 function getInternalViewInfo() {
     const currentTab = getCurrentTab();
+
+    // HOME TAB - Ramadan Full Page View
+    if (currentTab === 'home') {
+        const ramadanFullpage = document.getElementById('ramadan-fullpage');
+        if (ramadanFullpage && !ramadanFullpage.classList.contains('hidden')) {
+            return {
+                tab: 'home',
+                view: 'ramadan-fullpage',
+                goBack: () => {
+                    closeRamadanFullPage();
+                }
+            };
+        }
+    }
 
     // READ TAB - Surah Detail View
     if (currentTab === 'read') {
@@ -6997,10 +7027,10 @@ function handleTouchMove(e) {
     const distY = touch.pageY - swipeState.startY;
 
     // Only show indicator for clearly horizontal swipes
-    // Require: 60px horizontal, horizontal > 3x vertical, and vertical < 40px
+    // Require: 60px horizontal, horizontal > 3x vertical, and vertical < 30px
     const isHorizontalSwipe = Math.abs(distX) > 60 &&
         Math.abs(distX) > Math.abs(distY) * 3 &&
-        Math.abs(distY) < 40;
+        Math.abs(distY) < 30;
 
     if (isHorizontalSwipe) {
         // Check for open modals (these can change during swipe)
@@ -7066,13 +7096,12 @@ function handleSwipe() {
     const distX = swipeState.endX - swipeState.startX;
     const distY = swipeState.endY - swipeState.startY;
 
-    // Android: Check swipe angle - must be nearly horizontal
-    if (swipeState.isAndroid) {
-        const angle = Math.atan2(Math.abs(distY), Math.abs(distX)) * (180 / Math.PI);
-        if (angle > swipeState.maxAngle) {
-            // Swipe too diagonal, ignore it
-            return;
-        }
+    // Check swipe angle on all platforms - must be nearly horizontal
+    // (prevents diagonal scroll in Quran/Hadees from triggering back navigation)
+    const angle = Math.atan2(Math.abs(distY), Math.abs(distX)) * (180 / Math.PI);
+    if (angle > swipeState.maxAngle) {
+        // Swipe too diagonal, ignore it
+        return;
     }
 
     // Check if it's a valid horizontal swipe
@@ -9300,12 +9329,303 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initQazaCalculator, 100);
 });
 
-// Ramadan button - Coming Soon
+// ============================================
+// RAMADAN - Sehri & Iftar Widget (Katpadi)
+// ============================================
+
+let ramadanWidgetInterval = null;
+let currentRamadanDay = null;
+
+// Katpadi Mosque Ramadan 2026 Timetable
+// Source: Jamat-e-Ulama, Shahre Katpadi wa Vellore
+const KATPADI_RAMADAN_2026 = [
+    { day: 1, date: '2026-02-19', sehri: '5:10 AM', iftar: '6:24 PM' },
+    { day: 2, date: '2026-02-20', sehri: '5:10 AM', iftar: '6:24 PM' },
+    { day: 3, date: '2026-02-21', sehri: '5:10 AM', iftar: '6:24 PM' },
+    { day: 4, date: '2026-02-22', sehri: '5:09 AM', iftar: '6:25 PM' },
+    { day: 5, date: '2026-02-23', sehri: '5:09 AM', iftar: '6:25 PM' },
+    { day: 6, date: '2026-02-24', sehri: '5:09 AM', iftar: '6:25 PM' },
+    { day: 7, date: '2026-02-25', sehri: '5:08 AM', iftar: '6:25 PM' },
+    { day: 8, date: '2026-02-26', sehri: '5:07 AM', iftar: '6:25 PM' },
+    { day: 9, date: '2026-02-27', sehri: '5:07 AM', iftar: '6:25 PM' },
+    { day: 10, date: '2026-02-28', sehri: '5:06 AM', iftar: '6:25 PM' },
+    { day: 11, date: '2026-03-01', sehri: '5:05 AM', iftar: '6:25 PM' },
+    { day: 12, date: '2026-03-02', sehri: '5:05 AM', iftar: '6:25 PM' },
+    { day: 13, date: '2026-03-03', sehri: '5:05 AM', iftar: '6:26 PM' },
+    { day: 14, date: '2026-03-04', sehri: '5:04 AM', iftar: '6:26 PM' },
+    { day: 15, date: '2026-03-05', sehri: '5:04 AM', iftar: '6:25 PM' },
+    { day: 16, date: '2026-03-06', sehri: '5:03 AM', iftar: '6:25 PM' },
+    { day: 17, date: '2026-03-07', sehri: '5:02 AM', iftar: '6:26 PM' },
+    { day: 18, date: '2026-03-08', sehri: '5:02 AM', iftar: '6:26 PM' },
+    { day: 19, date: '2026-03-09', sehri: '5:01 AM', iftar: '6:26 PM' },
+    { day: 20, date: '2026-03-10', sehri: '5:00 AM', iftar: '6:26 PM' },
+    { day: 21, date: '2026-03-11', sehri: '5:00 AM', iftar: '6:26 PM' },
+    { day: 22, date: '2026-03-12', sehri: '5:00 AM', iftar: '6:27 PM' },
+    { day: 23, date: '2026-03-13', sehri: '4:58 AM', iftar: '6:27 PM' },
+    { day: 24, date: '2026-03-14', sehri: '4:58 AM', iftar: '6:27 PM' },
+    { day: 25, date: '2026-03-15', sehri: '4:58 AM', iftar: '6:27 PM' },
+    { day: 26, date: '2026-03-16', sehri: '4:57 AM', iftar: '6:27 PM' },
+    { day: 27, date: '2026-03-17', sehri: '4:57 AM', iftar: '6:27 PM' },
+    { day: 28, date: '2026-03-18', sehri: '4:56 AM', iftar: '6:27 PM' },
+    { day: 29, date: '2026-03-19', sehri: '4:55 AM', iftar: '6:27 PM' },
+    { day: 30, date: '2026-03-20', sehri: '4:55 AM', iftar: '6:28 PM' }
+];
+
+function parseRamadanTime(timeStr) {
+    if (!timeStr || timeStr === '--:--') return null;
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return null;
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const period = match[3].toUpperCase();
+    if (period === 'PM' && hours !== 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+}
+
+function initRamadanWidget() {
+    const widget = document.getElementById('ramadan-widget');
+    if (!widget) return;
+
+    // Find today's Ramadan day
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' +
+        String(today.getMonth() + 1).padStart(2, '0') + '-' +
+        String(today.getDate()).padStart(2, '0');
+
+    currentRamadanDay = KATPADI_RAMADAN_2026.find(d => d.date === todayStr);
+
+    // Hide widget if outside Ramadan dates (use local dates to avoid UTC issues)
+    const firstDay = new Date(2026, 1, 19); // Feb 19, 2026 local
+    const lastDay = new Date(2026, 2, 20);  // Mar 20, 2026 local
+    const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    if (todayDateOnly < firstDay || todayDateOnly > lastDay) {
+        widget.style.display = 'none';
+        return;
+    }
+
+    if (!currentRamadanDay) {
+        widget.style.display = 'none';
+        return;
+    }
+
+    // Show widget
+    widget.style.display = '';
+
+    // Set times
+    const sehriEl = document.getElementById('ramadan-widget-sehri');
+    const iftarEl = document.getElementById('ramadan-widget-iftar');
+    if (sehriEl) sehriEl.textContent = currentRamadanDay.sehri;
+    if (iftarEl) iftarEl.textContent = currentRamadanDay.iftar;
+
+    // Set Ramadan day number
+    const dayEl = document.getElementById('ramadan-widget-day');
+    if (dayEl) dayEl.textContent = `Day ${currentRamadanDay.day} of 30`;
+
+    // Start live updates
+    updateRamadanWidget();
+    updateRamadanDua();
+    if (ramadanWidgetInterval) clearInterval(ramadanWidgetInterval);
+    ramadanWidgetInterval = setInterval(() => {
+        updateRamadanWidget();
+        updateRamadanDua();
+    }, 1000);
+}
+
+function updateRamadanWidget() {
+    if (!currentRamadanDay) return;
+
+    const now = new Date();
+    const sehriTime = parseRamadanTime(currentRamadanDay.sehri);
+    const iftarTime = parseRamadanTime(currentRamadanDay.iftar);
+
+    const countdownText = document.getElementById('ramadan-widget-countdown-text');
+    const progressFill = document.getElementById('ramadan-widget-progress-fill');
+    const moonEl = document.getElementById('ramadan-widget-moon');
+
+    if (!sehriTime || !iftarTime) return;
+
+    let label = '';
+    let progress = 0;
+
+    if (now < sehriTime) {
+        // Before Sehri — countdown to Sehri ending
+        const diff = sehriTime - now;
+        const h = Math.floor(diff / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        label = `${h}h ${m}m left for Sehri`;
+        // Progress: midnight to sehri
+        const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        const totalBeforeSehri = sehriTime - midnight;
+        const elapsed = now - midnight;
+        progress = Math.min((elapsed / totalBeforeSehri) * 100, 100);
+    } else if (now < iftarTime) {
+        // Fasting — countdown to Iftar
+        const diff = iftarTime - now;
+        const h = Math.floor(diff / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        label = `${h}h ${m}m left for Iftar`;
+        // Progress: sehri to iftar
+        const totalFasting = iftarTime - sehriTime;
+        const elapsed = now - sehriTime;
+        progress = Math.min((elapsed / totalFasting) * 100, 100);
+    } else {
+        // After Iftar
+        label = 'Alhamdulillah! Fast complete 🌙';
+        progress = 100;
+    }
+
+    if (countdownText) countdownText.textContent = label;
+    if (progressFill) progressFill.style.width = progress + '%';
+    if (moonEl) moonEl.style.left = progress + '%';
+
+    // Sync hero countdown in full page
+    const heroCountdown = document.getElementById('ramadan-hero-countdown-text');
+    if (heroCountdown) heroCountdown.textContent = label;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Init widget immediately
+    initRamadanWidget();
+
+    // Expand/collapse toggle
+    const expandBtn = document.getElementById('ramadan-widget-expand');
+    const detailsEl = document.getElementById('ramadan-widget-details');
+    if (expandBtn && detailsEl) {
+        expandBtn.addEventListener('click', () => {
+            const isExpanded = expandBtn.classList.toggle('expanded');
+            detailsEl.classList.toggle('hidden', !isExpanded);
+            detailsEl.classList.toggle('visible', isExpanded);
+        });
+    }
+
+    // Ramadan explore card opens full page
     const ramadanBtn = document.getElementById('open-ramadan-btn');
     if (ramadanBtn) {
         ramadanBtn.addEventListener('click', () => {
-            showSuccess('Ramadan features will be updated soon! 🌙');
+            openRamadanFullPage();
+        });
+    }
+
+    // Full page back button
+    const backBtn = document.getElementById('ramadan-fullpage-back');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            closeRamadanFullPage();
         });
     }
 });
+
+// Dynamic dua — Sehri niyyah before noon, Iftar dua after noon
+function updateRamadanDua() {
+    const arabicEl = document.getElementById('ramadan-dua-arabic');
+    const englishEl = document.getElementById('ramadan-dua-english');
+    if (!arabicEl || !englishEl) return;
+
+    const hour = new Date().getHours();
+
+    if (hour < 12) {
+        // Sehri dua (Niyyah for fasting)
+        arabicEl.textContent = 'وَبِصَوْمِ غَدٍ نَوَيْتُ مِنْ شَهْرِ رَمَضَانَ';
+        englishEl.textContent = 'I intend to keep the fast for the month of Ramadan';
+    } else {
+        // Iftar dua
+        arabicEl.textContent = 'اللَّهُمَّ لَكَ صُمْتُ وَعَلَى رِزْقِكَ أَفْطَرْتُ';
+        englishEl.textContent = 'O Allah! I fasted for You and I break my fast with Your sustenance';
+    }
+}
+
+function openRamadanFullPage() {
+    const fullpage = document.getElementById('ramadan-fullpage');
+    if (!fullpage) return;
+
+    // Populate the 30-day grid
+    populateRamadanDaysGrid();
+
+    // Populate hero card with today's data
+    if (currentRamadanDay) {
+        const heroSehri = document.getElementById('ramadan-hero-sehri');
+        const heroIftar = document.getElementById('ramadan-hero-iftar');
+        const heroDay = document.getElementById('ramadan-hero-day');
+        const heroCountdown = document.getElementById('ramadan-hero-countdown-text');
+
+        if (heroSehri) heroSehri.textContent = currentRamadanDay.sehri;
+        if (heroIftar) heroIftar.textContent = currentRamadanDay.iftar;
+        if (heroDay) heroDay.textContent = `Day ${currentRamadanDay.day} of 30`;
+
+        // Copy countdown from widget
+        const widgetCountdown = document.getElementById('ramadan-widget-countdown-text');
+        if (heroCountdown && widgetCountdown) {
+            heroCountdown.textContent = widgetCountdown.textContent;
+        }
+    }
+
+    // Show the full page
+    fullpage.classList.remove('hidden', 'slide-out-right');
+
+    // Scroll to today's card after a brief delay
+    setTimeout(() => {
+        const todayCard = fullpage.querySelector('.ramadan-day-card.today');
+        if (todayCard) {
+            todayCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 400);
+}
+
+function closeRamadanFullPage() {
+    const fullpage = document.getElementById('ramadan-fullpage');
+    if (!fullpage) return;
+
+    fullpage.classList.add('slide-out-right');
+    setTimeout(() => {
+        fullpage.classList.add('hidden');
+        fullpage.classList.remove('slide-out-right');
+    }, 250);
+}
+
+function populateRamadanDaysGrid() {
+    const grid = document.getElementById('ramadan-days-grid');
+    if (!grid) return;
+
+    // Only populate once
+    if (grid.children.length > 0) return;
+
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' +
+        String(today.getMonth() + 1).padStart(2, '0') + '-' +
+        String(today.getDate()).padStart(2, '0');
+
+    KATPADI_RAMADAN_2026.forEach(day => {
+        const isToday = day.date === todayStr;
+        const isPast = day.date < todayStr;
+        const dateObj = new Date(day.date + 'T00:00:00');
+        const dateStr = dateObj.toLocaleDateString('en-US', {
+            weekday: 'short', month: 'short', day: 'numeric'
+        });
+
+        const card = document.createElement('div');
+        card.className = `ramadan-day-card${isToday ? ' today' : ''}${isPast ? ' past' : ''}`;
+        card.innerHTML = `
+            <div class="ramadan-day-num">${day.day}</div>
+            <div class="ramadan-day-info">
+                <div class="ramadan-day-date">${dateStr}</div>
+                <div class="ramadan-day-times">
+                    <div class="ramadan-day-time-item">
+                        <span class="ramadan-day-time-label">Sehri</span>
+                        <span class="ramadan-day-time-val">${day.sehri}</span>
+                    </div>
+                    <div class="ramadan-day-time-item">
+                        <span class="ramadan-day-time-label">Iftar</span>
+                        <span class="ramadan-day-time-val">${day.iftar}</span>
+                    </div>
+                </div>
+            </div>
+            <span class="ramadan-day-today-badge">TODAY</span>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+

@@ -11277,7 +11277,1064 @@ body.mini-player-active .main-content {
     display: none;
 }
 
-/* Desktop styles - only apply on screens 768px and wider */
+/* ============================================
+   RAMADAN - Home Widget
+   ============================================ */
+
+.ramadan-widget-section {
+    margin-top: -4px;
+}
+
+.ramadan-widget-card {
+    background: linear-gradient(145deg, #0d2818 0%, #1a4d2e 50%, #0d3320 100%);
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.ramadan-widget-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(52, 211, 153, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ramadan-widget-times {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.ramadan-widget-time-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ramadan-widget-time-right {
+    text-align: right;
+}
+
+.ramadan-widget-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.5px;
+}
+
+.ramadan-widget-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.ramadan-widget-progress {
+    margin-bottom: 14px;
+}
+
+.ramadan-widget-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    position: relative;
+    overflow: visible;
+}
+
+.ramadan-widget-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #34d399, #10b981);
+    border-radius: 10px;
+    transition: width 1s ease;
+    width: 0%;
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.5);
+}
+
+.ramadan-widget-moon {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.1rem;
+    left: 0%;
+    transition: left 1s ease;
+    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.6));
+}
+
+.ramadan-widget-countdown {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.ramadan-widget-countdown .material-symbols-outlined {
+    font-size: 1rem;
+    color: #34d399;
+}
+
+/* Expand toggle */
+.ramadan-widget-expand {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ramadan-widget-expand .material-symbols-outlined {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.35);
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.ramadan-widget-expand.expanded .material-symbols-outlined {
+    transform: rotate(180deg);
+    color: #34d399;
+}
+
+/* Expandable details */
+.ramadan-widget-details {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+    margin-top: 0;
+}
+
+.ramadan-widget-details.visible {
+    max-height: 250px;
+    opacity: 1;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ramadan-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 12px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.ramadan-detail-row .material-symbols-outlined {
+    font-size: 1rem;
+    color: #34d399;
+}
+
+.ramadan-detail-dua {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.ramadan-dua-text {
+    font-size: 1.1rem;
+    color: #34d399;
+    line-height: 1.8;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.ramadan-dua-translation {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+    line-height: 1.3;
+}
+
+.ramadan-detail-disclaimer {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.2px;
+}
+
+.ramadan-detail-disclaimer .material-symbols-outlined {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.2);
+}
+
+/* Light mode */
+[data-theme="light"] .ramadan-widget-card {
+    background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+[data-theme="light"] .ramadan-widget-card::before {
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+}
+
+[data-theme="light"] .ramadan-widget-label {
+    color: rgba(6, 78, 59, 0.65);
+}
+
+[data-theme="light"] .ramadan-widget-value {
+    color: #064e3b;
+}
+
+[data-theme="light"] .ramadan-widget-progress-bar {
+    background: rgba(6, 78, 59, 0.12);
+}
+
+[data-theme="light"] .ramadan-widget-countdown {
+    color: rgba(6, 78, 59, 0.7);
+}
+
+[data-theme="light"] .ramadan-widget-countdown .material-symbols-outlined {
+    color: #059669;
+}
+
+[data-theme="light"] .ramadan-widget-expand .material-symbols-outlined {
+    color: rgba(6, 78, 59, 0.3);
+}
+
+[data-theme="light"] .ramadan-widget-expand.expanded .material-symbols-outlined {
+    color: #059669;
+}
+
+[data-theme="light"] .ramadan-widget-details.visible {
+    border-top-color: rgba(6, 78, 59, 0.1);
+}
+
+[data-theme="light"] .ramadan-detail-row {
+    color: rgba(6, 78, 59, 0.6);
+}
+
+[data-theme="light"] .ramadan-detail-row .material-symbols-outlined {
+    color: #059669;
+}
+
+[data-theme="light"] .ramadan-dua-text {
+    color: #059669;
+}
+
+[data-theme="light"] .ramadan-dua-translation {
+    color: rgba(6, 78, 59, 0.45);
+}
+
+[data-theme="light"] .ramadan-detail-disclaimer {
+    color: rgba(6, 78, 59, 0.3);
+}
+
+[data-theme="light"] .ramadan-detail-disclaimer .material-symbols-outlined {
+    color: rgba(6, 78, 59, 0.25);
+}
+
+/* Widget header */
+.ramadan-widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.ramadan-widget-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #34d399;
+    letter-spacing: 0.3px;
+}
+
+.ramadan-widget-day {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(52, 211, 153, 0.15);
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(52, 211, 153, 0.15);
+}
+
+[data-theme="light"] .ramadan-widget-title {
+    color: #059669;
+}
+
+[data-theme="light"] .ramadan-widget-day {
+    color: #064e3b;
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+/* ============================================
+   RAMADAN - Full Page Timetable
+   ============================================ */
+
+.ramadan-fullpage {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-width: none !important;
+    background: #102218;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideInLeft 0.3s ease;
+}
+
+[data-theme="light"] .ramadan-fullpage {
+    background: #D1FAE5;
+}
+
+.ramadan-fullpage.hidden {
+    display: none;
+}
+
+.ramadan-fullpage.slide-out-right {
+    animation: slideOutRight 0.25s ease forwards;
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(100%);
+    }
+}
+
+/* Header */
+.ramadan-fullpage-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    padding-top: max(calc(env(safe-area-inset-top, 14px) + 6px), 14px);
+    background: #102218;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+[data-theme="light"] .ramadan-fullpage-header {
+    background: #D1FAE5;
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+.ramadan-fullpage-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+    flex: 1;
+}
+
+[data-theme="light"] .ramadan-fullpage-title {
+    color: #1a1a1a;
+}
+
+.ramadan-fullpage-location {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.12);
+    padding: 4px 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+[data-theme="light"] .ramadan-fullpage-location {
+    color: #059669;
+    background: rgba(16, 185, 129, 0.12);
+}
+
+/* Content */
+.ramadan-fullpage-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 16px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* Hero Card */
+.ramadan-hero-card {
+    background: linear-gradient(160deg, #0f3d28 0%, #1a5c3a 50%, #0d3320 100%);
+    border-radius: 20px;
+    padding: 22px 20px;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .ramadan-hero-card {
+    background: linear-gradient(160deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+}
+
+.ramadan-hero-glow {
+    position: absolute;
+    top: -60%;
+    right: -40%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(52, 211, 153, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ramadan-hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.ramadan-hero-greeting {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #34d399;
+    letter-spacing: 0.3px;
+}
+
+[data-theme="light"] .ramadan-hero-greeting {
+    color: #059669;
+}
+
+.ramadan-hero-day-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.65);
+    background: rgba(52, 211, 153, 0.15);
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: none;
+}
+
+[data-theme="light"] .ramadan-hero-day-badge {
+    color: #064e3b;
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.ramadan-hero-times {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 16px;
+}
+
+.ramadan-hero-time-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+}
+
+.ramadan-hero-time-block .material-symbols-outlined {
+    font-size: 1.4rem;
+    color: #34d399;
+    opacity: 0.7;
+}
+
+[data-theme="light"] .ramadan-hero-time-block .material-symbols-outlined {
+    color: #059669;
+}
+
+.ramadan-hero-time-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 1px;
+}
+
+[data-theme="light"] .ramadan-hero-time-label {
+    color: rgba(6, 78, 59, 0.55);
+}
+
+.ramadan-hero-time-val {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+}
+
+[data-theme="light"] .ramadan-hero-time-val {
+    color: #064e3b;
+}
+
+.ramadan-hero-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(52, 211, 153, 0.2);
+    margin: 0 4px;
+}
+
+[data-theme="light"] .ramadan-hero-divider {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.ramadan-hero-countdown {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.82rem;
+    font-weight: 500;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 14px;
+    border-radius: 12px;
+}
+
+[data-theme="light"] .ramadan-hero-countdown {
+    color: rgba(6, 78, 59, 0.65);
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.ramadan-hero-countdown .material-symbols-outlined {
+    font-size: 0.95rem;
+    color: #34d399;
+}
+
+[data-theme="light"] .ramadan-hero-countdown .material-symbols-outlined {
+    color: #059669;
+}
+
+/* Section Label */
+.ramadan-section-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 10px;
+    padding-left: 2px;
+}
+
+[data-theme="light"] .ramadan-section-label {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+.ramadan-section-label .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+/* Day Cards */
+.ramadan-days-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ramadan-day-card {
+    display: flex;
+    align-items: center;
+    padding: 14px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: none;
+    transition: all 0.2s ease;
+}
+
+[data-theme="light"] .ramadan-day-card {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.ramadan-day-card.past {
+    opacity: 0.35;
+}
+
+.ramadan-day-card.today {
+    background: linear-gradient(145deg, #0f3d28, #1a5c3a);
+    border: none;
+    box-shadow: 0 2px 16px rgba(52, 211, 153, 0.15);
+    opacity: 1;
+}
+
+[data-theme="light"] .ramadan-day-card.today {
+    background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+    box-shadow: 0 2px 16px rgba(16, 185, 129, 0.15);
+}
+
+.ramadan-day-num {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.06);
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+[data-theme="light"] .ramadan-day-num {
+    color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.ramadan-day-card.today .ramadan-day-num {
+    background: #34d399;
+    color: #0d2818;
+    font-weight: 800;
+}
+
+.ramadan-day-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.ramadan-day-date {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.35);
+    margin-bottom: 3px;
+}
+
+[data-theme="light"] .ramadan-day-date {
+    color: rgba(0, 0, 0, 0.35);
+}
+
+.ramadan-day-card.today .ramadan-day-date {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+[data-theme="light"] .ramadan-day-card.today .ramadan-day-date {
+    color: rgba(6, 78, 59, 0.55);
+}
+
+.ramadan-day-times {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.ramadan-day-time-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.ramadan-day-time-label {
+    font-size: 0.58rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+[data-theme="light"] .ramadan-day-time-label {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.ramadan-day-card.today .ramadan-day-time-label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="light"] .ramadan-day-card.today .ramadan-day-time-label {
+    color: rgba(6, 78, 59, 0.5);
+}
+
+.ramadan-day-time-val {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="light"] .ramadan-day-time-val {
+    color: rgba(0, 0, 0, 0.75);
+}
+
+.ramadan-day-card.today .ramadan-day-time-val {
+    color: #ffffff;
+}
+
+[data-theme="light"] .ramadan-day-card.today .ramadan-day-time-val {
+    color: #064e3b;
+}
+
+.ramadan-day-today-badge {
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.15);
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-left: auto;
+    flex-shrink: 0;
+    display: none;
+    letter-spacing: 0.5px;
+}
+
+.ramadan-day-card.today .ramadan-day-today-badge {
+    display: block;
+}
+
+/* Disclaimer */
+.ramadan-fullpage-disclaimer {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 14px 16px;
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.3);
+    text-align: center;
+    line-height: 1.5;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 14px;
+    border: none;
+}
+
+[data-theme="light"] .ramadan-fullpage-disclaimer {
+    color: rgba(0, 0, 0, 0.35);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.ramadan-fullpage-disclaimer .material-symbols-outlined {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.ramadan-widget-pulse {
+    animation: ramadanPulse 1.5s ease;
+}
+
+@keyframes ramadanPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(52, 211, 153, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+    }
+}
+
+/* ============================================
+   RAMADAN - Sehri & Iftar Times (Detail View)
+   ============================================ */
+
+.ramadan-content {
+    padding: var(--space-md);
+    padding-bottom: 120px;
+}
+
+/* Loading state */
+.ramadan-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    padding: var(--space-2xl) var(--space-md);
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+}
+
+/* Location required state */
+.ramadan-no-location-card {
+    text-align: center;
+    padding: var(--space-2xl) var(--space-lg);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+}
+
+.ramadan-no-location-card .material-symbols-outlined {
+    font-size: 48px;
+    color: var(--primary);
+    margin-bottom: var(--space-md);
+}
+
+.ramadan-no-location-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+}
+
+.ramadan-no-location-card p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+    line-height: 1.5;
+}
+
+.ramadan-no-location-card .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-sm) var(--space-xl);
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+}
+
+/* Hijri date card */
+.ramadan-hijri-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--space-lg);
+}
+
+.ramadan-hijri-card>.material-symbols-outlined {
+    font-size: 28px;
+    color: #c084fc;
+}
+
+.ramadan-hijri-text {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-display);
+}
+
+.ramadan-gregorian-text {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* Main Sehri & Iftar grid */
+.ramadan-times-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+/* Time cards */
+.ramadan-time-card {
+    position: relative;
+    overflow: hidden;
+    padding: var(--space-xl) var(--space-lg);
+    border-radius: var(--radius-xl);
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.ramadan-card-glow {
+    position: absolute;
+    top: -30%;
+    left: -30%;
+    width: 160%;
+    height: 160%;
+    border-radius: 50%;
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+/* Sehri card - deep night blue/purple */
+.ramadan-sehri-card {
+    background: linear-gradient(145deg, #1e1b4b 0%, #312e81 50%, #1e3a5f 100%);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.ramadan-sehri-card .ramadan-card-glow {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+}
+
+.ramadan-sehri-card .ramadan-card-icon .material-symbols-outlined {
+    color: #c084fc;
+}
+
+/* Iftar card - warm sunset orange */
+.ramadan-iftar-card {
+    background: linear-gradient(145deg, #7c2d12 0%, #c2410c 50%, #ea580c 100%);
+    border-color: rgba(251, 146, 60, 0.3);
+}
+
+.ramadan-iftar-card .ramadan-card-glow {
+    background: radial-gradient(circle, rgba(251, 146, 60, 0.4) 0%, transparent 70%);
+}
+
+.ramadan-iftar-card .ramadan-card-icon .material-symbols-outlined {
+    color: #fdba74;
+}
+
+/* Card content */
+.ramadan-card-icon {
+    margin-bottom: var(--space-sm);
+}
+
+.ramadan-card-icon .material-symbols-outlined {
+    font-size: 32px;
+}
+
+.ramadan-card-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-xs);
+}
+
+.ramadan-card-time {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+}
+
+.ramadan-card-sublabel {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+}
+
+/* Countdown card */
+.ramadan-countdown-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-lg);
+    text-align: center;
+    margin-bottom: var(--space-lg);
+}
+
+.ramadan-countdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.ramadan-countdown-header .material-symbols-outlined {
+    font-size: 20px;
+    color: var(--primary);
+}
+
+.ramadan-countdown-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+/* Info cards */
+.ramadan-info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-sm);
+}
+
+.ramadan-info-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.ramadan-info-row>.material-symbols-outlined {
+    font-size: 22px;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.ramadan-info-label {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.ramadan-info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Light mode Ramadan */
+[data-theme="light"] .ramadan-hijri-card {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.08) 100%);
+    border-color: rgba(139, 92, 246, 0.2);
+}
+
+[data-theme="light"] .ramadan-hijri-card>.material-symbols-outlined {
+    color: #7c3aed;
+}
+
+[data-theme="light"] .ramadan-sehri-card {
+    background: linear-gradient(145deg, #312e81 0%, #4338ca 50%, #3730a3 100%);
+}
+
+[data-theme="light"] .ramadan-iftar-card {
+    background: linear-gradient(145deg, #9a3412 0%, #ea580c 50%, #f97316 100%);
+}
+
+[data-theme="light"] .ramadan-countdown-card,
+[data-theme="light"] .ramadan-info-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .ramadan-countdown-value {
+    color: #059669;
+}
+
+[data-theme="light"] .ramadan-no-location-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .ramadan-no-location-card .btn {
+    background: #059669;
+}
+
+
 @media (min-width: 768px) {
 
     /* Root layout changes */

@@ -14,7 +14,7 @@
  */
 
 // ⚠️ UPDATE THIS VERSION NUMBER WHEN YOU MAKE CHANGES!
-const APP_VERSION = '3.81.0';
+const APP_VERSION = '3.82.0';
 const CACHE_NAME = `quran-pwa-${APP_VERSION}`;
 const STATIC_CACHE = `quran-static-${APP_VERSION}`;
 const API_CACHE = 'quran-api-v1';
@@ -28,6 +28,8 @@ const STATIC_ASSETS = [
     './app.js',
     './manifest.webmanifest',
     './AppImages/logo_nobg.svg',
+    './AppImages/android/android-launchericon-192-192.png',
+    './AppImages/android/android-launchericon-512-512.png',
     './icons/icon-72x72.png',
     './icons/icon-96x96.png',
     './icons/icon-128x128.png',
@@ -36,6 +38,12 @@ const STATIC_ASSETS = [
     './icons/icon-192x192.png',
     './icons/icon-384x384.png',
     './icons/icon-512x512.png'
+];
+
+// External CDN resources to pre-cache for offline use (fonts & icons)
+const CDN_ASSETS = [
+    'https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Cinzel+Decorative:wght@400;700&display=swap',
+    'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap'
 ];
 
 // Offline Islamic data files to cache (for offline Quran & Dua reading)
@@ -84,6 +92,24 @@ self.addEventListener('install', (event) => {
                             cache.add(url).catch(err => {
                                 console.warn(`[Service Worker] Failed to cache ${url}:`, err);
                             })
+                        )
+                    );
+                }),
+            // Cache external CDN resources (Google Fonts, Material Symbols)
+            caches.open(STATIC_CACHE)
+                .then((cache) => {
+                    console.log('[Service Worker] Caching CDN assets for offline use...');
+                    return Promise.allSettled(
+                        CDN_ASSETS.map(url =>
+                            fetch(url, { mode: 'cors' })
+                                .then(response => {
+                                    if (response.ok) {
+                                        return cache.put(url, response);
+                                    }
+                                })
+                                .catch(err => {
+                                    console.warn(`[Service Worker] Failed to cache CDN asset ${url}:`, err);
+                                })
                         )
                     );
                 })
