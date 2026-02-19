@@ -9381,6 +9381,10 @@ const KATPADI_RAMADAN_2026 = [
 // Storage key for custom Ramadan configuration
 const RAMADAN_CONFIG_KEY = 'ramadan_custom_config';
 
+// Default timing values for fallback
+const DEFAULT_SEHRI_TIME = '5:00 AM';
+const DEFAULT_IFTAR_TIME = '6:30 PM';
+
 // Get saved configuration or return default
 function getRamadanConfig() {
     try {
@@ -10195,29 +10199,28 @@ function normalizeTime(timeStr) {
     
     // Infer AM/PM if not provided
     if (!period) {
-        // Sehri times are usually 3-6 AM, Iftar times are 6-8 PM
-        if (hours >= 3 && hours <= 6) {
-            period = 'AM';
-        } else if (hours >= 6 && hours <= 8) {
+        // Check if it's 24-hour format (hours > 12)
+        if (hours > 12) {
+            // Convert from 24-hour to 12-hour
             period = 'PM';
-        } else if (hours >= 12) {
-            // 24-hour format
-            period = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
+            hours = hours - 12;
+        } else if (hours === 12) {
+            period = 'PM';
+        } else if (hours >= 0 && hours < 12) {
+            // Could be Sehri (3-6 AM) or Iftar (6-8 should be PM)
+            // Sehri times are usually 3-6 AM, Iftar times are around 18-20 (6-8 PM)
+            // If we see 6, 7, 8, assume it's AM for Sehri
+            period = 'AM';
+        } else {
+            period = 'AM';
         }
+    } else {
+        // Period is provided, use it as-is (already in 12-hour format)
+        // No conversion needed
     }
     
-    if (period === 'PM' && hours !== 12) {
-        hours += 12;
-    } else if (period === 'AM' && hours === 12) {
-        hours = 0;
-    }
-    
-    // Convert back to 12-hour for display
-    const displayHours = hours % 12 || 12;
-    const displayPeriod = hours >= 12 ? 'PM' : 'AM';
-    
-    return `${displayHours}:${minutes} ${displayPeriod}`;
+    // Return formatted 12-hour time
+    return `${hours}:${minutes} ${period}`;
 }
 
 // Fill missing days with interpolation
@@ -10250,7 +10253,7 @@ function fillMissingDays(timings) {
                 timings[day] = { ...timings[nextDay] };
             } else {
                 // Use default
-                timings[day] = { sehri: '5:00 AM', iftar: '6:30 PM' };
+                timings[day] = { sehri: DEFAULT_SEHRI_TIME, iftar: DEFAULT_IFTAR_TIME };
             }
         }
     }
@@ -10272,7 +10275,7 @@ function populateReviewGrid(timings) {
     grid.innerHTML = '';
     
     for (let day = 1; day <= 30; day++) {
-        const dayData = timings[day] || { sehri: '5:00 AM', iftar: '6:30 PM' };
+        const dayData = timings[day] || { sehri: DEFAULT_SEHRI_TIME, iftar: DEFAULT_IFTAR_TIME };
         
         const dayEl = document.createElement('div');
         dayEl.className = 'ramadan-entry-day';
