@@ -10093,44 +10093,57 @@ async function processImageWithOCR(imageDataURL) {
     
     try {
         // Update status
-        processingText.textContent = 'Initializing OCR...';
+        processingText.textContent = 'Initializing OCR engine...';
         progressFill.style.width = '10%';
         
         // Create Tesseract worker
         const worker = await Tesseract.createWorker('eng', 1, {
             logger: (m) => {
                 if (m.status === 'recognizing text') {
-                    const progress = Math.floor(m.progress * 80) + 10;
+                    const progress = Math.floor(m.progress * 70) + 10;  // 10-80%
                     progressFill.style.width = `${progress}%`;
-                    processingText.textContent = `Extracting timings... ${Math.floor(m.progress * 100)}%`;
+                    processingText.textContent = `Reading timetable image... ${Math.floor(m.progress * 100)}%`;
                 }
             }
         });
         
-        processingText.textContent = 'Analyzing image...';
+        processingText.textContent = 'Analyzing image structure...';
+        progressFill.style.width = '80%';
         
         // Recognize text
         const { data: { text } } = await worker.recognize(imageDataURL);
+        console.log('OCR completed, raw text length:', text.length);
         
-        processingText.textContent = 'Parsing timings...';
-        progressFill.style.width = '95%';
+        processingText.textContent = 'Extracting Sehri & Iftar timings...';
+        progressFill.style.width = '90%';
         
         // Parse timings from text
         const timings = parseTimingsFromOCRText(text);
         
+        // Count extracted timings
+        const extractedCount = Object.keys(timings).filter(day => 
+            timings[day] && timings[day].confidence === 'high'
+        ).length;
+        
+        console.log(`Extracted ${extractedCount} high-confidence timings out of 30 days`);
+        
         await worker.terminate();
         
         progressFill.style.width = '100%';
-        processingText.textContent = 'Processing complete!';
+        processingText.textContent = `Successfully extracted timings for ${extractedCount} days!`;
         
         // Show review view
         setTimeout(() => {
             showReviewView(timings);
-        }, 500);
+            // Show helpful message if extraction quality is low
+            if (extractedCount < 15) {
+                showToast('Low extraction quality. Please review and correct the highlighted entries.', 'warning');
+            }
+        }, 800);
         
     } catch (error) {
         console.error('OCR Error:', error);
-        showToast('Failed to extract timings. Please try manual entry.', 'error');
+        showToast('Failed to extract timings. Please try manual entry or use a clearer image.', 'error');
         
         // Go back to upload view
         setTimeout(() => {
@@ -10177,7 +10190,14 @@ function parseTimingsFromOCRText(text) {
     const lines = correctedText.split('\n').map(line => line.trim()).filter(line => line);
     
     // Enhanced time pattern - more forgiving
-    // Matches: 4:30, 04:30, 4.30, 04.30, 0430, with optional AM/PM
+    // Matches: 4:30, 04:30, 4.30, 04.30, 0430, 430 with optional AM/PM
+    // Pattern breakdown:
+    // - \b word boundary
+    // - ([0-2]?[0-9]) captures hour (0-29, but we'll validate)
+    // - [\s:\.]* optional separator (space, colon, or dot)
+    // - ([0-5][0-9]) captures minutes (00-59)
+    // - [\s]* optional space before AM/PM
+    // - (AM|PM|am|pm)? optional AM/PM marker
     const timePattern = /\b([0-2]?[0-9])[\s:\.]*([0-5][0-9])[\s]*(AM|PM|am|pm)?\b/gi;
     
     // Keywords to identify Sehri and Iftar columns
@@ -10482,6 +10502,23 @@ function validateTiming(timing) {
 function showReviewView(timings) {
     document.getElementById('ramadan-ocr-processing').classList.add('hidden');
     document.getElementById('ramadan-review-view').classList.remove('hidden');
+    
+    // Count low confidence entries
+    const lowConfidenceCount = Object.keys(timings).filter(day => 
+        timings[day] && (timings[day].confidence === 'low' || timings[day].confidence === 'medium')
+    ).length;
+    
+    // Update subtitle with helpful message
+    const subtitle = document.querySelector('.ramadan-review-subtitle');
+    if (subtitle) {
+        if (lowConfidenceCount > 0) {
+            subtitle.textContent = `⚠ ${lowConfidenceCount} entries need verification. Please review highlighted times before saving.`;
+            subtitle.style.color = '#f59e0b';
+        } else {
+            subtitle.textContent = 'Review and edit any incorrect times before saving';
+            subtitle.style.color = '';
+        }
+    }
     
     populateReviewGrid(timings);
 }
