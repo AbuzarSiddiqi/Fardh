@@ -9374,6 +9374,91 @@ const KATPADI_RAMADAN_2026 = [
     { day: 30, date: '2026-03-20', sehri: '4:55 AM', iftar: '6:28 PM' }
 ];
 
+// ============================================
+// RAMADAN SETTINGS - Custom Timing Configuration
+// ============================================
+
+// Storage key for custom Ramadan configuration
+const RAMADAN_CONFIG_KEY = 'ramadan_custom_config';
+
+// Get saved configuration or return default
+function getRamadanConfig() {
+    try {
+        const saved = localStorage.getItem(RAMADAN_CONFIG_KEY);
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (e) {
+        console.error('Error loading Ramadan config:', e);
+    }
+    
+    // Default configuration
+    return {
+        timingMode: 'vit',
+        customTimings: {},
+        location: 'VIT Vellore',
+        lastUpdated: null
+    };
+}
+
+// Save configuration to localStorage
+function saveRamadanConfig(config) {
+    try {
+        config.lastUpdated = Date.now();
+        localStorage.setItem(RAMADAN_CONFIG_KEY, JSON.stringify(config));
+        return true;
+    } catch (e) {
+        console.error('Error saving Ramadan config:', e);
+        return false;
+    }
+}
+
+// Get timings for a specific day (returns {sehri, iftar, date, day})
+function getRamadanDayTiming(dayNumber) {
+    const config = getRamadanConfig();
+    
+    if (config.timingMode === 'vit') {
+        return KATPADI_RAMADAN_2026.find(d => d.day === dayNumber);
+    } else if (config.timingMode === 'manual' || config.timingMode === 'upload') {
+        const customDay = config.customTimings[dayNumber];
+        if (customDay) {
+            // Get the corresponding date from VIT data
+            const vitDay = KATPADI_RAMADAN_2026.find(d => d.day === dayNumber);
+            return {
+                day: dayNumber,
+                date: vitDay ? vitDay.date : null,
+                sehri: customDay.sehri,
+                iftar: customDay.iftar
+            };
+        }
+    }
+    
+    return KATPADI_RAMADAN_2026.find(d => d.day === dayNumber);
+}
+
+// Get all 30 days of Ramadan timings
+function getAllRamadanTimings() {
+    const config = getRamadanConfig();
+    
+    if (config.timingMode === 'vit') {
+        return KATPADI_RAMADAN_2026;
+    } else if (config.timingMode === 'manual' || config.timingMode === 'upload') {
+        return KATPADI_RAMADAN_2026.map(vitDay => {
+            const customDay = config.customTimings[vitDay.day];
+            if (customDay) {
+                return {
+                    ...vitDay,
+                    sehri: customDay.sehri,
+                    iftar: customDay.iftar
+                };
+            }
+            return vitDay;
+        });
+    }
+    
+    return KATPADI_RAMADAN_2026;
+}
+
 function parseRamadanTime(timeStr) {
     if (!timeStr || timeStr === '--:--') return null;
     const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -9663,92 +9748,6 @@ function populateRamadanDaysGrid() {
         `;
         grid.appendChild(card);
     });
-}
-}
-
-// ============================================
-// RAMADAN SETTINGS - Custom Timing Configuration
-// ============================================
-
-// Storage key for custom Ramadan configuration
-const RAMADAN_CONFIG_KEY = 'ramadan_custom_config';
-
-// Get saved configuration or return default
-function getRamadanConfig() {
-    try {
-        const saved = localStorage.getItem(RAMADAN_CONFIG_KEY);
-        if (saved) {
-            return JSON.parse(saved);
-        }
-    } catch (e) {
-        console.error('Error loading Ramadan config:', e);
-    }
-    
-    // Default configuration
-    return {
-        timingMode: 'vit',
-        customTimings: {},
-        location: 'VIT Vellore',
-        lastUpdated: null
-    };
-}
-
-// Save configuration to localStorage
-function saveRamadanConfig(config) {
-    try {
-        config.lastUpdated = Date.now();
-        localStorage.setItem(RAMADAN_CONFIG_KEY, JSON.stringify(config));
-        return true;
-    } catch (e) {
-        console.error('Error saving Ramadan config:', e);
-        return false;
-    }
-}
-
-// Get timings for a specific day (returns {sehri, iftar, date, day})
-function getRamadanDayTiming(dayNumber) {
-    const config = getRamadanConfig();
-    
-    if (config.timingMode === 'vit') {
-        return KATPADI_RAMADAN_2026.find(d => d.day === dayNumber);
-    } else if (config.timingMode === 'manual' || config.timingMode === 'upload') {
-        const customDay = config.customTimings[dayNumber];
-        if (customDay) {
-            // Get the corresponding date from VIT data
-            const vitDay = KATPADI_RAMADAN_2026.find(d => d.day === dayNumber);
-            return {
-                day: dayNumber,
-                date: vitDay ? vitDay.date : null,
-                sehri: customDay.sehri,
-                iftar: customDay.iftar
-            };
-        }
-    }
-    
-    return KATPADI_RAMADAN_2026.find(d => d.day === dayNumber);
-}
-
-// Get all 30 days of Ramadan timings
-function getAllRamadanTimings() {
-    const config = getRamadanConfig();
-    
-    if (config.timingMode === 'vit') {
-        return KATPADI_RAMADAN_2026;
-    } else if (config.timingMode === 'manual' || config.timingMode === 'upload') {
-        return KATPADI_RAMADAN_2026.map(vitDay => {
-            const customDay = config.customTimings[vitDay.day];
-            if (customDay) {
-                return {
-                    ...vitDay,
-                    sehri: customDay.sehri,
-                    iftar: customDay.iftar
-                };
-            }
-            return vitDay;
-        });
-    }
-    
-    return KATPADI_RAMADAN_2026;
 }
 
 // Initialize Ramadan settings modal
