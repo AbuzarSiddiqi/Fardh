@@ -10193,7 +10193,7 @@ function parseTimingsFromOCRText(text) {
     // Matches: 4:30, 04:30, 4.30, 04.30, 0430, 430 with optional AM/PM
     // Pattern breakdown:
     // - \b word boundary
-    // - ([0-2]?[0-9]) captures hour (0-29, but we'll validate)
+    // - ([0-2]?[0-9]) captures hour (0-29, validated later to 0-23)
     // - [\s:\.]* optional separator (space, colon, or dot)
     // - ([0-5][0-9]) captures minutes (00-59)
     // - [\s]* optional space before AM/PM
@@ -10273,12 +10273,21 @@ function parseTimingsFromOCRText(text) {
                         const classified = classifyTimes(time1, time2, sehriFirst);
                         
                         if (classified.sehri && classified.iftar) {
+                            // Base confidence on number of times and validation
+                            let confidence = allTimes.length === 2 ? 'high' : 'medium';
+                            
+                            // Downgrade if validation fails
+                            const isValid = validateTiming({ sehri: classified.sehri, iftar: classified.iftar });
+                            if (!isValid && confidence === 'high') {
+                                confidence = 'medium';
+                            }
+                            
                             timings[day] = {
                                 sehri: classified.sehri,
                                 iftar: classified.iftar,
-                                confidence: allTimes.length === 2 ? 'high' : 'medium'
+                                confidence: confidence
                             };
-                            console.log(`Day ${day}: Sehri=${classified.sehri}, Iftar=${classified.iftar}`);
+                            console.log(`Day ${day}: Sehri=${classified.sehri}, Iftar=${classified.iftar}, Confidence=${confidence}`);
                             break;
                         }
                     }
@@ -10368,7 +10377,7 @@ function normalizeTime(timeStr) {
     const minutes = match[2];
     let period = match[3] ? match[3].toUpperCase() : null;
     
-    // Validate hours
+    // Validate hours before conversion (0-23 for 24h, or 1-12 for 12h with AM/PM)
     if (hours < 0 || hours > 23) return null;
     
     // Infer AM/PM if not provided
@@ -10398,10 +10407,6 @@ function normalizeTime(timeStr) {
             hours = hours - 12;
         }
     }
-    
-    // Ensure hours are valid for 12-hour format
-    if (hours === 0) hours = 12;
-    if (hours > 12) hours = hours - 12;
     
     // Return formatted 12-hour time
     return `${hours}:${minutes} ${period}`;
@@ -10512,7 +10517,8 @@ function showReviewView(timings) {
     const subtitle = document.querySelector('.ramadan-review-subtitle');
     if (subtitle) {
         if (lowConfidenceCount > 0) {
-            subtitle.textContent = `⚠ ${lowConfidenceCount} entries need verification. Please review highlighted times before saving.`;
+            const entryWord = lowConfidenceCount === 1 ? 'entry needs' : 'entries need';
+            subtitle.textContent = `⚠ ${lowConfidenceCount} ${entryWord} verification. Please review highlighted times before saving.`;
             subtitle.style.color = '#f59e0b';
         } else {
             subtitle.textContent = 'Review and edit any incorrect times before saving';
