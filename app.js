@@ -10139,42 +10139,132 @@ async function processImageWithOCR(imageDataURL) {
     }
 }
 
+// OCR Error Correction Map
+const OCR_CORRECTIONS = {
+    'O': '0', 'o': '0',
+    'I': '1', 'l': '1',
+    'B': '8', 'b': '8',
+    'S': '5', 's': '5',
+    'Z': '2', 'z': '2'
+};
+
+// Apply OCR error corrections to text
+function correctOCRErrors(text) {
+    let corrected = text;
+    
+    // Fix common time-related OCR errors
+    // Only correct in time-like contexts (digit-letter-digit patterns)
+    corrected = corrected.replace(/([0-9])[OoIlBbSsZz]([0-9])/g, (match, before, after) => {
+        const middle = match[1];
+        return before + (OCR_CORRECTIONS[middle] || middle) + after;
+    });
+    
+    // Fix leading O/o that should be 0 in times like "O4:30" -> "04:30"
+    corrected = corrected.replace(/\b[Oo](\d)/g, '0$1');
+    
+    return corrected;
+}
+
 // Parse timings from OCR text
 function parseTimingsFromOCRText(text) {
-    const timings = {};
-    const lines = text.split('\n');
+    console.log('Raw OCR Text:', text);
     
-    // Common time patterns
-    const timePattern = /(\d{1,2})[:\.](\d{2})\s*(AM|PM|am|pm)?/gi;
+    // Pre-process: Apply OCR error corrections
+    const correctedText = correctOCRErrors(text);
+    console.log('Corrected OCR Text:', correctedText);
+    
+    const timings = {};
+    const lines = correctedText.split('\n').map(line => line.trim()).filter(line => line);
+    
+    // Enhanced time pattern - more forgiving
+    // Matches: 4:30, 04:30, 4.30, 04.30, 0430, with optional AM/PM
+    const timePattern = /\b([0-2]?[0-9])[\s:\.]*([0-5][0-9])[\s]*(AM|PM|am|pm)?\b/gi;
+    
+    // Keywords to identify Sehri and Iftar columns
+    const sehriKeywords = ['sehri', 'suhoor', 'sahr', 'sahri', 'sehr', 'sehar'];
+    const iftarKeywords = ['iftar', 'iftaar', 'ifter'];
+    
+    // Detect table structure by looking for header row
+    let sehriFirst = true; // Default: Sehri column before Iftar
+    const headerLine = lines.slice(0, 5).find(line => {
+        const lower = line.toLowerCase();
+        return sehriKeywords.some(kw => lower.includes(kw)) || 
+               iftarKeywords.some(kw => lower.includes(kw));
+    });
+    
+    if (headerLine) {
+        const lower = headerLine.toLowerCase();
+        const sehriIndex = sehriKeywords.reduce((idx, kw) => {
+            const pos = lower.indexOf(kw);
+            return pos >= 0 && (idx < 0 || pos < idx) ? pos : idx;
+        }, -1);
+        const iftarIndex = iftarKeywords.reduce((idx, kw) => {
+            const pos = lower.indexOf(kw);
+            return pos >= 0 && (idx < 0 || pos < idx) ? pos : idx;
+        }, -1);
+        
+        if (sehriIndex >= 0 && iftarIndex >= 0) {
+            sehriFirst = sehriIndex < iftarIndex;
+            console.log(`Detected column order: ${sehriFirst ? 'Sehri -> Iftar' : 'Iftar -> Sehri'}`);
+        }
+    }
     
     // Try to find day numbers and associated times
     for (let day = 1; day <= 30; day++) {
-        // Look for this day number in the text
-        const dayPattern = new RegExp(`\\b${day}\\b`, 'g');
+        // Look for this day number in the text with various formats
+        // Match: "1", "01", "Day 1", "1)", "1.", "1-", etc.
+        const dayPattern = new RegExp(`\\b(?:Day\\s*)?0*${day}(?![0-9])(?:[\\)\\.]|\\s|$)`, 'i');
         
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             
             if (dayPattern.test(line)) {
-                // Found the day, try to extract times from this line and nearby lines
+                console.log(`Day ${day} found in line ${i}: "${line}"`);
+                
+                // Extract times from this line and nearby lines for context
                 const contextLines = [
-                    lines[i - 1] || '',
                     line,
                     lines[i + 1] || '',
                     lines[i + 2] || ''
-                ].join(' ');
+                ];
                 
-                const times = [...contextLines.matchAll(timePattern)];
+                // Collect all times from context
+                const allTimes = [];
+                contextLines.forEach((contextLine, offset) => {
+                    const matches = [...contextLine.matchAll(timePattern)];
+                    matches.forEach(match => {
+                        allTimes.push({
+                            raw: match[0],
+                            lineOffset: offset,
+                            index: match.index
+                        });
+                    });
+                });
                 
-                if (times.length >= 2) {
-                    // Assume first time is Sehri, second is Iftar
-                    const sehri = normalizeTime(times[0][0]);
-                    const iftar = normalizeTime(times[1][0]);
+                console.log(`Found ${allTimes.length} times for day ${day}:`, allTimes.map(t => t.raw));
+                
+                if (allTimes.length >= 2) {
+                    // Get first two times
+                    const time1 = normalizeTime(allTimes[0].raw);
+                    const time2 = normalizeTime(allTimes[1].raw);
                     
-                    if (sehri && iftar) {
-                        timings[day] = { sehri, iftar };
-                        break;
+                    if (time1 && time2) {
+                        // Classify times based on hour of day
+                        const classified = classifyTimes(time1, time2, sehriFirst);
+                        
+                        if (classified.sehri && classified.iftar) {
+                            timings[day] = {
+                                sehri: classified.sehri,
+                                iftar: classified.iftar,
+                                confidence: allTimes.length === 2 ? 'high' : 'medium'
+                            };
+                            console.log(`Day ${day}: Sehri=${classified.sehri}, Iftar=${classified.iftar}`);
+                            break;
+                        }
                     }
+                } else if (allTimes.length === 1) {
+                    // Only one time found - mark for interpolation
+                    console.log(`Only one time found for day ${day}, will interpolate`);
                 }
             }
         }
@@ -10186,16 +10276,80 @@ function parseTimingsFromOCRText(text) {
     return timings;
 }
 
+// Classify two times as Sehri and Iftar based on hour
+function classifyTimes(time1, time2, sehriFirst) {
+    const hour1 = getHourFromTime(time1);
+    const hour2 = getHourFromTime(time2);
+    
+    console.log(`Classifying times: ${time1} (${hour1}h) and ${time2} (${hour2}h)`);
+    
+    // Use heuristics: Sehri is 3-6 AM, Iftar is 5-8 PM
+    const isSehriTime1 = hour1 >= 3 && hour1 <= 6;
+    const isIftarTime1 = hour1 >= 17 && hour1 <= 21;
+    const isSehriTime2 = hour2 >= 3 && hour2 <= 6;
+    const isIftarTime2 = hour2 >= 17 && hour2 <= 21;
+    
+    // Clear case: one is Sehri time, other is Iftar time
+    if (isSehriTime1 && isIftarTime2) {
+        return { sehri: time1, iftar: time2 };
+    }
+    if (isIftarTime1 && isSehriTime2) {
+        return { sehri: time2, iftar: time1 };
+    }
+    
+    // Both look like Sehri or both look like Iftar - use column order
+    if (isSehriTime1 && isSehriTime2) {
+        // Both are Sehri-like times, use first one
+        return sehriFirst ? 
+            { sehri: time1, iftar: null } : 
+            { sehri: time2, iftar: null };
+    }
+    
+    if (isIftarTime1 && isIftarTime2) {
+        // Both are Iftar-like times, use second one
+        return sehriFirst ? 
+            { sehri: null, iftar: time2 } : 
+            { sehri: null, iftar: time1 };
+    }
+    
+    // Default: use column order from header detection
+    return sehriFirst ? 
+        { sehri: time1, iftar: time2 } : 
+        { sehri: time2, iftar: time1 };
+}
+
+// Extract hour from time string (in 24-hour format)
+function getHourFromTime(timeStr) {
+    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!match) return 0;
+    
+    let hours = parseInt(match[1]);
+    const period = match[3] ? match[3].toUpperCase() : null;
+    
+    if (period === 'PM' && hours !== 12) {
+        hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+        hours = 0;
+    }
+    
+    return hours;
+}
+
 // Normalize time format
 function normalizeTime(timeStr) {
     if (!timeStr) return null;
     
-    const match = timeStr.match(/(\d{1,2})[:\.](\d{2})\s*(AM|PM|am|pm)?/i);
+    // Enhanced pattern to handle more formats
+    // Matches: 4:30, 04:30, 4.30, 04.30, 4 30, with optional AM/PM
+    const match = timeStr.match(/\b([0-2]?[0-9])[\s:\.]+([0-5][0-9])[\s]*(AM|PM|am|pm)?\b/i);
     if (!match) return null;
     
     let hours = parseInt(match[1]);
     const minutes = match[2];
     let period = match[3] ? match[3].toUpperCase() : null;
+    
+    // Validate hours
+    if (hours < 0 || hours > 23) return null;
     
     // Infer AM/PM if not provided
     if (!period) {
@@ -10206,18 +10360,28 @@ function normalizeTime(timeStr) {
             hours = hours - 12;
         } else if (hours === 12) {
             period = 'PM';
-        } else if (hours >= 0 && hours < 12) {
-            // Could be Sehri (3-6 AM) or Iftar (6-8 should be PM)
-            // Sehri times are usually 3-6 AM, Iftar times are around 18-20 (6-8 PM)
-            // If we see 6, 7, 8, assume it's AM for Sehri
+        } else if (hours === 0) {
+            // Midnight
+            hours = 12;
             period = 'AM';
         } else {
+            // For hours 1-11, we need to guess based on typical Ramadan times
+            // This will be handled by the classifyTimes function
+            // For now, just default to AM
             period = 'AM';
         }
     } else {
-        // Period is provided, use it as-is (already in 12-hour format)
-        // No conversion needed
+        // Period is provided - ensure hours are in 12-hour format
+        if (hours === 0) {
+            hours = 12;
+        } else if (hours > 12) {
+            hours = hours - 12;
+        }
     }
+    
+    // Ensure hours are valid for 12-hour format
+    if (hours === 0) hours = 12;
+    if (hours > 12) hours = hours - 12;
     
     // Return formatted 12-hour time
     return `${hours}:${minutes} ${period}`;
@@ -10225,6 +10389,9 @@ function normalizeTime(timeStr) {
 
 // Fill missing days with interpolation
 function fillMissingDays(timings) {
+    console.log('Filling missing days...');
+    let filledCount = 0;
+    
     for (let day = 1; day <= 30; day++) {
         if (!timings[day]) {
             // Find nearest days with data
@@ -10232,28 +10399,84 @@ function fillMissingDays(timings) {
             let nextDay = null;
             
             for (let i = day - 1; i >= 1; i--) {
-                if (timings[i]) {
+                if (timings[i] && timings[i].sehri && timings[i].iftar) {
                     prevDay = i;
                     break;
                 }
             }
             
             for (let i = day + 1; i <= 30; i++) {
-                if (timings[i]) {
+                if (timings[i] && timings[i].sehri && timings[i].iftar) {
                     nextDay = i;
                     break;
                 }
             }
             
-            if (prevDay) {
+            if (prevDay && nextDay) {
+                // Interpolate between prev and next
+                timings[day] = {
+                    sehri: timings[prevDay].sehri,
+                    iftar: timings[nextDay].iftar,
+                    confidence: 'low'  // Interpolated
+                };
+                filledCount++;
+            } else if (prevDay) {
                 // Use previous day's times
-                timings[day] = { ...timings[prevDay] };
+                timings[day] = { 
+                    ...timings[prevDay],
+                    confidence: 'low'  // Copied from previous
+                };
+                filledCount++;
             } else if (nextDay) {
                 // Use next day's times
-                timings[day] = { ...timings[nextDay] };
+                timings[day] = { 
+                    ...timings[nextDay],
+                    confidence: 'low'  // Copied from next
+                };
+                filledCount++;
             } else {
                 // Use default
-                timings[day] = { sehri: DEFAULT_SEHRI_TIME, iftar: DEFAULT_IFTAR_TIME };
+                timings[day] = { 
+                    sehri: DEFAULT_SEHRI_TIME, 
+                    iftar: DEFAULT_IFTAR_TIME,
+                    confidence: 'low'  // Default values
+                };
+                filledCount++;
+            }
+        } else if (!timings[day].confidence) {
+            // Ensure all entries have confidence
+            timings[day].confidence = 'high';
+        }
+        
+        // Validate times
+        if (timings[day]) {
+            const isValid = validateTiming(timings[day]);
+            if (!isValid && timings[day].confidence === 'high') {
+                timings[day].confidence = 'medium';  // Downgrade if validation fails
+            }
+        }
+    }
+    
+    console.log(`Filled ${filledCount} missing days`);
+}
+
+// Validate timing entry
+function validateTiming(timing) {
+    if (!timing || !timing.sehri || !timing.iftar) {
+        return false;
+    }
+    
+    const sehriHour = getHourFromTime(timing.sehri);
+    const iftarHour = getHourFromTime(timing.iftar);
+    
+    // Sehri should be early morning (3-6 AM)
+    const sehriValid = sehriHour >= 3 && sehriHour <= 6;
+    
+    // Iftar should be evening (17-21 = 5-9 PM)
+    const iftarValid = iftarHour >= 17 && iftarHour <= 21;
+    
+    return sehriValid && iftarValid;
+}
             }
         }
     }
@@ -10275,12 +10498,29 @@ function populateReviewGrid(timings) {
     grid.innerHTML = '';
     
     for (let day = 1; day <= 30; day++) {
-        const dayData = timings[day] || { sehri: DEFAULT_SEHRI_TIME, iftar: DEFAULT_IFTAR_TIME };
+        const dayData = timings[day] || { sehri: DEFAULT_SEHRI_TIME, iftar: DEFAULT_IFTAR_TIME, confidence: 'low' };
+        const confidence = dayData.confidence || 'medium';
         
         const dayEl = document.createElement('div');
         dayEl.className = 'ramadan-entry-day';
+        
+        // Add confidence indicator class
+        let confidenceClass = '';
+        let confidenceLabel = '';
+        if (confidence === 'low') {
+            confidenceClass = 'low-confidence';
+            confidenceLabel = '<span class="confidence-badge low">⚠ Please verify</span>';
+        } else if (confidence === 'medium') {
+            confidenceClass = 'medium-confidence';
+            confidenceLabel = '<span class="confidence-badge medium">⚠ Check</span>';
+        }
+        
+        dayEl.className = `ramadan-entry-day ${confidenceClass}`;
         dayEl.innerHTML = `
-            <div class="ramadan-day-badge">Day ${day}</div>
+            <div class="ramadan-day-badge">
+                Day ${day}
+                ${confidenceLabel}
+            </div>
             <div class="ramadan-time-input-group">
                 <label class="ramadan-time-label">Sehri Time</label>
                 <input type="time" class="ramadan-time-input" data-day="${day}" data-type="sehri" 
